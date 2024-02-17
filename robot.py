@@ -43,8 +43,8 @@ class MyRobot(TimedCommandRobot):
         self.gyro = Gyro()
         self.photoeyes = photoeyes.PhotoEyes()
 
-        # self.shooter = shooter.Shooter()
-        # self.intake = intake.Intake(self.commander, self.photoeyes)
+        self.shooter = shooter.Shooter()
+        self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver)
 
     def autonomousInit(self):

@@ -7,22 +7,18 @@ from controllers.commander import CommanderController
 
 
 class Intake(Subsystem):
-
-    feed_motors: CANSparkMax
-    tilt_motor: CANSparkMax
+    feed_motors = CANSparkMax(RobotMap.intake_feed,
+                              CANSparkLowLevel.MotorType.kBrushless)
+    tilt_motor = CANSparkMax(RobotMap.intake_tilt,
+                             CANSparkLowLevel.MotorType.kBrushless)
 
     def __init__(self, controller: CommanderController,
                  photoeyes: PhotoEyes) -> None:
         super().__init__()
-
-        self.feed_motors = CANSparkMax(RobotMap.intake_feed,
-                                       CANSparkLowLevel.MotorType.kBrushless)
-        self.tilt_motor = CANSparkMax(RobotMap.intake_tilt,
-                                      CANSparkLowLevel.MotorType.kBrushless)
-
         self.controller = controller
         self.photoeyes = photoeyes
-        defcmd = IntakeDefaultCommand(self, self.controller, self.photoeyes)
+        defcmd = IntakeDefaultCommand(self, self.controller,
+                                      self.photoeyes)
         self.setDefaultCommand(defcmd)
 
     def feed(self, speed: float) -> None:
@@ -31,7 +27,7 @@ class Intake(Subsystem):
 
 class IntakeDefaultCommand(Command):
 
-    def __init__(self, controller: CommanderController, intake: Intake,
+    def __init__(self, intake: Intake, controller: CommanderController,
                  photoeyes: PhotoEyes) -> None:
         super().__init__()
 
