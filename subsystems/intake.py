@@ -1,9 +1,9 @@
-from wpilib import Joystick
 from commands2 import Subsystem, Command
 from rev import CANSparkMax, CANSparkLowLevel
 
 from constants import RobotMap
 from subsystems.photoeyes import PhotoEyes
+from controllers.commander import CommanderController
 
 
 class Intake(Subsystem):
@@ -11,7 +11,8 @@ class Intake(Subsystem):
     feed_motors: CANSparkMax
     tilt_motor: CANSparkMax
 
-    def __init__(self, controller: Joystick, photoeyes: PhotoEyes) -> None:
+    def __init__(self, controller: CommanderController,
+                 photoeyes: PhotoEyes) -> None:
         super().__init__()
 
         self.feed_motors = CANSparkMax(RobotMap.intake_feed,
@@ -30,7 +31,7 @@ class Intake(Subsystem):
 
 class IntakeDefaultCommand(Command):
 
-    def __init__(self, controller: Joystick, intake: Intake,
+    def __init__(self, controller: CommanderController, intake: Intake,
                  photoeyes: PhotoEyes) -> None:
         super().__init__()
 
@@ -42,17 +43,16 @@ class IntakeDefaultCommand(Command):
     def execute(self) -> None:
         intake_speed = 0
 
-        button_down = self.controller.getRawButton(1)
-        reverse_down = self.controller.getRawButton(2)
-        override_down = self.controller.getRawButton(20)
+        intake_on = self.controller.get_intake_on()
+        reverse_down = self.controller.get_intake_reverse()
+        override_down = self.controller.get_intake_override()
         eye_blocked = self.photoeyes.intake_full()
 
-        if button_down and eye_blocked is False:
+        if intake_on and eye_blocked is False:
             intake_speed = 0.5
-        elif button_down and override_down:
+        elif intake_on and override_down:
             intake_speed = 0.5
         elif reverse_down and override_down:
             intake_speed = -0.5
 
         self.intake.feed(intake_speed)
-

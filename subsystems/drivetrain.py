@@ -130,19 +130,29 @@ class Drivetrain(Subsystem):
 
         # Configure the AutoBuilder last
         AutoBuilder.configureHolonomic(
-            self.getPose, # Robot pose supplier
-            self.resetOdometry, # Method to reset odometry (will be called if your auto has a starting pose)
-            self.getSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-            HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(1.9, 0.0, 0.0), # Translation PID constants
-                PIDConstants(1.6, 0.0, 0.0), # Rotation PID constants
-                kMaxSpeed, # Max module speed, in m/s.
-                0.431, # Drive base radius in meters. Distance from robot center to furthest module.
-                ReplanningConfig() # Default path replanning config. See the API for the options here
+            # Robot pose supplier
+            self.getPose,
+            # Method to reset odometry (will be called if your auto has a
+            # starting pose)
+            self.resetOdometry,
+            # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            self.getSpeeds,
+            # Method that will drive the robot given ROBOT RELATIVE
+            # ChassisSpeeds
+            self.driveRobotRelative,
+            HolonomicPathFollowerConfig(
+                PIDConstants(1.9, 0.0, 0.0),  # Translation PID constants
+                PIDConstants(1.6, 0.0, 0.0),  # Rotation PID constants
+                kMaxSpeed,  # Max module speed, in m/s.
+                # Drive base radius in meters. Distance from robot center to
+                # furthest module.
+                0.431,
+                # Default path replanning config. See the API for options
+                ReplanningConfig()
             ),
-            self.shouldFlipPath, # Supplier to control path flipping based on alliance color
-            self # Reference to this subsystem to set requirements
+            # Supplier to control path flipping based on alliance color
+            self.shouldFlipPath,
+            self  # Reference to this subsystem to set requirements
         )
 
         defcmd = DrivetrainDefaultCommand(self, self.controller)
@@ -152,7 +162,14 @@ class Drivetrain(Subsystem):
         return self.ll_json.getEntry("[]")
 
     def getSpeeds(self):
-        cs = self.kinematics.toChassisSpeeds([self.frontLeft.getState(), self.frontRight.getState(), self.backLeft.getState(), self.backRight.getState()])
+        cs = self.kinematics.toChassisSpeeds(
+            [
+                self.frontLeft.getState(),
+                self.frontRight.getState(),
+                self.backLeft.getState(),
+                self.backRight.getState(),
+            ]
+        )
         SmartDashboard.putNumber("csvx", cs.vx)
         SmartDashboard.putNumber("csvy", cs.vy)
         return cs
@@ -234,7 +251,7 @@ class Drivetrain(Subsystem):
         else:
             self.cs = ChassisSpeeds(xSpeed, ySpeed, rot)
 
-        swerveModuleStates = self.kinematics.toSwerveModuleStates(self.cs, Translation2d(0, 0))
+        swerveModuleStates = self.kinematics.toSwerveModuleStates(self.cs)
         SwerveDrive4Kinematics.desaturateWheelSpeeds(
             swerveModuleStates, kMaxSpeed
         )

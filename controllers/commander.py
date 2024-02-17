@@ -9,5 +9,8 @@ class CommanderController():
     def get_intake_on(self) -> bool:
         return self.joystick.getRawButton(1)
 
+    def get_intake_reverse(self) -> bool:
+        return self.joystick.getRawButton(2)
+
     def get_intake_override(self) -> bool:
-        return self.joystick.getRawButton(1)
+        return self.joystick.getRawButton(20)

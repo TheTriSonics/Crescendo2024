@@ -2,11 +2,8 @@
 
 import json
 import wpimath
-import wpilib.drive
-import wpimath.controller
-from commands.shooter_launch_note import ShooterLaunchNote
 import subsystems.drivetrain as drivetrain
-from subsystems.photoeyes import PhotoEyes
+import subsystems.photoeyes as photoeyes
 import subsystems.shooter as shooter
 import subsystems.intake as intake
 
@@ -24,6 +21,7 @@ from commands.rotate import Rotate
 from commands.drivefordistance import DriveForDistance
 from commands.haltdrive import HaltDrive
 from commands.drivetopoint import DriveToPoint
+from commands.shooter_launch_note import ShooterLaunchNote
 from subsystems.gyro import Gyro
 
 from constants import RobotMap
@@ -43,7 +41,7 @@ class MyRobot(TimedCommandRobot):
             Joystick(RobotMap.commander_controller)
         )
         self.gyro = Gyro()
-        self.photoeyes = PhotoEyes()
+        self.photoeyes = photoeyes.PhotoEyes()
 
         # self.shooter = shooter.Shooter()
         # self.intake = intake.Intake(self.commander, self.photoeyes)
