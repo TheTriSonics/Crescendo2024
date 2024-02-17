@@ -1,0 +1,37 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.2619624955360627,
+      "y": 4.022473907261513
+    },
+    "rotation": 120.93864203492336
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "StartToNote3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note3ToNote7"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note7ToShoot"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}
