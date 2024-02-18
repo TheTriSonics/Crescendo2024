@@ -22,7 +22,7 @@ class RobotMap():
     back_left_turn_encoder = 34
 
     intake_feed = 51
-    intake_tilt = 52
+    intake_lift = 52
 
     amp_lift = 61
     amp_feed = 62
