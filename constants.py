@@ -24,14 +24,14 @@ class RobotMap():
     intake_feed = 51
     intake_lift = 52
 
-    amp_lift = 61
-    amp_feed = 62
+    amp_lift = 53
+    amp_feed = 54
 
-    shooter_left = 71
-    shooter_right = 72
-    shooter_feed = 81
-    shooter_rotate_left = 91
-    shooter_rotate_right = 92
+    shooter_left = 55
+    shooter_right = 56
+    shooter_feed = 57
+    shooter_rotate_left = 58
+    shooter_rotate_right = 59
 
     climber_left = 9990
     climber_right = 9989

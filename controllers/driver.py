@@ -1,6 +1,8 @@
 from wpilib import Joystick
 
 
+# This is the controller for the person in charge of the drive train and
+# any other tasks required by them.
 class DriverController():
 
     def __init__(self, joystick: Joystick):

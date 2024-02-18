@@ -1,7 +1,7 @@
 from rev import CANSparkMax, CANSparkLowLevel
+from wpilib import DutyCycle
 from commands2 import Subsystem, Command
 from phoenix6.hardware import TalonFX
-from wpilib import DutyCycle
 from wpimath.controller import PIDController
 
 from constants import RobotMap
@@ -13,14 +13,10 @@ class Shooter(Subsystem):
     shooter_left = TalonFX(RobotMap.shooter_left)
     shooter_right = TalonFX(RobotMap.shooter_right)
     feed = TalonFX(RobotMap.shooter_feed)
-    rotate_left = CANSparkMax(RobotMap.shooter_rotate_left,
-                              CANSparkLowLevel.MotorType.kBrushless)
-    rotate_right = CANSparkMax(RobotMap.shooter_rotate_right,
-                               CANSparkLowLevel.MotorType.kBrushless)
-
-
+    """
+    """
     # May or may not be needed; if used for the shooter it could later be
-    # replaced by the TalonFX's internall controller once sane values are known
+    # replaced by the TalonFX's internal controller once sane values are known
     shooter_pid: PIDController
 
     # The SparkMax doesn't do any internal PID so for that it's software PID
@@ -31,6 +27,11 @@ class Shooter(Subsystem):
         super().__init__()
         # Initialize the target speed
         self.target_speed = 0
+        self.target_elevation = 0
+        self.rotate_left = CANSparkMax(RobotMap.shooter_rotate_left,
+                                       CANSparkLowLevel.MotorType.kBrushless)
+        self.rotate_right = CANSparkMax(RobotMap.shooter_rotate_right,
+                                        CANSparkLowLevel.MotorType.kBrushless)
 
     def set_elevation(self, value):
         # Set the speed of the elevation motor

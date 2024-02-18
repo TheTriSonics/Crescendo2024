@@ -1,28 +1,26 @@
 # All units of length will be in meters unless otherwise noted
 
 import json
-import wpimath
-import subsystems.drivetrain as drivetrain
-import subsystems.photoeyes as photoeyes
-import subsystems.shooter as shooter
-import subsystems.intake as intake
 
 from wpilib import SmartDashboard, Joystick
 from commands2 import TimedCommandRobot, SequentialCommandGroup
-from commands2.button import CommandJoystick
-from pathplannerlib.path import PathPlannerPath
 from pathplannerlib.auto import PathPlannerAuto
-from pathplannerlib.commands import FollowPathHolonomic
 from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
+from pathplannerlib.commands import FollowPathHolonomic
 
 from commands.rotate import Rotate
-from commands.drivefordistance import DriveForDistance
 from commands.haltdrive import HaltDrive
 from commands.drivetopoint import DriveToPoint
+from commands.drivefordistance import DriveForDistance
 from commands.shooter_launch_note import ShooterLaunchNote
-from subsystems.gyro import Gyro
+
+import subsystems.gyro as gyro
+import subsystems.intake as intake
+import subsystems.shooter as shooter
+import subsystems.photoeyes as photoeyes
+import subsystems.drivetrain as drivetrain
 
 from constants import RobotMap
 
@@ -40,7 +38,7 @@ class MyRobot(TimedCommandRobot):
         self.commander = CommanderController(
             Joystick(RobotMap.commander_controller)
         )
-        self.gyro = Gyro()
+        self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.PhotoEyes()
 
         self.shooter = shooter.Shooter()

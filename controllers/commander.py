@@ -1,6 +1,7 @@
 from wpilib import Joystick
 
 
+# This is the controller for the person not operating the drivetrain
 class CommanderController():
 
     def __init__(self, joystick: Joystick):
