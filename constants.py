@@ -23,7 +23,8 @@ class RobotMap():
 
     intake_feed = 51
     intake_tilt = 52
-    intake_tilt_encoder = 1
+    intake_tilt_encoder_a = 0
+    intake_tilt_encoder_b = 1
 
     intake_divert = 7
 
