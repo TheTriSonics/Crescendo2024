@@ -21,7 +21,8 @@ class IntakeTilt(Subsystem):
                                       CANSparkLowLevel.MotorType.kBrushless)
         # Set the tilt_motor to brake mode
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
-        self.tilt_encoder = Encoder(RobotMap.intake_tilt_encoder)
+        self.tilt_encoder = Encoder(RobotMap.intake_tilt_encoder_a,
+                                    RobotMap.intake_tilt_encoder_b)
         self.tilt_encoder.setDistancePerPulse(1)
         # TODO: Determine what the actual startup position
         # for the robot will be. I am assuming it starts in the down position
