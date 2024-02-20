@@ -10,6 +10,12 @@ class CommanderController():
     def get_intake_on(self) -> bool:
         return self.joystick.getRawButton(1)
 
+    def get_diverter_shooter(self) -> bool:
+        return self.joystick.getRawButton(3)
+
+    def get_diverter_amp(self) -> bool:
+        return self.joystick.getRawButton(4)
+
     def get_intake_reverse(self) -> bool:
         return self.joystick.getRawButton(2)
 

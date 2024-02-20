@@ -8,11 +8,6 @@ from constants import RobotMap
 
 
 class Shooter(Subsystem):
-    # Initialize the motor controllers
-    # Replace with the type of motor controller you're using
-    shooter_left = TalonFX(RobotMap.shooter_left)
-    shooter_right = TalonFX(RobotMap.shooter_right)
-    feed = TalonFX(RobotMap.shooter_feed)
     """
     """
     # May or may not be needed; if used for the shooter it could later be
@@ -28,6 +23,10 @@ class Shooter(Subsystem):
         # Initialize the target speed
         self.target_speed = 0
         self.target_elevation = 0
+        # Initialize the motor controllers
+        self.shooter_left = TalonFX(RobotMap.shooter_left)
+        self.shooter_right = TalonFX(RobotMap.shooter_right)
+        self.feed = TalonFX(RobotMap.shooter_feed)
         self.rotate_left = CANSparkMax(RobotMap.shooter_rotate_left,
                                        CANSparkLowLevel.MotorType.kBrushless)
         self.rotate_right = CANSparkMax(RobotMap.shooter_rotate_right,
