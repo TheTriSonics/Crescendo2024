@@ -14,8 +14,6 @@ class Intake(Subsystem):
         self.photoeyes = photoeyes
         self.feed_motors = CANSparkMax(RobotMap.intake_feed,
                                        CANSparkLowLevel.MotorType.kBrushless)
-        self.lift_motor = CANSparkMax(RobotMap.intake_lift,
-                                      CANSparkLowLevel.MotorType.kBrushless)
         self.divert_motor = CANSparkMax(RobotMap.intake_divert,
                                         CANSparkLowLevel.MotorType.kBrushless)
         defcmd = IntakeDefaultCommand(self, self.controller,
@@ -24,11 +22,6 @@ class Intake(Subsystem):
 
     def feed(self, speed: float) -> None:
         self.feed_motors.set(speed)
-
-    # UPDATE: There's no limit switches; we're using an encoder on the shaft
-    # that turns now.... so add in a PID controller too.
-    def lift(self, speed: float) -> None:
-        self.lift_motor.set(speed)
 
     def diverter(self, speed: float) -> None:
         self.divert_motor.set(speed)
@@ -66,13 +59,10 @@ class IntakeDefaultCommand(Command):
         # Now step through combinations to see what we should do
         if intake_on and eye_blocked is False:
             intake_speed = 0.5
-            self.lift_speed = -0.5
         elif intake_on and override_down:
             intake_speed = 0.5
-            self.lift_speed = -0.5
         elif reverse_down and override_down:
             intake_speed = -0.5
-            self.lift_speed = 0.5
 
         divert_speed = 0
         if divert_shooter:
@@ -83,5 +73,4 @@ class IntakeDefaultCommand(Command):
         # Pattern: 3) Execute decision
         # Now commit some values to the physical subsystem.
         self.intake.feed(intake_speed)
-        self.intake.lift(self.lift_speed)
         self.intake.diverter(divert_speed)
