@@ -30,7 +30,7 @@ class Intake(Subsystem):
     def lift(self, speed: float) -> None:
         self.lift_motor.set(speed)
 
-    def divert(self, speed: float) -> None:
+    def diverter(self, speed: float) -> None:
         self.divert_motor.set(speed)
 
 
@@ -74,6 +74,7 @@ class IntakeDefaultCommand(Command):
             intake_speed = -0.5
             self.lift_speed = 0.5
 
+        divert_speed = 0
         if divert_shooter:
             divert_speed = 0.5
         elif divert_amp:
