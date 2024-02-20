@@ -16,6 +16,8 @@ class Intake(Subsystem):
                                        CANSparkLowLevel.MotorType.kBrushless)
         self.lift_motor = CANSparkMax(RobotMap.intake_lift,
                                       CANSparkLowLevel.MotorType.kBrushless)
+        self.divert_motor = CANSparkMax(RobotMap.intake_divert,
+                                        CANSparkLowLevel.MotorType.kBrushless)
         defcmd = IntakeDefaultCommand(self, self.controller,
                                       self.photoeyes)
         self.setDefaultCommand(defcmd)
@@ -23,11 +25,13 @@ class Intake(Subsystem):
     def feed(self, speed: float) -> None:
         self.feed_motors.set(speed)
 
-    # The motor will turn off when the limit switches wired into the controller
-    # tell it to. So, we only need to drive the motor in the direction we want
-    # "forever" and it'll stop when needed.
+    # UPDATE: There's no limit switches; we're using an encoder on the shaft
+    # that turns now.... so add in a PID controller too.
     def lift(self, speed: float) -> None:
         self.lift_motor.set(speed)
+
+    def divert(self, speed: float) -> None:
+        self.divert_motor.set(speed)
 
 
 class IntakeDefaultCommand(Command):
@@ -43,6 +47,8 @@ class IntakeDefaultCommand(Command):
         self.addRequirements(intake)
 
     def execute(self) -> None:
+        # Pattern: 1) Gather Info
+
         # Read all of the buttons we need to take into account to make our
         # decision
         intake_on = self.controller.get_intake_on()
@@ -50,6 +56,10 @@ class IntakeDefaultCommand(Command):
         override_down = self.controller.get_intake_override()
         eye_blocked = self.photoeyes.intake_full()
 
+        divert_shooter = self.controller.get_diverter_shooter()
+        divert_amp = self.controller.get_diverter_amp()
+
+        # Pattern:  2) Make decision
         # Set up a default value for if no conditions match, or no buttons are
         # pressed.
         intake_speed = 0
@@ -64,6 +74,13 @@ class IntakeDefaultCommand(Command):
             intake_speed = -0.5
             self.lift_speed = 0.5
 
+        if divert_shooter:
+            divert_speed = 0.5
+        elif divert_amp:
+            divert_speed = -0.5
+
+        # Pattern: 3) Execute decision
         # Now commit some values to the physical subsystem.
         self.intake.feed(intake_speed)
         self.intake.lift(self.lift_speed)
+        self.intake.diverter(divert_speed)
