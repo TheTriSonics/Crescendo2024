@@ -1,10 +1,5 @@
 import wpilib
 from rev import CANSparkMax, CANSparkLowLevel
-<<<<<<< HEAD
-from wpilib import Encoder
-from wpilib.simulation import EncoderSim
-=======
->>>>>>> 2db93acc96f9d6c17bb1ef67b74d9f6a9fafd064
 from wpimath.controller import PIDController
 from constants import RobotMap
 from commands2 import Subsystem, Command
@@ -29,15 +24,10 @@ class IntakeTilt(Subsystem):
                                       CANSparkLowLevel.MotorType.kBrushed)
         # Set the tilt_motor to brake mode
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
-        self.tilt_encoder = self.tilt_motor.getEncoder()
-        self.tilt_encoder.setDistancePerPulse(1)
+        self.tilt_encoder = self.tilt_motor.getAbsoluteEncoder()
         # TODO: Determine what the actual startup position
         # for the robot will be. I am assuming it starts in the down position
         # with this code
-        if is_sim():
-            self.tilt_encoder.setDistance(0)
-        else:
-            self.tilt_encoder.reset()
 
         self.setpoint = encoder_setpoint_down
         defcmd = IntakeTiltDefaultCommand(self, self.controller)
@@ -46,18 +36,19 @@ class IntakeTilt(Subsystem):
     # The scheduler will call this method every 20ms and it will drive the
     # lift to the desired position using our PID controller
     def periodic(self) -> None:
-        current_pos = self.tilt_encoder.getDistance()
+        current_pos = self.tilt_encoder.getPosition()
         output = 0
         if abs(current_pos - self.setpoint) > 5:
             output = self.pid.calculate(current_pos, self.setpoint)
         self.tilt_motor.set(output)
 
     def simulationPeriodic(self) -> None:
-        current_pos = self.tilt_encoder.getDistance()
-        if self.setpoint > current_pos:
-            self.tilt_encoder.setDistance(current_pos + 1)
-        else:
-            self.tilt_encoder.setDistance(current_pos - 1)
+        current_pos = self.tilt_encoder.getPosition()
+        # setDistance doesn't exist on the sparkmax encoder
+        # if self.setpoint > current_pos:
+        #     self.tilt_encoder.setDistance(current_pos + 1)
+        # else:
+        #     self.tilt_encoder.setDistance(current_pos - 1)
         print(current_pos, self.setpoint)
 
 

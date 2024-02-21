@@ -37,7 +37,7 @@ class MyRobot(TimedCommandRobot):
             Joystick(RobotMap.driver_controller)
         )
         self.commander = CommanderController(
-            Joystick(RobotMap.commander_controller)
+            Joystick(RobotMap.commander_controller_1)
         )
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.PhotoEyes()
@@ -75,7 +75,7 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def teleopPeriodic(self) -> None:
-        if self.controller.getRawButtonPressed(2):
+        if self.driver.joystick.getRawButtonPressed(2):
             self.swerve.toggleFieldRelative()
 
         self.swerve.updateOdometry()
