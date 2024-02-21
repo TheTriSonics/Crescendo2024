@@ -1,5 +1,7 @@
+import wpilib
 from rev import CANSparkMax, CANSparkLowLevel
 from wpilib import Encoder
+from wpilib.simulation import EncoderSim
 from wpimath.controller import PIDController
 from constants import RobotMap
 from commands2 import Subsystem, Command
@@ -9,6 +11,10 @@ from controllers.commander import CommanderController
 # TODO: Sort these actual values out with real hardware
 encoder_setpoint_down = 0
 encoder_setpoint_up = 200
+
+
+def is_sim() -> bool:
+    return wpilib.RobotBase.isSimulation()
 
 
 class IntakeTilt(Subsystem):
@@ -21,14 +27,22 @@ class IntakeTilt(Subsystem):
                                       CANSparkLowLevel.MotorType.kBrushless)
         # Set the tilt_motor to brake mode
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
-        self.tilt_encoder = Encoder(RobotMap.intake_tilt_encoder_a,
-                                    RobotMap.intake_tilt_encoder_b)
+        if is_sim():
+            self.tilt_encoder = Encoder(RobotMap.intake_tilt_encoder_a,
+                                        RobotMap.intake_tilt_encoder_b)
+            self.tilt_encoder = EncoderSim(self.tilt_encoder)
+        else:
+            self.tilt_encoder = Encoder(RobotMap.intake_tilt_encoder_a,
+                                        RobotMap.intake_tilt_encoder_b)
         self.tilt_encoder.setDistancePerPulse(1)
         # TODO: Determine what the actual startup position
         # for the robot will be. I am assuming it starts in the down position
         # with this code
-        self.tilt_encoder.reset()
-        self.setpoint = encoder_setpoint_down
+        if is_sim():
+            self.tilt_encoder.setDistance(0)
+        else:
+            self.tilt_encoder.reset()
+        self.setpoint = encoder_setpoint_up
         defcmd = IntakeTiltDefaultCommand(self, self.controller)
         self.setDefaultCommand(defcmd)
 
@@ -40,6 +54,14 @@ class IntakeTilt(Subsystem):
         if abs(current_pos - self.setpoint) > 5:
             output = self.pid.calculate(current_pos, self.setpoint)
         self.tilt_motor.set(output)
+
+    def simulationPeriodic(self) -> None:
+        current_pos = self.tilt_encoder.getDistance()
+        if self.setpoint > current_pos:
+            self.tilt_encoder.setDistance(current_pos + 1)
+        else:
+            self.tilt_encoder.setDistance(current_pos - 1)
+        print(current_pos, self.setpoint)
 
 
 class IntakeTiltDefaultCommand(Command):
