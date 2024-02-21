@@ -1,11 +1,13 @@
 import wpilib
 from rev import CANSparkMax, CANSparkLowLevel
+<<<<<<< HEAD
 from wpilib import Encoder
 from wpilib.simulation import EncoderSim
+=======
+>>>>>>> 2db93acc96f9d6c17bb1ef67b74d9f6a9fafd064
 from wpimath.controller import PIDController
 from constants import RobotMap
 from commands2 import Subsystem, Command
-from subsystems.photoeyes import PhotoEyes
 from controllers.commander import CommanderController
 
 # TODO: Sort these actual values out with real hardware
@@ -24,16 +26,10 @@ class IntakeTilt(Subsystem):
         self.controller = controller
         self.pid = PIDController(0.1, 0, 0)
         self.tilt_motor = CANSparkMax(RobotMap.intake_tilt,
-                                      CANSparkLowLevel.MotorType.kBrushless)
+                                      CANSparkLowLevel.MotorType.kBrushed)
         # Set the tilt_motor to brake mode
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
-        if is_sim():
-            self.tilt_encoder = Encoder(RobotMap.intake_tilt_encoder_a,
-                                        RobotMap.intake_tilt_encoder_b)
-            self.tilt_encoder = EncoderSim(self.tilt_encoder)
-        else:
-            self.tilt_encoder = Encoder(RobotMap.intake_tilt_encoder_a,
-                                        RobotMap.intake_tilt_encoder_b)
+        self.tilt_encoder = self.tilt_motor.getEncoder()
         self.tilt_encoder.setDistancePerPulse(1)
         # TODO: Determine what the actual startup position
         # for the robot will be. I am assuming it starts in the down position
@@ -42,7 +38,8 @@ class IntakeTilt(Subsystem):
             self.tilt_encoder.setDistance(0)
         else:
             self.tilt_encoder.reset()
-        self.setpoint = encoder_setpoint_up
+
+        self.setpoint = encoder_setpoint_down
         defcmd = IntakeTiltDefaultCommand(self, self.controller)
         self.setDefaultCommand(defcmd)
 

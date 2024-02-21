@@ -75,6 +75,8 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def teleopPeriodic(self) -> None:
+        if self.controller.getRawButtonPressed(2):
+            self.swerve.toggleFieldRelative()
 
         self.swerve.updateOdometry()
         SmartDashboard.putNumber("yaw", self.gyro.get_yaw())
