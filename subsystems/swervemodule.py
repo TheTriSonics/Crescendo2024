@@ -42,8 +42,8 @@ class SwerveModule:
         :param canCoderChannel:      CAN ID for the turning motor's encoder.
         :param name:                 Name when displayed on Dashboard
         """
-        self.driveMotor = TalonFX(driveMotorChannel)
-        self.turningMotor = TalonFX(turningMotorChannel)
+        self.driveMotor = TalonFX(driveMotorChannel, "canivore")
+        self.turningMotor = TalonFX(turningMotorChannel, "canivore")
 
         driveConfigurator = self.driveMotor.configurator
 
@@ -69,7 +69,7 @@ class SwerveModule:
         turn_motor_configs.neutral_mode = signals.NeutralModeValue.BRAKE
         turnConfigurator.apply(turn_motor_configs)
 
-        self.turnEncoder = CANcoder(canCoderChannel)
+        self.turnEncoder = CANcoder(canCoderChannel, "canivore")
 
         self.drivePIDController = PIDController(0.24, 0, 0)
         self.turningPIDController = PIDController(0.25, 0, 0)

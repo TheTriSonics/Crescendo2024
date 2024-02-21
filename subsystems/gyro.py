@@ -7,7 +7,7 @@ from constants import RobotMap
 class Gyro(Subsystem):
     def __init__(self):
         super().__init__()
-        self.gyro = Pigeon2(RobotMap.pigeon2_id)
+        self.gyro = Pigeon2(RobotMap.pigeon2_id, "canivore")
 
     def get_yaw(self) -> float:
         return self.gyro.get_yaw().value
