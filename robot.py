@@ -18,7 +18,6 @@ from commands.shooter_launch_note import ShooterLaunchNote
 
 import subsystems.gyro as gyro
 import subsystems.intake as intake
-import subsystems.intake_tilt as intake_tilt
 import subsystems.shooter as shooter
 import subsystems.photoeyes as photoeyes
 import subsystems.drivetrain as drivetrain
@@ -44,7 +43,6 @@ class MyRobot(TimedCommandRobot):
 
         self.shooter = shooter.Shooter()
         self.intake = intake.Intake(self.commander, self.photoeyes)
-        self.intake_tilt = intake_tilt.IntakeTilt(self.commander)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver)
 
     def autonomousInit(self):

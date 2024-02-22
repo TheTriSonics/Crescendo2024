@@ -1,8 +1,19 @@
+import wpilib
 from rev import CANSparkMax, CANSparkLowLevel
 from constants import RobotMap
 from commands2 import Subsystem, Command
+from wpimath.controller import PIDController
 from subsystems.photoeyes import PhotoEyes
 from controllers.commander import CommanderController
+
+# TODO: Sort these actual values out with real hardware
+tilt_encoder_setpoint_down = 0
+tilt_encoder_setpoint_up = 200
+tilt_encoder_error_margin = 5
+
+
+def is_sim() -> bool:
+    return wpilib.RobotBase.isSimulation()
 
 
 class Intake(Subsystem):
@@ -16,6 +27,14 @@ class Intake(Subsystem):
                                        CANSparkLowLevel.MotorType.kBrushless)
         self.divert_motor = CANSparkMax(RobotMap.intake_divert,
                                         CANSparkLowLevel.MotorType.kBrushless)
+        self.tilt_motor = CANSparkMax(RobotMap.intake_tilt,
+                                      CANSparkLowLevel.MotorType.kBrushed)
+        # Set the tilt_motor to brake mode
+        self.tilt_pid = PIDController(0.1, 0, 0)
+        self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
+        self.tilt_encoder = self.tilt_motor.getAbsoluteEncoder()
+        # Wherever the lift is on boot is good enough for us right now.
+        self.tilt_setpoint = self.tilt_encoder.getPosition()
         defcmd = IntakeDefaultCommand(self, self.controller,
                                       self.photoeyes)
         self.setDefaultCommand(defcmd)
@@ -25,6 +44,29 @@ class Intake(Subsystem):
 
     def diverter(self, speed: float) -> None:
         self.divert_motor.set(speed)
+
+    # The scheduler will call this method every 20ms and it will drive the
+    # lift to the desired position using our PID controller
+    def periodic(self) -> None:
+        # Get the encoder reading, a number value.
+        current_pos = self.tilt_encoder.getPosition()
+        # Set default output to no power, so unless we change this
+        # the tilt motor won't be run.
+        output = 0
+        # Determie if we're too far away from the setpoint to stop
+        if abs(current_pos - self.tilt_setpoint) > tilt_encoder_error_margin:
+            output = self.tilt_pid.calculate(current_pos, self.tilt_setpoint)
+        # Now give whatever value we decided on to the tilt motors.
+        self.tilt_motor.set(output)
+
+    def simulationPeriodic(self) -> None:
+        current_pos = self.tilt_encoder.getPosition()
+        # setDistance doesn't exist on the sparkmax encoder
+        # if self.tilt_setpoint > current_pos:
+        #     self.tilt_encoder.setDistance(current_pos + 1)
+        # else:
+        #     self.tilt_encoder.setDistance(current_pos - 1)
+        print(current_pos, self.tilt_setpoint)
 
 
 class IntakeDefaultCommand(Command):
@@ -36,7 +78,6 @@ class IntakeDefaultCommand(Command):
         self.intake = intake
         self.photoeyes = photoeyes
         self.controller = controller
-        self.lift_speed = -0.5  # Default to raising up
         self.addRequirements(intake)
 
     def execute(self) -> None:
@@ -51,6 +92,9 @@ class IntakeDefaultCommand(Command):
 
         divert_shooter = self.controller.get_diverter_shooter()
         divert_amp = self.controller.get_diverter_amp()
+
+        tilt_down = self.controller.get_tilt_up()
+        tilt_up = self.controller.get_tilt_down()
 
         # Pattern:  2) Make decision
         # Set up a default value for if no conditions match, or no buttons are
@@ -69,6 +113,11 @@ class IntakeDefaultCommand(Command):
             divert_speed = 0.5
         elif divert_amp:
             divert_speed = -0.5
+
+        if tilt_up:
+            self.tilt_setpoint = tilt_encoder_setpoint_up
+        elif tilt_down:
+            self.tilt_setpoint = tilt_encoder_setpoint_down
 
         # Pattern: 3) Execute decision
         # Now commit some values to the physical subsystem.
