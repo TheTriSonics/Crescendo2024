@@ -1,7 +1,8 @@
 from rev import CANSparkMax, CANSparkLowLevel
-from wpilib import DutyCycle
+from wpilib import DutyCycle, SmartDashboard
 from commands2 import Subsystem, Command
 from phoenix6.hardware import TalonFX
+from phoenix6.signals import ControlModeValue
 from wpimath.controller import PIDController
 
 from constants import RobotMap
@@ -26,6 +27,8 @@ class Shooter(Subsystem):
         # Initialize the motor controllers
         self.shooter_left = TalonFX(RobotMap.shooter_left)
         self.shooter_right = TalonFX(RobotMap.shooter_right)
+        # TODO: Set right motor as follower of left
+
         self.feed = TalonFX(RobotMap.shooter_feed)
         self.rotate_left = CANSparkMax(RobotMap.shooter_rotate_left,
                                        CANSparkLowLevel.MotorType.kBrushless)
@@ -61,4 +64,11 @@ class Shooter(Subsystem):
     def halt(self):
         # Stop the shooter motor
         # self.shooter_motor.set(0)
+        pass
+
+    def periodic(self) -> None:
+        pn = SmartDashboard.putNumber
+        pn("shooter/target_speed", self.target_speed)
+        pn("shooter/target_elevation", self.target_elevation)
+        # TODO: Add the feed motor's output to the dashboard
         pass

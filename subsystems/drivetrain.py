@@ -172,8 +172,6 @@ class Drivetrain(Subsystem):
                 self.backRight.getState(),
             ]
         )
-        SmartDashboard.putNumber("csvx", cs.vx)
-        SmartDashboard.putNumber("csvy", cs.vy)
         return cs
 
     def driveRobotRelative(self, speeds):
