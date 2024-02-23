@@ -56,9 +56,11 @@ class DrivetrainDefaultCommand(Command):
         rotsign = 1 if rot > 0 else -1
         rot = rot * rot * rotsign * kMaxAngularSpeed
 
+        """
         SmartDashboard.putNumber('xspeed', xSpeed)
         SmartDashboard.putNumber('yspeed', ySpeed)
         SmartDashboard.putNumber('rot', rot)
+        """
         self.drivetrain.drive(xSpeed, ySpeed, rot)
 
 
@@ -234,7 +236,6 @@ class Drivetrain(Subsystem):
         rot: float,
         periodSeconds: float = 0.02,
     ) -> None:
-        SmartDashboard.putBoolean("Fr", self.fieldRelative)
         """
         Method to drive the robot using joystick info.
         :param xSpeed: Speed of the robot in the x direction (forward).
@@ -290,11 +291,16 @@ class Drivetrain(Subsystem):
                 self.backRight.getPosition(),
             ),
         )
-        pose = self.odometry.getPose()
-        SmartDashboard.putNumber("x", pose.X())
-        SmartDashboard.putNumber("y", pose.Y())
-        SmartDashboard.putNumber("heading",
-                                 self.get_heading_rotation_2d().degrees())
 
     def getPose(self) -> Pose2d:
         return self.odometry.getPose()
+
+    def periodic(self) -> None:
+        pose = self.odometry.getPose()
+        pn = SmartDashboard.putNumber
+        pb = SmartDashboard.putBoolean
+        heading = self.get_heading_rotation_2d().degrees()
+        pn("drivetrain/odometry/x", pose.X())
+        pn("drivetrain/odometry/y", pose.Y())
+        pn("drivetrain/odometry/heading", heading)
+        pb("drivetrain/field_relative", self.fieldRelative)

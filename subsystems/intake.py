@@ -1,5 +1,6 @@
 import wpilib
 from rev import CANSparkMax, CANSparkLowLevel
+from wpilib import SmartDashboard
 from constants import RobotMap
 from commands2 import Subsystem, Command
 from wpimath.controller import PIDController
@@ -58,6 +59,11 @@ class Intake(Subsystem):
             output = self.tilt_pid.calculate(current_pos, self.tilt_setpoint)
         # Now give whatever value we decided on to the tilt motors.
         self.tilt_motor.set(output)
+        # Display the subsystem status on a dashboard
+        SmartDashboard.putNumber('intake/tilt_setpoint', self.tilt_setpoint)
+        SmartDashboard.putNumber('intake/tilt_current',
+                                 self.tilt_encoder.getPosition())
+        SmartDashboard.putNumber('intake/tilt_output', output)
 
     def simulationPeriodic(self) -> None:
         current_pos = self.tilt_encoder.getPosition()
@@ -66,7 +72,8 @@ class Intake(Subsystem):
         #     self.tilt_encoder.setDistance(current_pos + 1)
         # else:
         #     self.tilt_encoder.setDistance(current_pos - 1)
-        print(current_pos, self.tilt_setpoint)
+        # print(current_pos, self.tilt_setpoint)
+        pass
 
 
 class IntakeDefaultCommand(Command):
@@ -123,3 +130,5 @@ class IntakeDefaultCommand(Command):
         # Now commit some values to the physical subsystem.
         self.intake.feed(intake_speed)
         self.intake.diverter(divert_speed)
+        SmartDashboard.putNumber('intake/intake_speed', intake_speed)
+        SmartDashboard.putNumber('intake/divert_speed', divert_speed)

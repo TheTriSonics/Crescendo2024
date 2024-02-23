@@ -73,16 +73,12 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def teleopPeriodic(self) -> None:
+        """
         if self.driver.joystick.getRawButtonPressed(2):
             self.swerve.toggleFieldRelative()
+        """
 
         self.swerve.updateOdometry()
-        SmartDashboard.putNumber("yaw", self.gyro.get_yaw())
-        currx, curry = self.getVisionXY()
-
-        if currx is not None and curry is not None:
-            SmartDashboard.putNumber('vx', currx)
-            SmartDashboard.putNumber('vy', curry)
 
     def getVisionXY(self):
         data = self.swerve.ll_json_entry.get()
@@ -104,7 +100,7 @@ class MyRobot(TimedCommandRobot):
         return currx, curry
 
     def disabledPeriodic(self) -> None:
-        SmartDashboard.putNumber("FL encoder", self.swerve.frontLeft.driveMotor.get_position().value)
+        pass
 
     '''
     def followPathCommand(self, pathName: str):

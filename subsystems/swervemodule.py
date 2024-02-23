@@ -138,9 +138,11 @@ class SwerveModule:
         # 0 and 90 degrees will scale the speed accordingly.
         state.speed *= (state.angle - encoderRotation).cos()
 
+        """
         SmartDashboard.putNumber(f'{self.name} state speed', state.speed)
         SmartDashboard.putNumber(f'{self.name} Velocity', self.driveMotor.get_velocity().value)
         SmartDashboard.putNumber(f'{self.name} Velocity*enc', self.driveMotor.get_velocity().value * (2 * math.pi * kWheelRadius))
+        """
 
         # Calculate the drive output from the drive PID controller.
         driveOutput = state.speed / (math.tau * kWheelRadius)
@@ -151,6 +153,6 @@ class SwerveModule:
         )
 
         # Now set the motor outputs where 0 is none and 1 is full
-        SmartDashboard.putNumber(f'{self.name} driveOutput', driveOutput)
+        # SmartDashboard.putNumber(f'{self.name} driveOutput', driveOutput)
         self.driveMotor.set_control(VelocityDutyCycle(driveOutput))
         self.turningMotor.set_control(DutyCycleOut(turnOutput))
