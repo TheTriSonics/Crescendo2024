@@ -46,11 +46,13 @@ class DrivetrainDefaultCommand(Command):
     def execute(self) -> None:
         xSpeed = self.xslew.calculate(self.controller.get_drive_x())
         xsign = 1 if xSpeed > 0 else -1
-        xSpeed = xSpeed * xSpeed * xsign * kMaxSpeed
+        # xSpeed = xSpeed * xSpeed * xsign * kMaxSpeed
+        xSpeed *= kMaxSpeed
 
         ySpeed = self.yslew.calculate(self.controller.get_drive_y())
         ysign = 1 if ySpeed > 0 else -1
-        ySpeed = ySpeed * ySpeed * ysign * kMaxSpeed
+        # ySpeed = ySpeed * ySpeed * ysign * kMaxSpeed
+        ySpeed *= kMaxSpeed
 
         rot = self.rotslew.calculate(self.controller.get_drive_rot())
         rotsign = 1 if rot > 0 else -1
@@ -59,6 +61,7 @@ class DrivetrainDefaultCommand(Command):
         master_throttle = self.controller.get_master_throttle()
         xSpeed *= master_throttle
         ySpeed *= master_throttle
+        rot *= master_throttle
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)

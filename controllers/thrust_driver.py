@@ -9,13 +9,13 @@ class DriverController():
         self.joystick = joystick
 
     def get_drive_x(self) -> float:
-        return self.joystick.getRawAxis(0)
+        return -self.joystick.getRawAxis(1)
 
     def get_drive_y(self) -> float:
-        return self.joystick.getRawAxis(1)
+        return -self.joystick.getRawAxis(0)
 
     def get_drive_rot(self) -> float:
-        return self.joystick.getRawAxis(5)
+        return -self.joystick.getRawAxis(5)
 
     def get_master_throttle(self) -> float:
         rawval = self.joystick.getRawAxis(2)

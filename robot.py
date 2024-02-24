@@ -73,10 +73,8 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def teleopPeriodic(self) -> None:
-        """
-        if self.driver.joystick.getRawButtonPressed(2):
+        if self.driver.joystick.getRawButtonPressed(3):
             self.swerve.toggleFieldRelative()
-        """
 
         self.swerve.updateOdometry()
 
