@@ -24,7 +24,7 @@ import subsystems.drivetrain as drivetrain
 
 from constants import RobotMap
 
-from controllers.driver import DriverController
+from controllers.thrust_driver import DriverController
 from controllers.commander import CommanderController
 
 

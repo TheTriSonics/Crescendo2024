@@ -20,7 +20,7 @@ from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
 
-from controllers.driver import DriverController
+from controllers.thrust_driver import DriverController
 from constants import RobotMap
 
 kMaxSpeed = 4.8  # m/s
@@ -55,6 +55,10 @@ class DrivetrainDefaultCommand(Command):
         rot = self.rotslew.calculate(self.controller.get_drive_rot())
         rotsign = 1 if rot > 0 else -1
         rot = rot * rot * rotsign * kMaxAngularSpeed
+
+        master_throttle = self.controller.get_master_throttle()
+        xSpeed *= master_throttle
+        ySpeed *= master_throttle
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
