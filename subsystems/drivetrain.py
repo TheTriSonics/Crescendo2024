@@ -128,6 +128,13 @@ class Drivetrain(Subsystem):
             True,
             'Back right')
 
+        self.modules = [
+            self.frontLeft,
+            self.frontRight,
+            self.backLeft,
+            self.backRight,
+        ]
+
         self.ntinst = NetworkTableInstance.getDefault().getTable('limelight')
         self.ll_json = self.ntinst.getStringTopic("json")
         self.ll_json_entry = self.ll_json.getEntry('[]')
@@ -195,12 +202,7 @@ class Drivetrain(Subsystem):
 
     def getSpeeds(self):
         cs = self.kinematics.toChassisSpeeds(
-            [
-                self.frontLeft.getState(),
-                self.frontRight.getState(),
-                self.backLeft.getState(),
-                self.backRight.getState(),
-            ]
+            [m.getState() for m in self.modules]
         )
         return cs
 
@@ -211,17 +213,10 @@ class Drivetrain(Subsystem):
         # SmartDashboard.putNumber("vy", speeds.vy)
         # SmartDashboard.putNumber("omega", speeds.omega)
         # self.cs = speeds
-        swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds)
-
-        SwerveDrive4Kinematics.desaturateWheelSpeeds(
-            swerveModuleStates, kMaxSpeed
-        )
-
-        self.frontLeft.setDesiredState(swerveModuleStates[0])
-        self.frontRight.setDesiredState(swerveModuleStates[1])
-        self.backLeft.setDesiredState(swerveModuleStates[2])
-        self.backRight.setDesiredState(swerveModuleStates[3])
-        pass
+        states = self.kinematics.toSwerveModuleStates(speeds)
+        SwerveDrive4Kinematics.desaturateWheelSpeeds(states, kMaxSpeed)
+        for m, s in zip(self.modules, states):
+            m.setDesiredState(s)
 
     def shouldFlipPath(self):
         return DriverStation.getAlliance() == DriverStation.Alliance.kRed
@@ -242,12 +237,7 @@ class Drivetrain(Subsystem):
             self.gyro.set_yaw(pose.rotation().degrees())
             self.odometry.resetPosition(
                 pose.rotation(),
-                modulePositions=[
-                    self.frontLeft.getPosition(),
-                    self.frontRight.getPosition(),
-                    self.backLeft.getPosition(),
-                    self.backRight.getPosition(),
-                ],
+                modulePositions=[m.getPosition() for m in self.modules],
                 pose=pose,
             )
 
@@ -280,33 +270,22 @@ class Drivetrain(Subsystem):
         else:
             self.cs = ChassisSpeeds(xSpeed, ySpeed, rot)
 
-        swerveModuleStates = self.kinematics.toSwerveModuleStates(self.cs)
-        SwerveDrive4Kinematics.desaturateWheelSpeeds(
-            swerveModuleStates, kMaxSpeed
-        )
-        self.frontLeft.setDesiredState(swerveModuleStates[0])
-        self.frontRight.setDesiredState(swerveModuleStates[1])
-        self.backLeft.setDesiredState(swerveModuleStates[2])
-        self.backRight.setDesiredState(swerveModuleStates[3])
+        states = self.kinematics.toSwerveModuleStates(self.cs)
+        SwerveDrive4Kinematics.desaturateWheelSpeeds(states, kMaxSpeed)
+        for m, s in zip(self.modules, states):
+            m.setDesiredState(s)
 
     def lockWheels(self):
-        for sm in [self.frontLeft, self.frontRight,
-                   self.backLeft, self.backRight]:
-            sm.lock()
+        for m in self.modules:
+            m.lock()
 
     def setStates(self, fl: SwerveModuleState, fr: SwerveModuleState,
                   bl: SwerveModuleState, br: SwerveModuleState):
-        self.frontLeft.setDesiredState(fl)
-        self.frontRight.setDesiredState(fr)
-        self.backLeft.setDesiredState(bl)
-        self.backRight.setDesiredState(br)
+        for m, s in zip(self.modules, (fl, fr, bl, br)):
+            m.setDesiredState(s)
 
     def getAngles(self) -> tuple[float, float, float, float]:
-        flAng = self.frontLeft.getState().angle.radians()
-        frAng = self.frontRight.getState().angle.radians()
-        blAng = self.backLeft.getState().angle.radians()
-        brAng = self.backRight.getState().angle.radians()
-        return flAng, frAng, blAng, brAng
+        return (m.getState().angle.radians() for m in self.modules)
 
     def updateOdometry(self) -> None:
         """Updates the field relative position of the robot."""
@@ -326,10 +305,12 @@ class Drivetrain(Subsystem):
     def periodic(self) -> None:
         self.updateOdometry()
         pose = self.getPose()
+        speeds = self.getSpeeds()
         pn = SmartDashboard.putNumber
         pb = SmartDashboard.putBoolean
-        heading = self.get_heading_rotation_2d().degrees()
-        pn("drivetrain/odometry/x", pose.X())
-        pn("drivetrain/odometry/y", pose.Y())
-        pn("drivetrain/odometry/heading", heading)
+        pn("drivetrain/odometry/x_pos", pose.X())
+        pn("drivetrain/odometry/y_pos", pose.Y())
+        pn("drivetrain/odometry/heading_pos", pose.rotation().degrees())
+        pn("drivetrain/odometry/x_speed", speeds.vx)
+        pn("drivetrain/odometry/y_speed", speeds.vy)
         pb("drivetrain/field_relative", self.fieldRelative)
