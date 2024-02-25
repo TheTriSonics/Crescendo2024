@@ -24,3 +24,5 @@ class DriverController():
         rawval /= 2
         return rawval
 
+    def get_field_relative_toggle(self) -> bool:
+        return self.joystick.getRawButton(3)

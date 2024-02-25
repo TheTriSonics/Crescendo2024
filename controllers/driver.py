@@ -20,3 +20,5 @@ class DriverController():
     def get_master_throttle(self) -> float:
         return 1
 
+    def get_field_relative_toggle(self) -> bool:
+        return self.joystick.getRawButton(3)
