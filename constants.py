@@ -1,3 +1,4 @@
+from misc import is_sim
 
 class RobotMap():
 
@@ -22,10 +23,16 @@ class RobotMap():
     back_left_turn = 24
     back_left_turn_encoder = 34
 
-    intake_feed = 51
-    intake_tilt = 52
-    intake_tilt_encoder_a = 0
-    intake_tilt_encoder_b = 1
+    if is_sim():
+        intake_feed = 5
+        intake_tilt = 6
+        intake_tilt_encoder_a = 0
+        intake_tilt_encoder_b = 1
+    else:
+        intake_feed = 51
+        intake_tilt = 52
+        intake_tilt_encoder_a = 0
+        intake_tilt_encoder_b = 1
 
     intake_divert = 7
 

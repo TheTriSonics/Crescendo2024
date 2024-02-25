@@ -1,5 +1,7 @@
+import rev
 import wpilib
-from rev import CANSparkMax, CANSparkLowLevel
+from rev import CANSparkLowLevel
+from misc import is_sim
 from wpilib import SmartDashboard
 from constants import RobotMap
 from commands2 import Subsystem, Command
@@ -13,8 +15,33 @@ tilt_encoder_setpoint_up = 200
 tilt_encoder_error_margin = 5
 
 
-def is_sim() -> bool:
-    return wpilib.RobotBase.isSimulation()
+
+if is_sim():
+    class SparkMaxAbsoluteEncoder:
+
+        def __init__(self) -> None:
+            self._position = 0
+
+        def getPosition(self):
+            return self._position
+
+    class CANSparkMax(wpilib.Spark):
+        IdleMode = rev.CANSparkMax.IdleMode
+
+        def __init__(self, channel: int, ignored) -> None:
+            super().__init__(channel)
+            self._encoder = SparkMaxAbsoluteEncoder()
+
+        def getAbsoluteEncoder(self):
+            return self._encoder
+
+        def setIdleMode(self, mode):
+            pass
+
+else:
+    import rev
+
+    CANSparkMax = rev.CANSparkMax
 
 
 class Intake(Subsystem):
@@ -34,6 +61,7 @@ class Intake(Subsystem):
         self.tilt_pid = PIDController(0.1, 0, 0)
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
         self.tilt_encoder = self.tilt_motor.getAbsoluteEncoder()
+
         # Wherever the lift is on boot is good enough for us right now.
         self.tilt_setpoint = self.tilt_encoder.getPosition()
         defcmd = IntakeDefaultCommand(self, self.controller,
@@ -65,13 +93,15 @@ class Intake(Subsystem):
                                  self.tilt_encoder.getPosition())
         SmartDashboard.putNumber('intake/tilt_output', output)
 
+    def getSimulatedPosition(self):
+        return self.simulated_position
+
     def simulationPeriodic(self) -> None:
         current_pos = self.tilt_encoder.getPosition()
-        # setDistance doesn't exist on the sparkmax encoder
-        # if self.tilt_setpoint > current_pos:
-        #     self.tilt_encoder.setDistance(current_pos + 1)
-        # else:
-        #     self.tilt_encoder.setDistance(current_pos - 1)
+        if self.tilt_setpoint > current_pos:
+            self.tilt_encoder._position = current_pos + 1
+        else:
+            self.tilt_encoder._position = current_pos - 1
         # print(current_pos, self.tilt_setpoint)
         pass
 

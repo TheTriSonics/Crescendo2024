@@ -41,6 +41,7 @@ class DrivetrainDefaultCommand(Command):
         self.xslew = SlewRateLimiter(2)
         self.yslew = SlewRateLimiter(2)
         self.rotslew = SlewRateLimiter(1)
+        self.idle_counter = 0
         self.addRequirements(drivetrain)
 
     def execute(self) -> None:
@@ -68,6 +69,14 @@ class DrivetrainDefaultCommand(Command):
         SmartDashboard.putNumber('yspeed', ySpeed)
         SmartDashboard.putNumber('rot', rot)
         """
+        if xSpeed > 0 or ySpeed > 0 or rot > 0:
+            self.idle_counter = 0
+            self.drivetrain.locked = False
+            self.drivetrain.lockable = False
+        else:
+            self.idle_counter += 1
+        if self.idle_counter > 50:
+            self.drivetrain.lockable = True
         self.drivetrain.drive(xSpeed, ySpeed, rot)
 
 
@@ -82,6 +91,9 @@ class Drivetrain(Subsystem):
         self.frontRightLocation = Translation2d(swerve_offset, -swerve_offset)
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
+
+        self.lockable = False
+        self.locked = False
 
         self.frontLeft = swervemodule.SwerveModule(
             RobotMap.front_left_drive,

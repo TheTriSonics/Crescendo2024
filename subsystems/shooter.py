@@ -2,7 +2,6 @@ from rev import CANSparkMax, CANSparkLowLevel
 from wpilib import DutyCycle, SmartDashboard
 from commands2 import Subsystem, Command
 from phoenix6.hardware import TalonFX
-from phoenix6.signals import ControlModeValue
 from wpimath.controller import PIDController
 
 from constants import RobotMap

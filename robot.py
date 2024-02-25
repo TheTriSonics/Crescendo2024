@@ -2,7 +2,7 @@
 
 import json
 
-from wpilib import SmartDashboard, Joystick
+from wpilib import SmartDashboard, Joystick, DriverStation
 from commands2 import TimedCommandRobot, SequentialCommandGroup
 from pathplannerlib.auto import PathPlannerAuto
 from pathplannerlib.config import (
@@ -27,11 +27,16 @@ from constants import RobotMap
 from controllers.thrust_driver import DriverController
 from controllers.commander import CommanderController
 
+from misc import is_sim
+
 
 class MyRobot(TimedCommandRobot):
 
     def robotInit(self) -> None:
         """Robot initialization function"""
+        if is_sim():
+            # Disable the joystick warnings in simulator mode; they're annoying
+            DriverStation.silenceJoystickConnectionWarning(True)
         self.driver = DriverController(
             Joystick(RobotMap.driver_controller)
         )
@@ -77,6 +82,9 @@ class MyRobot(TimedCommandRobot):
             self.swerve.toggleFieldRelative()
 
         self.swerve.updateOdometry()
+        if self.swerve.lockable is True and self.swerve.locked is False:
+            lock_cmd = HaltDrive(self.swerve)
+            lock_cmd.schedule()
 
     def getVisionXY(self):
         data = self.swerve.ll_json_entry.get()
