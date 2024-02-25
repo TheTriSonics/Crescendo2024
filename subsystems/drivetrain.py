@@ -5,12 +5,13 @@
 #
 
 import math
-import ntcore
 import subsystems.swervemodule as swervemodule
 from commands2 import Subsystem, Command
 from wpilib import SmartDashboard, DriverStation
+from ntcore import NetworkTableInstance
 from wpimath.filter import SlewRateLimiter
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
+from wpimath.estimator import SwerveDrive4PoseEstimator
 from wpimath.kinematics import (
     SwerveModuleState, SwerveDrive4Kinematics, SwerveDrive4Odometry,
     SwerveModulePosition, ChassisSpeeds
@@ -64,6 +65,12 @@ class DrivetrainDefaultCommand(Command):
         ySpeed *= master_throttle
         rot *= master_throttle
 
+        total_speed = math.sqrt(xSpeed * xSpeed + ySpeed * ySpeed)
+        if total_speed < kMaxSpeed/2 and abs(rot) < 0.05:
+            self.vision_stable = True
+        else:
+            self.vision_stable = False
+
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
         SmartDashboard.putNumber('yspeed', ySpeed)
@@ -94,6 +101,7 @@ class Drivetrain(Subsystem):
 
         self.lockable = False
         self.locked = False
+        self.vision_stable = False
 
         self.frontLeft = swervemodule.SwerveModule(
             RobotMap.front_left_drive,
@@ -120,7 +128,7 @@ class Drivetrain(Subsystem):
             True,
             'Back right')
 
-        self.ntinst = ntcore.NetworkTableInstance.getDefault().getTable('limelight')
+        self.ntinst = NetworkTableInstance.getDefault().getTable('limelight')
         self.ll_json = self.ntinst.getStringTopic("json")
         self.ll_json_entry = self.ll_json.getEntry('[]')
 
@@ -136,7 +144,7 @@ class Drivetrain(Subsystem):
             self.backRightLocation,
         )
 
-        self.odometry = SwerveDrive4Odometry(
+        self.odometry = SwerveDrive4PoseEstimator(
             self.kinematics,
             self.get_heading_rotation_2d(),
             (
@@ -145,6 +153,9 @@ class Drivetrain(Subsystem):
                 self.backLeft.getPosition(),
                 self.backRight.getPosition(),
             ),
+            Pose2d(),
+            (0, 0, 0),  # wheel std devs for Kalman filters
+            (0, 0, 0),  # vision std devs for Kalman filters
         )
 
         self.resetOdometry()
@@ -310,10 +321,11 @@ class Drivetrain(Subsystem):
         )
 
     def getPose(self) -> Pose2d:
-        return self.odometry.getPose()
+        return self.odometry.getEstimatedPosition()
 
     def periodic(self) -> None:
-        pose = self.odometry.getPose()
+        self.updateOdometry()
+        pose = self.getPose()
         pn = SmartDashboard.putNumber
         pb = SmartDashboard.putBoolean
         heading = self.get_heading_rotation_2d().degrees()

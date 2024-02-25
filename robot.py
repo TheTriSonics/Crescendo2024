@@ -4,6 +4,7 @@ import json
 
 from wpilib import SmartDashboard, Joystick, DriverStation
 from commands2 import TimedCommandRobot, SequentialCommandGroup
+from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from pathplannerlib.auto import PathPlannerAuto
 from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
@@ -71,21 +72,29 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def autonomousPeriodic(self) -> None:
-        self.swerve.updateOdometry()
-        SmartDashboard.putNumber("yaw", self.gyro.get_yaw())
+        pass
 
     def teleopInit(self) -> None:
         pass
 
     def teleopPeriodic(self) -> None:
-        if self.driver.joystick.getRawButtonPressed(3):
-            self.swerve.toggleFieldRelative()
-
-        self.swerve.updateOdometry()
         if self.swerve.lockable is True and self.swerve.locked is False:
             lock_cmd = HaltDrive(self.swerve)
             lock_cmd.schedule()
 
+        # Rough idea of how to incorporate vision into odometry
+        if self.swerve.vision_stable is True:
+            # Here's our method to pull data from LimeLight's network table
+            x, y, heading = self.getVisionXY()
+            vpose = Pose2d(x, y, Rotation2d(heading))
+            # TODO: This is a placeholder for the actual std devs used in
+            # the Kalman filter
+            self.swerve.odometry.setVisionMeasurementStdDevs((0.1, 0.1, 0.1))
+            self.swerve.odometry.addVisionMeasurement(vpose)
+            pass
+
+    # TODO: Heading needs to be added to the return on this
+    # and the overal processing could be a lot cleaner.
     def getVisionXY(self):
         data = self.swerve.ll_json_entry.get()
         obj = json.loads(data)
@@ -103,7 +112,7 @@ class MyRobot(TimedCommandRobot):
                 if targets > 0:
                     currx = totalx / targets
                     curry = totaly / targets
-        return currx, curry
+        return currx, curry, 0
 
     def disabledPeriodic(self) -> None:
         pass
