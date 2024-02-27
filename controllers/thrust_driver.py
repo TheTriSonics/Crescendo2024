@@ -23,4 +23,7 @@ class DriverController():
         rawval += 1
         rawval /= 2
         return rawval
+    
+    def get_note_lockon(self) -> bool:
+        return self.joystick.getRawButton(1)
 
