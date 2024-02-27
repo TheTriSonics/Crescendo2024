@@ -4,7 +4,7 @@ from commands2 import Subsystem, Command
 from rev import CANSparkMax
 from phoenix6.hardware import TalonFX
 
-from constants import RobotMap as RM
+from constants import RobotMotorMap as RMM
 
 #TODO: Make work
 class Amp(Subsystem):
@@ -14,9 +14,9 @@ class Amp(Subsystem):
 
     def __init__(self):
         super().__init__()
-        self.feed_motor = CANSparkMax(RM.amp_feed_motor, CANSparkMax.MotorType.kBrushless)
+        self.feed_motor = CANSparkMax(RMM.amp_feed_motor, CANSparkMax.MotorType.kBrushless)
 
-        self.lift_motor = TalonFX(RM.amp_lift_motor, "canivore")
+        self.lift_motor = TalonFX(RMM.amp_lift_motor, "canivore")
 
         self.direction = None
 
