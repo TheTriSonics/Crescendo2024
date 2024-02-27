@@ -24,7 +24,7 @@ import subsystems.photoeyes as photoeyes
 import subsystems.drivetrain as drivetrain
 import subsystems.note_tracker as note_tracker
 
-from constants import RobotMap
+from constants import RobotButtonMap as RBM
 
 from controllers.thrust_driver import DriverController
 from controllers.commander import CommanderController
@@ -40,10 +40,11 @@ class MyRobot(TimedCommandRobot):
             # Disable the joystick warnings in simulator mode; they're annoying
             DriverStation.silenceJoystickConnectionWarning(True)
         self.driver = DriverController(
-            Joystick(RobotMap.driver_controller)
+            Joystick(RBM.driver_controller)
         )
         self.commander = CommanderController(
-            Joystick(RobotMap.commander_controller_1, RobotMap.commander_controller_2)
+            Joystick(RBM.commander_controller_1),
+            Joystick(RBM.commander_controller_2),
         )
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.PhotoEyes()

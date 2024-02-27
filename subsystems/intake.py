@@ -3,7 +3,7 @@ import wpilib
 from rev import CANSparkLowLevel
 from misc import is_sim
 from wpilib import SmartDashboard
-from constants import RobotMap
+from constants import RobotMotorMap as RMM
 from commands2 import Subsystem, Command
 from wpimath.controller import PIDController
 from subsystems.photoeyes import PhotoEyes
@@ -52,11 +52,11 @@ class Intake(Subsystem):
         self.controller = controller
         self.photoeyes = photoeyes
 
-        self.feed_motors = CANSparkMax(RobotMap.intake_feed,
+        self.feed_motors = CANSparkMax(RMM.intake_feed,
                                        CANSparkLowLevel.MotorType.kBrushed)
-        self.tilt_motor = CANSparkMax(RobotMap.intake_tilt,
+        self.tilt_motor = CANSparkMax(RMM.intake_tilt,
                                       CANSparkLowLevel.MotorType.kBrushed)
-        
+
         # Set the tilt_motor to brake mode
         self.tilt_pid = PIDController(0.1, 0, 0)
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
@@ -119,13 +119,13 @@ class IntakeDefaultCommand(Command):
 
         # Read all of the buttons we need to take into account to make our
         # decision
-        intake_on = self.controller.get_intake_on()
-        reverse_down = self.controller.get_intake_reverse()
-        override_down = self.controller.get_intake_override()
-        eye_blocked = self.photoeyes.intake_full()
+        intake_on = self.controller.get_intake_ready()
+        reverse_down = self.controller.get_intake_eject()
+        override_down = self.controller.get_override_intake_tilt_down()
+        eye_blocked = self.photoeyes.intake_loaded()
 
-        tilt_down = self.controller.get_tilt_up()
-        tilt_up = self.controller.get_tilt_down()
+        tilt_down = self.controller.get_intake_ready()
+        tilt_up = self.controller.get_intake_eject()
 
         # Pattern:  2) Make decision
         # Set up a default value for if no conditions match, or no buttons are
