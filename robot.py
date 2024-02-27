@@ -59,7 +59,7 @@ class MyRobot(TimedCommandRobot):
 
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
-            self.leds.set_connect_status()
+            self.leds.rainbow()
 
     def autonomousInit(self):
         # cmd = DriveForDistance(self.swerve, 50)

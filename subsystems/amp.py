@@ -74,11 +74,20 @@ class AmpDefaultCommand(Command):
         self.photoeyes = photoeyes
 
     def execute(self):
-        if self.controller.get_load_amp() & self.amp.get_height() == Amp.Height.HOME & self.photoeyes.get_intake_loaded():
-            self.amp.set_feed(0.5)
-        elif self.controller.get_load_amp() & self.amp.get_height() != Amp.Height.HOME:
-            self.amp.set_feed(0)
+        power = 0.0
 
+        if self.controller.get_load_amp() & self.amp.get_height() == Amp.Height.HOME & self.photoeyes.get_intake_loaded():
+            running = True
+            while running:
+                power = 1.0
+                if self.photoeyes.get_amp_loaded():
+                    running = False
+        elif self.controller.get_load_amp() & self.amp.get_height() != Amp.Height.HOME:
+            power = 0.0
+        elif self.controller.get_amp_eject() & self.amp.get_height() != Amp.Height.HOME & self.photoeyes.get_amp_loaded():
+            power = 0.5
+        else:
+            power = 0.0
 
         if self.controller.get_amp_lift_amp():
             self.amp.set_height(Amp.Height.AMP)
@@ -87,9 +96,4 @@ class AmpDefaultCommand(Command):
         elif self.controller.get_amp_lift_home():
             self.amp.set_height(Amp.Height.HOME)
 
-        if self.controller.get_amp_eject():
-            self.amp.set_feed(0.5)
-        else:
-            self.amp.set_feed(0)
-
-
+        self.amp.set_feed(power)

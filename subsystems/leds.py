@@ -9,7 +9,7 @@ class Leds(Subsystem):
 
         self.leds = AddressableLED(RSM.addressable_leds)
 
-        self.led_length = 60 #TODO: Set the correct length
+        self.led_length = 30 #TODO: Set the correct length
 
         self.leds.setLength(self.led_length)
 
@@ -41,11 +41,8 @@ class Leds(Subsystem):
             self.led_data[i].setHSV(color, 255, brightness)
     
     def set_connect_status(self):
-        for x in range(51):
-            brt = int(255.0*(1.0 - abs((2.0*(x/50))-1.0)))
-
         if DriverStation.isDSAttached():
-            self.set_color(120, brightness=brt)
+            self.set_color(120)
         else:
             self.set_color(0)
     
