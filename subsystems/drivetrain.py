@@ -12,6 +12,7 @@ from ntcore import NetworkTableInstance
 from wpimath.filter import SlewRateLimiter
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
+from wpimath.controller import PIDController
 from wpimath.kinematics import (
     SwerveModuleState, SwerveDrive4Kinematics, SwerveDrive4Odometry,
     SwerveModulePosition, ChassisSpeeds
@@ -23,6 +24,7 @@ from pathplannerlib.config import (
 
 from controllers.thrust_driver import DriverController
 from constants import RobotMap
+from subsystems.note_tracker import NoteTracker
 
 kMaxSpeed = 4.8  # m/s
 kMaxAngularSpeed = math.pi * 5
@@ -34,10 +36,12 @@ class DrivetrainDefaultCommand(Command):
     """
     Default command for the drivetrain.
     """
-    def __init__(self, drivetrain, controller: DriverController) -> None:
+    def __init__(self, drivetrain, controller: DriverController, photon: NoteTracker) -> None:
         super().__init__()
         self.drivetrain = drivetrain
         self.controller = controller
+        self.photon = photon
+        self.pid = PIDController(0.05, 0, 0)
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(2)
         self.yslew = SlewRateLimiter(2)
@@ -59,8 +63,18 @@ class DrivetrainDefaultCommand(Command):
         rot = self.rotslew.calculate(self.controller.get_drive_rot())
         rotsign = 1 if rot > 0 else -1
         rot = rot * rot * rotsign * kMaxAngularSpeed
-
         master_throttle = self.controller.get_master_throttle()
+        if self.controller.get_note_lockon():
+            yaw = self.photon.getYawOffset()
+            if yaw is None or abs(yaw) < 1.7:
+                rot = 0
+            else:
+                rot = self.pid.calculate(yaw, 0)
+        else:
+            rot = self.rotslew.calculate(self.controller.get_drive_rot())
+            rotsign = 1 if rot > 0 else -1
+            rot = rot * rot * rotsign * kMaxAngularSpeed
+            rot *= master_throttle
         xSpeed *= master_throttle
         ySpeed *= master_throttle
         rot *= master_throttle
@@ -75,6 +89,15 @@ class DrivetrainDefaultCommand(Command):
         SmartDashboard.putNumber('xspeed', xSpeed)
         SmartDashboard.putNumber('yspeed', ySpeed)
         SmartDashboard.putNumber('rot', rot)
+        # Code to lock the wheels if the robot is idle
+        if xSpeed > 0 or ySpeed > 0 or rot > 0:
+            self.idle_counter = 0
+            self.drivetrain.locked = False
+            self.drivetrain.lockable = False
+        else:
+            self.idle_counter += 1
+        if self.idle_counter > 50:
+            self.drivetrain.lockable = True
         """
         if xSpeed > 0 or ySpeed > 0 or rot > 0:
             self.idle_counter = 0
@@ -91,13 +114,14 @@ class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
-    def __init__(self, gyro, driver_controller) -> None:
+    def __init__(self, gyro, driver_controller, photon: NoteTracker) -> None:
         super().__init__()
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
         self.frontRightLocation = Translation2d(swerve_offset, -swerve_offset)
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
+        self.photon = photon
 
         self.lockable = False
         self.locked = False
@@ -194,7 +218,7 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        defcmd = DrivetrainDefaultCommand(self, self.controller)
+        defcmd = DrivetrainDefaultCommand(self, self.controller, photon)
         self.setDefaultCommand(defcmd)
 
     def llJson(self) -> str:

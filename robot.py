@@ -22,6 +22,7 @@ import subsystems.intake as intake
 import subsystems.shooter as shooter
 import subsystems.photoeyes as photoeyes
 import subsystems.drivetrain as drivetrain
+import subsystems.note_tracker as note_tracker
 
 from constants import RobotMap
 
@@ -48,8 +49,10 @@ class MyRobot(TimedCommandRobot):
         self.photoeyes = photoeyes.PhotoEyes()
 
         self.shooter = shooter.Shooter()
+        self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
-        self.swerve = drivetrain.Drivetrain(self.gyro, self.driver)
+        self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
+        self.note_tracker = note_tracker.NoteTracker()
 
     def autonomousInit(self):
         # cmd = DriveForDistance(self.swerve, 50)
