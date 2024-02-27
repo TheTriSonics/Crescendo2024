@@ -4,7 +4,7 @@ from commands2 import Subsystem, Command
 from phoenix6.hardware import TalonFX
 from wpimath.controller import PIDController
 
-from constants import RobotMap
+from constants import RobotMotorMap as RMM
 
 
 class Shooter(Subsystem):
@@ -24,14 +24,15 @@ class Shooter(Subsystem):
         self.target_speed = 0
         self.target_elevation = 0
         # Initialize the motor controllers
-        self.shooter_left = TalonFX(RobotMap.shooter_left)
-        self.shooter_right = TalonFX(RobotMap.shooter_right)
+        self.shooter_motor_left = TalonFX(RMM.shooter_motor_left)
+        self.shooter_motor_right = TalonFX(RMM.shooter_motor_right)
         # TODO: Set right motor as follower of left
 
-        self.feed = TalonFX(RobotMap.shooter_feed)
-        self.rotate_left = CANSparkMax(RobotMap.shooter_rotate_left,
+        self.feed_motor = TalonFX(RMM.shooter_motor_feed)
+
+        self.tilt_motor_left = CANSparkMax(RMM.shooter_motor_tilt_left,
                                        CANSparkLowLevel.MotorType.kBrushless)
-        self.rotate_right = CANSparkMax(RobotMap.shooter_rotate_right,
+        self.tilt_motor_right = CANSparkMax(RMM.shooter_motor_tilt_right,
                                         CANSparkLowLevel.MotorType.kBrushless)
 
     def set_elevation(self, value):
@@ -50,19 +51,14 @@ class Shooter(Subsystem):
         pass
 
     def feed_note(self):
-        self.feed.set_control(DutyCycle(0.5))
+        self.feed_motor.set_control(DutyCycle(0.5))
 
     def feed_off(self):
-        self.feed.set_control(DutyCycle(0.0))
-
-    def reverse(self):
-        # Reverse the direction of the shooter motor
-        # self.shooter_motor.set(-self.target_speed)
-        pass
+        self.feed_motor.set_control(DutyCycle(0.0))
 
     def halt(self):
         # Stop the shooter motor
-        # self.shooter_motor.set(0)
+        self.shooter_motor_left.set_control(DutyCycle(0), override_brake_dur_neutral=True)
         pass
 
     def periodic(self) -> None:

@@ -51,12 +51,12 @@ class Intake(Subsystem):
         super().__init__()
         self.controller = controller
         self.photoeyes = photoeyes
+
         self.feed_motors = CANSparkMax(RobotMap.intake_feed,
-                                       CANSparkLowLevel.MotorType.kBrushless)
-        self.divert_motor = CANSparkMax(RobotMap.intake_divert,
-                                        CANSparkLowLevel.MotorType.kBrushless)
+                                       CANSparkLowLevel.MotorType.kBrushed)
         self.tilt_motor = CANSparkMax(RobotMap.intake_tilt,
                                       CANSparkLowLevel.MotorType.kBrushed)
+        
         # Set the tilt_motor to brake mode
         self.tilt_pid = PIDController(0.1, 0, 0)
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
@@ -70,9 +70,6 @@ class Intake(Subsystem):
 
     def feed(self, speed: float) -> None:
         self.feed_motors.set(speed)
-
-    def diverter(self, speed: float) -> None:
-        self.divert_motor.set(speed)
 
     # The scheduler will call this method every 20ms and it will drive the
     # lift to the desired position using our PID controller
@@ -127,9 +124,6 @@ class IntakeDefaultCommand(Command):
         override_down = self.controller.get_intake_override()
         eye_blocked = self.photoeyes.intake_full()
 
-        divert_shooter = self.controller.get_diverter_shooter()
-        divert_amp = self.controller.get_diverter_amp()
-
         tilt_down = self.controller.get_tilt_up()
         tilt_up = self.controller.get_tilt_down()
 
@@ -145,12 +139,6 @@ class IntakeDefaultCommand(Command):
         elif reverse_down and override_down:
             intake_speed = -0.5
 
-        divert_speed = 0
-        if divert_shooter:
-            divert_speed = 0.5
-        elif divert_amp:
-            divert_speed = -0.5
-
         if tilt_up:
             self.tilt_setpoint = tilt_encoder_setpoint_up
         elif tilt_down:
@@ -159,6 +147,4 @@ class IntakeDefaultCommand(Command):
         # Pattern: 3) Execute decision
         # Now commit some values to the physical subsystem.
         self.intake.feed(intake_speed)
-        self.intake.diverter(divert_speed)
         SmartDashboard.putNumber('intake/intake_speed', intake_speed)
-        SmartDashboard.putNumber('intake/divert_speed', divert_speed)

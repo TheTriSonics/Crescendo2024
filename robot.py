@@ -43,7 +43,7 @@ class MyRobot(TimedCommandRobot):
             Joystick(RobotMap.driver_controller)
         )
         self.commander = CommanderController(
-            Joystick(RobotMap.commander_controller_1)
+            Joystick(RobotMap.commander_controller_1, RobotMap.commander_controller_2)
         )
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.PhotoEyes()
