@@ -1,7 +1,8 @@
 from commands2 import Subsystem
 from wpilib import SmartDashboard
-
 from photonlibpy.photonCamera import PhotonCamera
+from photonlibpy.photonPipelineResult import PhotonTrackedTarget
+
 
 class NoteTracker(Subsystem):
 
@@ -11,13 +12,32 @@ class NoteTracker(Subsystem):
         self.yaw = None
         self.pitch = None
         pass
-    
-    def getYawOffset(self):
-        return self.yaw
-    
-    def getPitchOffset(self):
-        return self.pitch
 
+    def getYawOffset(self):
+        return self.largest.yaw
+
+    def getPitchOffset(self):
+        return self.largest.pitch
+
+    def _closer(self, a: PhotonTrackedTarget, b: PhotonTrackedTarget):
+        if a is None:
+            return b
+        if b is None:
+            return a
+
+        # Determine which target is closer
+        # TODO: Implement this
+        return a  # for now just return the first one
+
+    def _larger(self, a: PhotonTrackedTarget, b: PhotonTrackedTarget):
+        if a is None:
+            return b
+        if b is None:
+            return a
+
+        # Determine which target is larger
+        # TODO: Implement this
+        return a  # for now just return the first one
 
     def periodic(self):
         # Store off data on where the note is
@@ -25,14 +45,19 @@ class NoteTracker(Subsystem):
         pn = SmartDashboard.putNumber
         hasTargets = lr.hasTargets()
         if hasTargets is False:
-            self.yaw = None
-            self.pitch = None
+            self.closest = None
+            self.largest = None
             return  # Skip processing
 
         targets = lr.getTargets()
         for t in targets:
-            self.yaw = t.yaw
-            self.pitch = t.pitch
-            break
-        pn('photon/note/yaw', self.yaw)
-        pn('photon/note/pitch', self.pitch)
+            # Photon vision sorts identified objects by area
+            # with the first object being the largest
+            self.closest = self._closer(self.closest, t)
+            self.largest = self._larger(self.largest, t)
+            # TODO: Remove break when the above methods are implemented
+            break  # Only process the first target
+        pn('photon/note/closest/yaw', self.closest.yaw)
+        pn('photon/note/closest/pitch', self.closest.pitch)
+        pn('photon/note/largest/yaw', self.largest.yaw)
+        pn('photon/note/largest/pitch', self.largest.pitch)

@@ -23,6 +23,7 @@ def deadband(deadband: float):
         return wrapper
     return deadband_decorator
 
+
 # Create a python decorator that captures all exceptions and returns False
 # if one occurs
 def safe_bool(func):

@@ -51,39 +51,27 @@ class DrivetrainDefaultCommand(Command):
 
     def execute(self) -> None:
         xSpeed = self.xslew.calculate(self.controller.get_drive_x())
-        xsign = 1 if xSpeed > 0 else -1
-        # xSpeed = xSpeed * xSpeed * xsign * kMaxSpeed
         xSpeed *= kMaxSpeed
 
         ySpeed = self.yslew.calculate(self.controller.get_drive_y())
-        ysign = 1 if ySpeed > 0 else -1
-        # ySpeed = ySpeed * ySpeed * ysign * kMaxSpeed
         ySpeed *= kMaxSpeed
 
         rot = self.rotslew.calculate(self.controller.get_drive_rot())
-        rotsign = 1 if rot > 0 else -1
-        rot = rot * rot * rotsign * kMaxAngularSpeed
+        rot *= kMaxAngularSpeed
+
         master_throttle = self.controller.get_master_throttle()
+        xSpeed *= master_throttle
+        ySpeed *= master_throttle
+        rot *= master_throttle
+
+        # When in lockon mode, the robot will rotate to face the node
+        # that PhtonVision is detecting
         if self.controller.get_note_lockon():
             yaw = self.photon.getYawOffset()
             if yaw is None or abs(yaw) < 1.7:
                 rot = 0
             else:
                 rot = self.pid.calculate(yaw, 0)
-        else:
-            rot = self.rotslew.calculate(self.controller.get_drive_rot())
-            rotsign = 1 if rot > 0 else -1
-            rot = rot * rot * rotsign * kMaxAngularSpeed
-            rot *= master_throttle
-        xSpeed *= master_throttle
-        ySpeed *= master_throttle
-        rot *= master_throttle
-
-        total_speed = math.sqrt(xSpeed * xSpeed + ySpeed * ySpeed)
-        if total_speed < kMaxSpeed/2 and abs(rot) < 0.05:
-            self.vision_stable = True
-        else:
-            self.vision_stable = False
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
@@ -99,14 +87,6 @@ class DrivetrainDefaultCommand(Command):
         if self.idle_counter > 50:
             self.drivetrain.lockable = True
         """
-        if xSpeed > 0 or ySpeed > 0 or rot > 0:
-            self.idle_counter = 0
-            self.drivetrain.locked = False
-            self.drivetrain.lockable = False
-        else:
-            self.idle_counter += 1
-        if self.idle_counter > 50:
-            self.drivetrain.lockable = True
         self.drivetrain.drive(xSpeed, ySpeed, rot)
 
 
