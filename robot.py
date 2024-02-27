@@ -23,6 +23,7 @@ import subsystems.shooter as shooter
 import subsystems.photoeyes as photoeyes
 import subsystems.drivetrain as drivetrain
 import subsystems.note_tracker as note_tracker
+import subsystems.leds as leds
 
 from constants import RobotButtonMap as RBM
 
@@ -47,13 +48,18 @@ class MyRobot(TimedCommandRobot):
             Joystick(RBM.commander_controller_2),
         )
         self.gyro = gyro.Gyro()
-        self.photoeyes = photoeyes.PhotoEyes()
+        self.photoeyes = photoeyes.Photoeyes()
+        self.leds = leds.Leds()
 
         self.shooter = shooter.Shooter()
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
         self.note_tracker = note_tracker.NoteTracker()
+
+    def robotPeriodic(self) -> None:
+        if DriverStation.isDisabled():
+            self.leds.set_connect_status()
 
     def autonomousInit(self):
         # cmd = DriveForDistance(self.swerve, 50)

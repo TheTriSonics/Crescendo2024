@@ -35,15 +35,18 @@ class CommanderController():
 
     def get_shooter_shoot(self) -> bool:
         return self.joystick1.getRawButton(RM.shooter_shoot)
+    
+    def get_amp_lift_home(self) -> bool:
+        return self.joystick2.getRawButton(RM.amp_lift_home)
 
     def get_amp_lift_amp(self) -> bool:
-        return self.joystick1.getRawButton(RM.amp_lift_amp)
+        return self.joystick2.getRawButton(RM.amp_lift_amp)
 
     def get_amp_lift_trap(self) -> bool:
-        return self.joystick1.getRawButton(RM.amp_lift_trap)
+        return self.joystick2.getRawButton(RM.amp_lift_trap)
 
     def get_amp_eject(self) -> bool:
-        return self.joystick1.getRawButton(RM.amp_eject)
+        return self.joystick2.getRawButton(RM.amp_eject)
 
     def get_override_intake_tilt_up(self) -> bool:
         return self.joystick2.getRawButton(RM.intake_tilt_up)

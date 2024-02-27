@@ -6,7 +6,7 @@ from wpilib import SmartDashboard
 from constants import RobotMotorMap as RMM
 from commands2 import Subsystem, Command
 from wpimath.controller import PIDController
-from subsystems.photoeyes import PhotoEyes
+from subsystems.photoeyes import Photoeyes
 from controllers.commander import CommanderController
 
 # TODO: Sort these actual values out with real hardware
@@ -47,16 +47,16 @@ else:
 class Intake(Subsystem):
 
     def __init__(self, controller: CommanderController,
-                 photoeyes: PhotoEyes) -> None:
+                 photoeyes: Photoeyes) -> None:
         super().__init__()
         self.controller = controller
         self.photoeyes = photoeyes
 
-        self.feed_motors = CANSparkMax(RMM.intake_feed,
+        self.feed_motors = CANSparkMax(RMM.intake_motor_feed,
                                        CANSparkLowLevel.MotorType.kBrushed)
-        self.tilt_motor = CANSparkMax(RMM.intake_tilt,
+        self.tilt_motor = CANSparkMax(RMM.intake_motor_tilt,
                                       CANSparkLowLevel.MotorType.kBrushed)
-
+        
         # Set the tilt_motor to brake mode
         self.tilt_pid = PIDController(0.1, 0, 0)
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
@@ -76,14 +76,18 @@ class Intake(Subsystem):
     def periodic(self) -> None:
         # Get the encoder reading, a number value.
         current_pos = self.tilt_encoder.getPosition()
+
         # Set default output to no power, so unless we change this
         # the tilt motor won't be run.
         output = 0
+
         # Determie if we're too far away from the setpoint to stop
         if abs(current_pos - self.tilt_setpoint) > tilt_encoder_error_margin:
             output = self.tilt_pid.calculate(current_pos, self.tilt_setpoint)
+        
         # Now give whatever value we decided on to the tilt motors.
         self.tilt_motor.set(output)
+
         # Display the subsystem status on a dashboard
         SmartDashboard.putNumber('intake/tilt_setpoint', self.tilt_setpoint)
         SmartDashboard.putNumber('intake/tilt_current',
@@ -106,7 +110,7 @@ class Intake(Subsystem):
 class IntakeDefaultCommand(Command):
 
     def __init__(self, intake: Intake, controller: CommanderController,
-                 photoeyes: PhotoEyes) -> None:
+                 photoeyes: Photoeyes) -> None:
         super().__init__()
 
         self.intake = intake
@@ -120,12 +124,12 @@ class IntakeDefaultCommand(Command):
         # Read all of the buttons we need to take into account to make our
         # decision
         intake_on = self.controller.get_intake_ready()
-        reverse_down = self.controller.get_intake_eject()
+        reverse_down = self.controller.get_override_intake_roller_out()
         override_down = self.controller.get_override_intake_tilt_down()
-        eye_blocked = self.photoeyes.intake_loaded()
+        eye_blocked = self.photoeyes.get_intake_loaded()
 
-        tilt_down = self.controller.get_intake_ready()
-        tilt_up = self.controller.get_intake_eject()
+        tilt_down = self.controller.get_override_intake_tilt_down()
+        tilt_up = self.controller.get_override_intake_tilt_up()
 
         # Pattern:  2) Make decision
         # Set up a default value for if no conditions match, or no buttons are

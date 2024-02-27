@@ -1,8 +1,7 @@
 from commands2 import Subsystem
-from phoenix6.hardware import TalonFX
-from phoenix6.controls import DutyCycleOut
+from rev import CANSparkMax
 
-from constants import RobotMap
+from constants import RobotMotorMap as RMM
 
 
 class ClimberSubsystem(Subsystem):
@@ -10,23 +9,18 @@ class ClimberSubsystem(Subsystem):
         super().__init__()
 
         # Initialize the motor controller
-        self.climber_motor_l = TalonFX(RobotMap.climber_left)
-        self.climber_motor_r = TalonFX(RobotMap.climber_right)
+        self.climber_motor_l = CANSparkMax(RMM.climber_motor_left)
+        self.climber_motor_r = CANSparkMax(RMM.climber_motor_right)
+        
+        self.climber_motor_l.setIdleMode(CANSparkMax.IdleMode.kBrake)
+        self.climber_motor_r.setIdleMode(CANSparkMax.IdleMode.kBrake)
+
+        self.climber_motor_r.follow(self.climber_motor_l, invertOutput=False)
         
     def go_up(self):
         # Set the motor to go up
-        self.climber_motor.set_control(
-            DutyCycleOut(1.0, override_brake_dur_neutral=True)
-        )
+        self.climber_motor_l.set(1.0)
 
     def go_down(self):
         # Set the motor to go down
-        self.climber_motor.set_control(
-            DutyCycleOut(-1.0, override_brake_dur_neutral=True)
-        )
-
-    def stop(self):
-        # Stop the motor
-        self.climber_motor.set_control(
-            DutyCycleOut(0, override_brake_dur_neutral=True)
-        )
+        self.climber_motor_l.set(-1.0)
