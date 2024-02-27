@@ -1,35 +1,60 @@
 from wpilib import Joystick
+from constants import RobotMap as RM
 
 
 # This is the controller for the person not operating the drivetrain
 class CommanderController():
 
-    def __init__(self, joystick: Joystick):
-        self.joystick = joystick
+    def __init__(self, joystick1: Joystick, joystick2: Joystick):
+        self.joystick1 = joystick1
+        self.joystick2 = joystick2
 
-    def get_intake_on(self) -> bool:
-        return self.joystick.getRawButton(1)
+    def get_intake_ready(self) -> bool:
+        return self.joystick.getRawButton(RM.intake_ready)
+    
+    def get_intake_eject(self) -> bool:
+        return self.joystick.getRawButton(RM.intake_eject)
+        
+    def get_load_shooter(self) -> bool:
+        return self.joystick.getRawButton(RM.load_note_shooter)
+    
+    def get_load_amp(self) -> bool:
+        return self.joystick.getRawButton(RM.load_note_amp)
 
-    def get_diverter_shooter(self) -> bool:
-        return self.joystick.getRawButton(3)
-
-    def get_diverter_amp(self) -> bool:
-        return self.joystick.getRawButton(4)
-
-    def get_tilt_up(self) -> bool:
-        return self.joystick.getRawButton(5)
-
-    def get_tilt_down(self) -> bool:
-        return self.joystick.getRawButton(6)
-
-    def get_intake_reverse(self) -> bool:
-        return self.joystick.getRawButton(2)
-
-    def get_intake_override(self) -> bool:
-        return self.joystick.getRawButton(20)
-
-    def set_shooter_shot_protected(self) -> bool:
-        return self.joystick.getRawButton(7)
-
-    def set_shooter_shot_subwoofer(self) -> bool:
-        return self.joystick.getRawButton(8)
+    def get_load_back_to_home(self) -> bool:
+        return self.joystick.getRawButton(RM.load_note_back_to_home)
+    
+    def get_shooter_aim_otf(self) -> bool:
+        return self.joystick.getRawButton(RM.shooter_aim_otf)
+    
+    def get_shooter_aim_safe(self) -> bool:
+        return self.joystick.getRawButton(RM.shooter_aim_safe)
+    
+    def get_shooter_aim_sub(self) -> bool:
+        return self.joystick.getRawButton(RM.shooter_aim_sub)
+    
+    def get_shooter_shoot(self) -> bool:
+        return self.joystick.getRawButton(RM.shooter_shoot)
+    
+    def get_amp_lift_amp(self) -> bool:
+        return self.joystick.getRawButton(RM.amp_lift_amp)
+    
+    def get_amp_lift_trap(self) -> bool:
+        return self.joystick.getRawButton(RM.amp_lift_trap)
+    
+    def get_amp_eject(self) -> bool:
+        return self.joystick.getRawButton(RM.amp_eject)
+    
+    def get_override_intake_tilt_up(self) -> bool:
+        return self.joystick2.getRawButton(RM.intake_tilt_up)
+        
+    def get_override_intake_tilt_down(self) -> bool:
+        return self.joystick2.getRawButton(RM.intake_tilt_down)
+    
+    def get_override_intake_roller_in(self) -> bool:
+        return self.joystick2.getRawButton(RM.intake_roller_in)
+    
+    def get_override_intake_roller_out(self) -> bool:
+        return self.joystick2.getRawButton(RM.intake_roller_out)
+    
+    

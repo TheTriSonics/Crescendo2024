@@ -22,7 +22,7 @@ from pathplannerlib.config import (
 )
 
 from controllers.thrust_driver import DriverController
-from constants import RobotMap
+from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
 
 kMaxSpeed = 4.8  # m/s
@@ -40,7 +40,7 @@ class DrivetrainDefaultCommand(Command):
         self.drivetrain = drivetrain
         self.controller = controller
         self.photon = photon
-        self.pid = PIDController(0.05, 0, 0)
+        self.pid = PIDController(0.04, 0, 0)
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(2)
         self.yslew = SlewRateLimiter(2)
@@ -99,27 +99,27 @@ class Drivetrain(Subsystem):
         self.photon = photon
 
         self.frontLeft = swervemodule.SwerveModule(
-            RobotMap.front_left_drive,
-            RobotMap.front_left_turn,
-            RobotMap.front_left_turn_encoder,
+            RMM.front_left_drive,
+            RMM.front_left_turn,
+            RMM.front_left_turn_encoder,
             False,
             'Front left')
         self.frontRight = swervemodule.SwerveModule(
-            RobotMap.front_right_drive,
-            RobotMap.front_right_turn,
-            RobotMap.front_right_turn_encoder,
+            RMM.front_right_drive,
+            RMM.front_right_turn,
+            RMM.front_right_turn_encoder,
             True,
             'Front right')
         self.backLeft = swervemodule.SwerveModule(
-            RobotMap.back_left_drive,
-            RobotMap.back_left_turn,
-            RobotMap.back_left_turn_encoder,
+            RMM.back_left_drive,
+            RMM.back_left_turn,
+            RMM.back_left_turn_encoder,
             False,
             'Back left')
         self.backRight = swervemodule.SwerveModule(
-            RobotMap.back_right_drive,
-            RobotMap.back_right_turn,
-            RobotMap.back_right_turn_encoder,
+            RMM.back_right_drive,
+            RMM.back_right_turn,
+            RMM.back_right_turn_encoder,
             True,
             'Back right')
 

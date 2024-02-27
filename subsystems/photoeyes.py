@@ -1,28 +1,30 @@
-from wpilib import SmartDashboard
+from wpilib import SmartDashboard, DigitalInput
 from commands2 import Subsystem
-
+from constants import RobotSensorMap as RSM
 
 class PhotoEyes(Subsystem):
     def __init__(self):
         super().__init__()
+        self.intake_front_photoeye = DigitalInput(RSM.intake_front_photoeye)
+        self.intake_hold_photoeye = DigitalInput(RSM.intake_hold_photoeye)
+        self.amp_hold_photoeye = DigitalInput(RSM.amp_hold_photoeye)
+        self.shooter_hold_photoeye = DigitalInput(RSM.shooter_hold_photoeye)
 
-    def intake_full(self) -> bool:
-        # Implement the logic for intake full here
-        # print("Intake pull method called")
-        return False
+    def intake_front(self) -> bool:
+        return self.intake_front_photoeye.get()
+
+    def intake_loaded(self) -> bool:
+        return self.intake_hold_photoeye.get()
 
     def shooter_loaded(self) -> bool:
-        # Implement the logic for shooter loaded here
-        # print("Shooter loaded method called")
-        return False
+        return self.shooter_hold_photoeye.get()
 
     def amp_loaded(self) -> bool:
-        # Implement the logic for amp loaded here
-        # print("Amp loaded method called")
-        return False
+        return self.amp_hold_photoeye.get()
 
     def periodic(self) -> None:
         pb = SmartDashboard.putBoolean
-        pb("photoeyes/intake_full", self.intake_full())
+        pb("photoeyes/intake_front", self.intake_front())
+        pb("photoeyes/intake_full", self.intake_loaded())
         pb("photoeyes/shooter_loaded", self.shooter_loaded())
         pb("photoeyes/amp_loaded", self.amp_loaded())
