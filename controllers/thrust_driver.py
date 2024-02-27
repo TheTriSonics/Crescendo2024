@@ -4,6 +4,9 @@ from wpilib import Joystick
 # This is the controller for the person in charge of the drive train and
 # any other tasks required by them.
 class DriverController():
+    square_x = False
+    square_y = False
+    square_rot = False
 
     def __init__(self, joystick: Joystick):
         self.joystick = joystick
