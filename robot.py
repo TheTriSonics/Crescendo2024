@@ -10,6 +10,7 @@ from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
 from pathplannerlib.commands import FollowPathHolonomic
+from commands.drive_over_note import DriveOverNote
 
 from commands.rotate import Rotate
 from commands.haltdrive import HaltDrive
@@ -66,10 +67,12 @@ class MyRobot(TimedCommandRobot):
         # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
         self.gyro.set_yaw(45)
-        cmd = PathPlannerAuto("Goofy")
+        # cmd = PathPlannerAuto("Goofy")
         # cmd = Rotate(self.swerve, self.gyro, 0)
+        cmd = DriveToPoint(self.swerve, self.gyro, 1, 0, 0)
+        seek = DriveOverNote(self.note_tracker, self.swerve)
         haltcmd = HaltDrive(self.swerve)
-        scg = SequentialCommandGroup([cmd, haltcmd])
+        scg = SequentialCommandGroup([cmd, seek, haltcmd])
         scg.schedule()
         """
         drive1 = DriveToPoint(self.swerve, self.gyro, 200, 100, 180)
