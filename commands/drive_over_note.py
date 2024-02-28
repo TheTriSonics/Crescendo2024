@@ -20,11 +20,12 @@ class DriveOverNote(Command):
     def execute(self):
         print('picking up note')
         yaw = self.photon.getYawOffset()
+        pitch = self.photon.getPitchOffset()
         if yaw is None or abs(yaw) < 1.7:
             rot = 0
         else:
             rot = self.pid.calculate(yaw, 0)
-        if pitch < -14:
+        if pitch is not None and pitch < -14:
             self.ontop_timer = Timer()
             self.ontop_timer.start()
         self.drive.drive(0.3, 0, rot)
