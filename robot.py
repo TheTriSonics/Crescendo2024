@@ -38,7 +38,7 @@ class MyRobot(TimedCommandRobot):
 
     def robotInit(self) -> None:
         """Robot initialization function"""
-        if is_sim():
+        if True:
             # Disable the joystick warnings in simulator mode; they're annoying
             DriverStation.silenceJoystickConnectionWarning(True)
         self.driver = DriverController(

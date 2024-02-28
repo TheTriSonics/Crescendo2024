@@ -63,12 +63,14 @@ class DrivetrainDefaultCommand(Command):
         xSpeed *= master_throttle
         ySpeed *= master_throttle
         rot *= master_throttle
-
+        
         # When in lockon mode, the robot will rotate to face the node
         # that PhtonVision is detecting
         if self.controller.get_note_lockon():
             yaw = self.photon.getYawOffset()
-            if yaw is None or abs(yaw) < 1.7:
+            if yaw is None:
+                pass
+            elif abs(yaw) < 1.7:
                 rot = 0
             else:
                 rot = self.pid.calculate(yaw, 0)
@@ -191,7 +193,7 @@ class Drivetrain(Subsystem):
                 # furthest module.
                 0.431,
                 # Default path replanning config. See the API for options
-                ReplanningConfig()
+                ReplanningConfig(enableDynamicReplanning=False)
             ),
             # Supplier to control path flipping based on alliance color
             self.shouldFlipPath,
