@@ -5,7 +5,8 @@ import json
 from wpilib import SmartDashboard, Joystick, DriverStation
 from commands2 import TimedCommandRobot, SequentialCommandGroup
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
-from pathplannerlib.auto import PathPlannerAuto
+from pathplannerlib.auto import PathPlannerAuto, AutoBuilder
+from pathplannerlib.path import PathPlannerPath
 from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
@@ -62,6 +63,30 @@ class MyRobot(TimedCommandRobot):
         if DriverStation.isDisabled():
             self.leds.set_connect_status()
 
+    def testPathToFollow(self):
+        from pathplannerlib.path import PathPlannerPath, PathConstraints, GoalEndState
+        from wpimath.geometry import Pose2d, Rotation2d
+        import math
+
+        # Create a list of bezier points from poses. Each pose represents one waypoint.
+        # The rotation component of the pose should be the direction of travel. Do not use holonomic rotation.
+        bezierPoints = PathPlannerPath.bezierFromPoses(
+            [Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0)),
+            Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0)),
+            Pose2d(3.0, 2.0, Rotation2d.fromDegrees(90))]
+        )
+
+        # Create the path using the bezier points created above
+        path = PathPlannerPath(
+            bezierPoints,
+            PathConstraints(3.0, 3.0, 2 * math.pi, 4 * math.pi), # The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
+            GoalEndState(0.0, Rotation2d.fromDegrees(-90)) # Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+        )
+
+        # Prevent the path from being flipped if the coordinates are already correct
+        path.preventFlipping = True
+        return path
+
     def autonomousInit(self):
         # cmd = DriveForDistance(self.swerve, 50)
         # cmd = HaltDrive(self.swerve)
@@ -71,9 +96,10 @@ class MyRobot(TimedCommandRobot):
         # cmd = PathPlannerAuto("Goofy")
         # cmd = Rotate(self.swerve, self.gyro, 0)
         # cmd = DriveToPoint(self.swerve, self.gyro, 1, 0, 0)
-        seek = DriveOverNote(self.note_tracker, self.swerve)
+        # seek = DriveOverNote(self.note_tracker, self.swerve)
+        followPath = AutoBuilder.followPath(self.testPathToFollow())
         haltcmd = HaltDrive(self.swerve)
-        scg = SequentialCommandGroup([seek, haltcmd])
+        scg = SequentialCommandGroup([followPath, haltcmd])
         scg.schedule()
         """
         drive1 = DriveToPoint(self.swerve, self.gyro, 200, 100, 180)

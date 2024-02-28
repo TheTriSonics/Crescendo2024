@@ -55,7 +55,7 @@ class Shooter(Subsystem):
         
         self.tilt_position = 0 # TODO: Get the actual position of the tilt
         
-        self.tilt_motor_right.follow(self.tilt_motor_left.get, invertOutput=False)
+        # self.tilt_motor_right.follow(self.tilt_motor_left.get, invertOutput=False)
 
         self.tilt_pid_controller = self.tilt_motor_left.getPIDController()
         self.tilt_encoder = DutyCycleEncoder(RSM.shooter_tilt_encoder)
@@ -66,7 +66,7 @@ class Shooter(Subsystem):
         self.tilt_pid_controller.setIZone(0)
         self.tilt_pid_controller.setFF(0.0)
         self.tilt_pid_controller.setOutputRange(-1, 1)
-        self.tilt_pid_controller.setFeedbackDevice(self.tilt_encoder)
+        # self.tilt_pid_controller.setFeedbackDevice(self.tilt_encoder)
 
 
     def set_tilt(self, tilt):
