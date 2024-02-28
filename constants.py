@@ -1,6 +1,10 @@
 from misc import is_sim
 
 
+class RobotPIDConstants():
+    note_tracking_pid = (0.04, 0, 0)
+
+
 class RobotMotorMap():
     # REAL CAN ASSIGNMENTS
     # Swerve Motors

@@ -25,6 +25,7 @@ from pathplannerlib.config import (
 from controllers.thrust_driver import DriverController
 from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
+from constants import RobotPIDConstants as PIDC
 
 kMaxSpeed = 4.8  # m/s
 kMaxAngularSpeed = math.pi * 5
@@ -41,7 +42,7 @@ class DrivetrainDefaultCommand(Command):
         self.drivetrain = drivetrain
         self.controller = controller
         self.photon = photon
-        self.pid = PIDController(0.04, 0, 0)
+        self.pid = PIDController(*PIDC.note_tracking_pid)
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(2)
         self.yslew = SlewRateLimiter(2)

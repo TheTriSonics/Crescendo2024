@@ -60,19 +60,20 @@ class MyRobot(TimedCommandRobot):
 
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
-            self.leds.rainbow()
+            self.leds.set_connect_status()
 
     def autonomousInit(self):
         # cmd = DriveForDistance(self.swerve, 50)
         # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
-        self.gyro.set_yaw(45)
+        self.swerve.updateOdometry()
+        self.gyro.set_yaw(0)
         # cmd = PathPlannerAuto("Goofy")
         # cmd = Rotate(self.swerve, self.gyro, 0)
-        cmd = DriveToPoint(self.swerve, self.gyro, 1, 0, 0)
+        # cmd = DriveToPoint(self.swerve, self.gyro, 1, 0, 0)
         seek = DriveOverNote(self.note_tracker, self.swerve)
         haltcmd = HaltDrive(self.swerve)
-        scg = SequentialCommandGroup([cmd, seek, haltcmd])
+        scg = SequentialCommandGroup([seek, haltcmd])
         scg.schedule()
         """
         drive1 = DriveToPoint(self.swerve, self.gyro, 200, 100, 180)
