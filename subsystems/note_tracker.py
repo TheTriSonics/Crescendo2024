@@ -11,12 +11,18 @@ class NoteTracker(Subsystem):
         self.camera = PhotonCamera("notecam")
         self.yaw = None
         self.pitch = None
+        self.closest = None
+        self.largest = None
         pass
 
     def getYawOffset(self):
+        if self.largest is None:
+            return None
         return self.largest.yaw
 
     def getPitchOffset(self):
+        if self.largest is None:
+            return None
         return self.largest.pitch
 
     def _closer(self, a: PhotonTrackedTarget, b: PhotonTrackedTarget):
@@ -53,8 +59,8 @@ class NoteTracker(Subsystem):
         for t in targets:
             # Photon vision sorts identified objects by area
             # with the first object being the largest
-            self.closest = self._closer(self.closest, t)
-            self.largest = self._larger(self.largest, t)
+            self.closest = t 
+            self.largest = t 
             # TODO: Remove break when the above methods are implemented
             break  # Only process the first target
         pn('photon/note/closest/yaw', self.closest.yaw)

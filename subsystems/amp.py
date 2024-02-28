@@ -31,6 +31,7 @@ class Amp(Subsystem):
         self.feed_motor = CANSparkMax(RMM.amp_feed_motor, CANSparkMax.MotorType.kBrushless)
         self.lift_motor = TalonFX(RMM.amp_lift_motor, "canivore")
 
+        self.lift_configurator = self.lift_motor.configurator
         self.lift_configs = TalonFXConfiguration()
 
         # Lift PID gains TODO: tunes these values, they were copied from the example
@@ -45,6 +46,8 @@ class Amp(Subsystem):
         motion_magic_configs = self.lift_configs.motion_magic
         motion_magic_configs.motion_magic_acceleration = 400
         motion_magic_configs.motion_magic_jerk = 4000
+
+        self.lift_configurator.apply(self.lift_configs)
 
         self.height = self.Height.HOME
 

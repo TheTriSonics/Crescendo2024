@@ -2,6 +2,8 @@ from rev import CANSparkMax, CANSparkLowLevel
 from wpilib import DutyCycle, SmartDashboard
 from commands2 import Subsystem, Command
 from phoenix6.hardware import TalonFX
+from phoenix6.configs import TalonFXConfiguration
+from phoenix6.controls import Follower
 from wpimath.controller import PIDController
 
 from constants import RobotMotorMap as RMM
@@ -22,11 +24,23 @@ class Shooter(Subsystem):
         super().__init__()
         # Initialize the target speed
         self.target_speed = 0
-        self.target_elevation = 0
+        self.target_tilt = 0
         # Initialize the motor controllers
         self.shooter_motor_left = TalonFX(RMM.shooter_motor_left)
         self.shooter_motor_right = TalonFX(RMM.shooter_motor_right)
-        # TODO: Set right motor as follower of left
+        
+        self.shooter_motor_left_configurator = self.shooter_motor_left.configurator
+        self.shooter_motor_left_config = TalonFXConfiguration()
+
+        self.shooter_motor_right_configurator = self.shooter_motor_right.configurator
+        self.shooter_motor_right_config = TalonFXConfiguration()
+
+        # Shooter PID gains
+        
+        self.shooter_motor_left_configurator.apply(self.shooter_motor_left_config)
+        self.shooter_motor_right_configurator.apply(self.shooter_motor_right_config)
+
+        self.shooter_motor_right.set_control(Follower(RMM.shooter_motor_left, False))
 
         self.feed_motor = TalonFX(RMM.shooter_motor_feed)
 
@@ -35,9 +49,9 @@ class Shooter(Subsystem):
         self.tilt_motor_right = CANSparkMax(RMM.shooter_motor_tilt_right,
                                         CANSparkLowLevel.MotorType.kBrushless)
 
-    def set_elevation(self, value):
-        # Set the speed of the elevation motor
-        # self.elevation_motor.set(value)
+    def set_tilt(self, value):
+        # Set the speed of the tilt motor
+        # self.tilt_motor.set(value)
         pass
 
     def set_speed(self, value):
@@ -64,6 +78,6 @@ class Shooter(Subsystem):
     def periodic(self) -> None:
         pn = SmartDashboard.putNumber
         pn("shooter/target_speed", self.target_speed)
-        pn("shooter/target_elevation", self.target_elevation)
+        pn("shooter/target_tilt", self.target_tilt)
         # TODO: Add the feed motor's output to the dashboard
         pass

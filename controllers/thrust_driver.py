@@ -37,3 +37,7 @@ class DriverController():
 
     def get_field_relative_toggle(self) -> bool:
         return self.joystick.getRawButton(3)
+    
+    def get_climber_trigger(self) -> float:
+        # TODO: Set the correct axis id
+        return self.joystick.getRawAxis(0)
