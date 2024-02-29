@@ -51,8 +51,8 @@ class Amp(Subsystem):
 
         self.height = self.Height.HOME
 
-        defcmd = AmpDefaultCommand(self, self.controller, self.photoeyes)
-        self.setDefaultCommand(defcmd)
+        # defcmd = AmpDefaultCommand(self, self.controller, self.photoeyes)
+        # self.setDefaultCommand(defcmd)
 
     def set_height(self, height):
         self.height = height
