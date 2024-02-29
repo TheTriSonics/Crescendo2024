@@ -61,7 +61,8 @@ class MyRobot(TimedCommandRobot):
         self.note_tracker = note_tracker.NoteTracker()
         button = JoystickButton(driver_joystick, 4)
         button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
-
+        load_amp_button = JoystickButton(commander_joystick1, RBM.load_note_amp)
+        load_amp_button.onTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
 
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
