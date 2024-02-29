@@ -15,7 +15,6 @@ tilt_encoder_setpoint_up = 200
 tilt_encoder_error_margin = 5
 
 
-
 if is_sim():
     class SparkMaxAbsoluteEncoder:
 
@@ -56,7 +55,7 @@ class Intake(Subsystem):
                                        CANSparkLowLevel.MotorType.kBrushed)
         self.tilt_motor = CANSparkMax(RMM.intake_motor_tilt,
                                       CANSparkLowLevel.MotorType.kBrushed)
-        
+
         # Set the tilt_motor to brake mode
         self.tilt_pid = PIDController(0.1, 0, 0)
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
@@ -72,6 +71,10 @@ class Intake(Subsystem):
         # self.feed_motors.set(1)
         pass
 
+    def reverse(self) -> None:
+        # self.feed_motors.set(-1)
+        pass
+
     def halt(self) -> None:
         # self.feed_motors.set(0)
         pass
@@ -84,15 +87,25 @@ class Intake(Subsystem):
 
     def wanted_up(self) -> bool:
         return self.tilt_setpoint == tilt_encoder_setpoint_up
-    
+
     def wanted_down(self) -> bool:
         return self.tilt_setpoint == tilt_encoder_setpoint_down
-    
+
     def is_up(self) -> bool:
-        return abs(self.tilt_encoder.getPosition() - tilt_encoder_setpoint_up) < tilt_encoder_error_margin
-    
+        return (
+            abs(self.tilt_encoder.getPosition() - tilt_encoder_setpoint_up)
+            < tilt_encoder_error_margin
+        )
+
     def is_down(self) -> bool:
-        return abs(self.tilt_encoder.getPosition() - tilt_encoder_setpoint_down) < tilt_encoder_error_margin
+        return (
+            abs(self.tilt_encoder.getPosition() - tilt_encoder_setpoint_down)
+            < tilt_encoder_error_margin
+        )
+
+    def is_loaded(self) -> bool:
+        # If the intake is loaded this should return True
+        return self.photoeyes.get_intake_loaded()
 
     # The scheduler will call this method every 20ms and it will drive the
     # lift to the desired position using our PID controller
@@ -107,7 +120,7 @@ class Intake(Subsystem):
         # Determie if we're too far away from the setpoint to stop
         if abs(current_pos - self.tilt_setpoint) > tilt_encoder_error_margin:
             output = self.tilt_pid.calculate(current_pos, self.tilt_setpoint)
-        
+
         # Now give whatever value we decided on to the tilt motors.
         self.tilt_motor.set(output)
 
