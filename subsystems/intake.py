@@ -68,8 +68,31 @@ class Intake(Subsystem):
                                       self.photoeyes)
         self.setDefaultCommand(defcmd)
 
-    def feed(self, speed: float) -> None:
-        self.feed_motors.set(speed)
+    def feed(self) -> None:
+        # self.feed_motors.set(1)
+        pass
+
+    def halt(self) -> None:
+        # self.feed_motors.set(0)
+        pass
+
+    def tilt_up(self) -> None:
+        self.tilt_setpoint = tilt_encoder_setpoint_up
+
+    def tilt_down(self) -> None:
+        self.tilt_setpoint = tilt_encoder_setpoint_down
+
+    def wanted_up(self) -> bool:
+        return self.tilt_setpoint == tilt_encoder_setpoint_up
+    
+    def wanted_down(self) -> bool:
+        return self.tilt_setpoint == tilt_encoder_setpoint_down
+    
+    def is_up(self) -> bool:
+        return abs(self.tilt_encoder.getPosition() - tilt_encoder_setpoint_up) < tilt_encoder_error_margin
+    
+    def is_down(self) -> bool:
+        return abs(self.tilt_encoder.getPosition() - tilt_encoder_setpoint_down) < tilt_encoder_error_margin
 
     # The scheduler will call this method every 20ms and it will drive the
     # lift to the desired position using our PID controller
@@ -150,5 +173,5 @@ class IntakeDefaultCommand(Command):
 
         # Pattern: 3) Execute decision
         # Now commit some values to the physical subsystem.
-        self.intake.feed(intake_speed)
+        self.intake.feed()
         SmartDashboard.putNumber('intake/intake_speed', intake_speed)

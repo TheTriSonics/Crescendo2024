@@ -4,6 +4,7 @@ import json
 
 from wpilib import SmartDashboard, Joystick, DriverStation
 from commands2 import TimedCommandRobot, SequentialCommandGroup
+from commands2.button import JoystickButton
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from pathplannerlib.auto import PathPlannerAuto, AutoBuilder
 from pathplannerlib.path import PathPlannerPath
@@ -18,6 +19,7 @@ from commands.haltdrive import HaltDrive
 from commands.drivetopoint import DriveToPoint
 from commands.drivefordistance import DriveForDistance
 from commands.shooter_launch_note import ShooterLaunchNote
+from commands.intake_note import IntakeNote
 
 import subsystems.gyro as gyro
 import subsystems.intake as intake
@@ -42,13 +44,12 @@ class MyRobot(TimedCommandRobot):
         if True:
             # Disable the joystick warnings in simulator mode; they're annoying
             DriverStation.silenceJoystickConnectionWarning(True)
-        self.driver = DriverController(
-            Joystick(RBM.driver_controller)
-        )
-        self.commander = CommanderController(
-            Joystick(RBM.commander_controller_1),
-            Joystick(RBM.commander_controller_2),
-        )
+        driver_joystick = Joystick(RBM.driver_controller)
+        commander_joystick1 = Joystick(RBM.commander_controller_1)
+        commander_joystick2 = Joystick(RBM.commander_controller_2)
+        self.driver = DriverController(driver_joystick)
+        self.commander = CommanderController(commander_joystick1, commander_joystick2)
+        
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.Photoeyes()
         self.leds = leds.Leds()
@@ -58,6 +59,9 @@ class MyRobot(TimedCommandRobot):
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
         self.note_tracker = note_tracker.NoteTracker()
+        button = JoystickButton(driver_joystick, 4)
+        button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
+
 
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
@@ -97,10 +101,10 @@ class MyRobot(TimedCommandRobot):
         # cmd = Rotate(self.swerve, self.gyro, 0)
         # cmd = DriveToPoint(self.swerve, self.gyro, 1, 0, 0)
         # seek = DriveOverNote(self.note_tracker, self.swerve)
-        followPath = AutoBuilder.followPath(self.testPathToFollow())
+        # followPath = AutoBuilder.followPath(self.testPathToFollow())
         haltcmd = HaltDrive(self.swerve)
-        scg = SequentialCommandGroup([followPath, haltcmd])
-        scg.schedule()
+        # scg = SequentialCommandGroup([followPath, haltcmd])
+        # scg.schedule()
         """
         drive1 = DriveToPoint(self.swerve, self.gyro, 200, 100, 180)
         halt1 = HaltDrive(self.swerve)

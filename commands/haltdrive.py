@@ -9,9 +9,10 @@ from wpimath.kinematics import SwerveModuleState
 
 class HaltDrive(commands2.CommandBase):
 
-    def __init__(self, drive: Drivetrain):
+    def __init__(self, drive: Drivetrain, forever = False):
         super().__init__()
         self.drive = drive
+        self.forever = forever
         self.addRequirements(drive)
 
     def initialize(self):
@@ -45,6 +46,8 @@ class HaltDrive(commands2.CommandBase):
         self.drive.lockWheels()
 
     def isFinished(self):
+        if self.forever:
+            return False
         # The command end when the wheels are close enough to our X shape
         # to call it good. The value of 4 degrees of accumlated error in
         # all the wheels seems to work well on the chassis bot.
