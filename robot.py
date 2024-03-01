@@ -20,7 +20,11 @@ from commands.drivetopoint import DriveToPoint
 from commands.drivefordistance import DriveForDistance
 from commands.shooter_launch_note import ShooterLaunchNote
 from commands.intake_note import IntakeNote
+<<<<<<< HEAD
 from commands.field_relative_toggle import FieldRelativeToggle
+=======
+from commands.amp_loaded import AmpLoad
+>>>>>>> 4f029174816d44b6b4f452c038e427c0d4849720
 
 import subsystems.gyro as gyro
 import subsystems.intake as intake
@@ -45,12 +49,13 @@ class MyRobot(TimedCommandRobot):
         if True:
             # Disable the joystick warnings in simulator mode; they're annoying
             DriverStation.silenceJoystickConnectionWarning(True)
-        driver_joystick = Joystick(RBM.driver_controller)
-        commander_joystick1 = Joystick(RBM.commander_controller_1)
-        commander_joystick2 = Joystick(RBM.commander_controller_2)
-        self.driver = DriverController(driver_joystick)
-        self.commander = CommanderController(commander_joystick1, commander_joystick2)
-        
+        self.driver_joystick = Joystick(RBM.driver_controller)
+        self.commander_joystick1 = Joystick(RBM.commander_controller_1)
+        self.commander_joystick2 = Joystick(RBM.commander_controller_2)
+        self.driver = DriverController(self.driver_joystick)
+        self.commander = CommanderController(self.commander_joystick1,
+                                             self.commander_joystick2)
+
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.Photoeyes()
         self.leds = leds.Leds()
@@ -60,13 +65,31 @@ class MyRobot(TimedCommandRobot):
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
         self.note_tracker = note_tracker.NoteTracker()
+
         # button = JoystickButton(driver_joystick, 4)
         # button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
         # load_amp_button = JoystickButton(commander_joystick1, RBM.load_note_amp)
         # load_amp_button.onTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
-        fr_button = JoystickButton(driver_joystick, RBM.toggle_field_relative)
+        fr_button = JoystickButton(self.driver_joystick, RBM.toggle_field_relative)
         # fr_button.onTrue(FieldRelativeToggle(self.swerve))
         fr_button.onTrue(InstantCommand( self.swerve.toggleFieldRelative))
+
+
+    def configure_driver_controls(self):
+        button = JoystickButton(self.driver_joystick, 4)
+        button.whileTrue(
+            IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes,
+                       self.leds)
+        )
+
+    def configure_commander_controls(self):
+        load_amp_button = JoystickButton(self.commander_joystick1,
+                                         RBM.load_note_amp)
+        load_amp_button.onTrue(
+            AmpLoad(self.shooter, self.intake, self.photoeyes)
+        )
+
+
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
             self.leds.set_connect_status()
