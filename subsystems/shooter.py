@@ -67,8 +67,15 @@ class Shooter(Subsystem):
         self.tilt_pid_controller.setFF(0.0)
         self.tilt_pid_controller.setOutputRange(-1, 1)
         # self.tilt_pid_controller.setFeedbackDevice(self.tilt_encoder)
+        
+    def set_auto_target_shot(self):
+        pass
 
+    def set_protected_shot(self):
+        pass
 
+    def set_speaker_shot(self):
+        pass
     def set_tilt(self, tilt):
         self.tilt_pid_controller.setReference(tilt, CANSparkMax.ControlType.kPosition)        
 
