@@ -24,7 +24,7 @@ class DriverController():
     def get_drive_rot(self) -> float:
         return -self.joystick.getRawAxis(5)
 
-    @deadband(0.02)
+    @deadband(0.01)
     def get_master_throttle(self) -> float:
         rawval = self.joystick.getRawAxis(2)
         rawval = -rawval

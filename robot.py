@@ -3,7 +3,7 @@
 import json
 
 from wpilib import SmartDashboard, Joystick, DriverStation
-from commands2 import TimedCommandRobot, SequentialCommandGroup
+from commands2 import TimedCommandRobot, SequentialCommandGroup, InstantCommand
 from commands2.button import JoystickButton
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from pathplannerlib.auto import PathPlannerAuto, AutoBuilder
@@ -20,6 +20,7 @@ from commands.drivetopoint import DriveToPoint
 from commands.drivefordistance import DriveForDistance
 from commands.shooter_launch_note import ShooterLaunchNote
 from commands.intake_note import IntakeNote
+from commands.field_relative_toggle import FieldRelativeToggle
 
 import subsystems.gyro as gyro
 import subsystems.intake as intake
@@ -54,16 +55,18 @@ class MyRobot(TimedCommandRobot):
         self.photoeyes = photoeyes.Photoeyes()
         self.leds = leds.Leds()
 
-        self.shooter = shooter.Shooter()
+        #self.shooter = shooter.Shooter()
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
         self.note_tracker = note_tracker.NoteTracker()
-        button = JoystickButton(driver_joystick, 4)
-        button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
-        load_amp_button = JoystickButton(commander_joystick1, RBM.load_note_amp)
-        load_amp_button.onTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
-
+        # button = JoystickButton(driver_joystick, 4)
+        # button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
+        # load_amp_button = JoystickButton(commander_joystick1, RBM.load_note_amp)
+        # load_amp_button.onTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
+        fr_button = JoystickButton(driver_joystick, RBM.toggle_field_relative)
+        # fr_button.onTrue(FieldRelativeToggle(self.swerve))
+        fr_button.onTrue(InstantCommand( self.swerve.toggleFieldRelative))
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
             self.leds.set_connect_status()

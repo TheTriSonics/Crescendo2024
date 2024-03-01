@@ -72,7 +72,7 @@ class RobotMotorMap():
 
 class RobotSensorMap():
     # Gyro
-    pigeon2_id = 35
+    pigeon2_id = 41
 
     # Limit Switches DIO
     amp_lift_bottom_limit_switch = 0
@@ -98,7 +98,7 @@ class RobotButtonMap():
     driver_controller = 0
     commander_controller_1 = 1
     commander_controller_2 = 2
-
+    toggle_field_relative = 3
     # Button Panel List
     # INTAKE: Intake Ready, Intake Eject
     # SHOOTER: Load Shooter, On The Fly(OTF) Aim, Safe Spot Aim, Against Sub Aim, Shoot
@@ -119,7 +119,7 @@ class RobotButtonMap():
     shooter_aim_safe = 6
     shooter_aim_sub = 7
     shooter_shoot = 8
-
+    
     ### Controller 2 ###
     amp_lift_amp = 0
     amp_lift_trap = 1

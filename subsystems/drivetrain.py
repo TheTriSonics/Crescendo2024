@@ -6,6 +6,7 @@
 
 import math
 import subsystems.swervemodule as swervemodule
+import subsystems.gyro as gyro
 from commands2 import Subsystem, Command
 from wpilib import SmartDashboard, DriverStation
 from ntcore import NetworkTableInstance
@@ -97,7 +98,7 @@ class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
-    def __init__(self, gyro, driver_controller, photon: NoteTracker) -> None:
+    def __init__(self, gyro: gyro.Gyro, driver_controller, photon: NoteTracker) -> None:
         super().__init__()
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
@@ -253,6 +254,7 @@ class Drivetrain(Subsystem):
 
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
+        print("yes")
 
     def drive(
         self,
@@ -266,18 +268,23 @@ class Drivetrain(Subsystem):
         :param xSpeed: Speed of the robot in the x direction (forward).
         :param ySpeed: Speed of the robot in the y direction (sideways).
         :param rot: Angular rate of the robot.
-        :param fieldRelative: Whether the provided x and y speeds are relative
-        :      to the field.
         :param periodSeconds: Time
         """
+    
         if self.fieldRelative:
-            self.cs = ChassisSpeeds.fromFieldRelativeSpeeds(
+            pn = SmartDashboard.putNumber
+            pn("drivetrain/field_relative", self.fieldRelative)
+            pn("drivetrain/xSpeed", xSpeed)
+            pn("drivetrain/ySpeed", ySpeed)
+            pn("drivetrain/rot", rot)
+            pn("drivetrain/heading", self.get_heading_rotation_2d().degrees())
+            cs = ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
                 )
         else:
-            self.cs = ChassisSpeeds(xSpeed, ySpeed, rot)
+            cs = ChassisSpeeds(xSpeed, ySpeed, rot)
 
-        states = self.kinematics.toSwerveModuleStates(self.cs)
+        states = self.kinematics.toSwerveModuleStates(cs)
         SwerveDrive4Kinematics.desaturateWheelSpeeds(states, kMaxSpeed)
         for m, s in zip(self.modules, states):
             m.setDesiredState(s)
