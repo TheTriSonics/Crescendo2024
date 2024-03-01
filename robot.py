@@ -20,11 +20,11 @@ from commands.drivetopoint import DriveToPoint
 from commands.drivefordistance import DriveForDistance
 from commands.shooter_launch_note import ShooterLaunchNote
 from commands.intake_note import IntakeNote
-<<<<<<< HEAD
+
 from commands.field_relative_toggle import FieldRelativeToggle
-=======
-from commands.amp_loaded import AmpLoad
->>>>>>> 4f029174816d44b6b4f452c038e427c0d4849720
+
+from commands.amp_load import AmpLoad
+
 
 import subsystems.gyro as gyro
 import subsystems.intake as intake
