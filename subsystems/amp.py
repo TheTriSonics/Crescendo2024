@@ -3,7 +3,7 @@ from enum import Enum
 from commands2 import Subsystem, Command
 from rev import CANSparkMax
 from phoenix6.hardware import TalonFX
-from phoenix6.controls import DynamicMotionMagicVoltage
+from phoenix6.controls import DynamicMotionMagicVoltage, DutyCycleOut
 from phoenix6.configs import TalonFXConfiguration
 
 from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
@@ -20,16 +20,18 @@ class Amp(Subsystem):
         AMP = 1
         TRAP = 2
 
-    def __init__(self, controller: CommanderController):
+    def __init__(self, controller: CommanderController, photoeyes: Photoeyes):
         super().__init__()
 
         self.controller = controller
-        self.photoeyes = Photoeyes()
+        self.photoeyes = photoeyes
 
         self.limit_switch = DigitalInput(RSM.amp_lift_bottom_limit_switch)
 
-        self.feed_motor = CANSparkMax(RMM.amp_feed_motor, CANSparkMax.MotorType.kBrushless)
+        self.feed_motor = CANSparkMax(RMM.amp_feed_motor, CANSparkMax.MotorType.kBrushed)
         self.lift_motor = TalonFX(RMM.amp_lift_motor, "canivore")
+
+        self.feed_motor.setInverted(True)
 
         self.lift_configurator = self.lift_motor.configurator
         self.lift_configs = TalonFXConfiguration()
@@ -51,8 +53,8 @@ class Amp(Subsystem):
 
         self.height = self.Height.HOME
 
-        # defcmd = AmpDefaultCommand(self, self.controller, self.photoeyes)
-        # self.setDefaultCommand(defcmd)
+        defcmd = AmpDefaultCommand(self, self.controller, self.photoeyes)
+        self.setDefaultCommand(defcmd)
 
     def set_height(self, height):
         self.height = height
@@ -61,42 +63,60 @@ class Amp(Subsystem):
     def get_height(self):
         return self.height
 
-    def set_feed(self, speed):
-        self.feed_motor.set(speed)
+    def feed(self):
+        self.feed_motor.set(1.0)
+    
+    def reverse(self):
+        self.feed_motor.set(-1.0)
+    
+    def halt(self):
+        self.feed_motor.set(0.0)
+
 
     def periodic(self) -> None:
-        self.request = DynamicMotionMagicVoltage(0, 80, 400, 4000, override_brake_dur_neutral=True, limit_reverse_motion=True).with_limit_reverse_motion(not self.limit_switch.get())
-        self.lift_motor.set_control(self.request.with_position(self.get_height()))
+        # self.request = DynamicMotionMagicVoltage(0, 80, 400, 4000, override_brake_dur_neutral=True, limit_reverse_motion=True).with_limit_reverse_motion(not self.limit_switch.get())
+        # self.lift_motor.set_control(self.request.with_position(self.get_height()))
+        pass
 
 
 class AmpDefaultCommand(Command):
 
     def __init__(self, amp: Amp, controller: CommanderController, photoeyes: Photoeyes):
+        self.addRequirements(amp)
         self.amp = amp
-        self.controller = controller
+        self.controller = Joystick(4)
         self.photoeyes = photoeyes
 
     def execute(self):
-        power = 0.0
+        power = 0
 
-        if self.controller.get_load_amp() & self.amp.get_height() == Amp.Height.HOME & self.photoeyes.get_intake_loaded():
-            running = True
-            while running:
-                power = 1.0
-                if self.photoeyes.get_amp_loaded():
-                    running = False
-        elif self.controller.get_load_amp() & self.amp.get_height() != Amp.Height.HOME:
-            power = 0.0
-        elif self.controller.get_amp_eject() & self.amp.get_height() != Amp.Height.HOME & self.photoeyes.get_amp_loaded():
-            power = 0.5
+        if abs(self.controller.getRawAxis(1)) >= 0.04:
+            power = self.controller.getRawAxis(1) * 0.1
         else:
-            power = 0.0
+            power = 0
 
-        if self.controller.get_amp_lift_amp():
-            self.amp.set_height(Amp.Height.AMP)
-        elif self.controller.get_amp_lift_trap():
-            self.amp.set_height(Amp.Height.TRAP)
-        elif self.controller.get_amp_lift_home():
-            self.amp.set_height(Amp.Height.HOME)
+        # self.amp.lift_motor.set_control(DutyCycleOut(-power, override_brake_dur_neutral=True))
+        # print(self.amp.lift_motor.get_position()) 
+        # power = 0.0
 
-        self.amp.set_feed(power)
+        # if self.controller.get_load_amp() & self.amp.get_height() == Amp.Height.HOME & self.photoeyes.get_intake_loaded():
+        #     running = True
+        #     while running:
+        #         power = 1.0
+        #         if self.photoeyes.get_amp_loaded():
+        #             running = False
+        # elif self.controller.get_load_amp() & self.amp.get_height() != Amp.Height.HOME:
+        #     power = 0.0
+        # elif self.controller.get_amp_eject() & self.amp.get_height() != Amp.Height.HOME & self.photoeyes.get_amp_loaded():
+        #     power = 0.5
+        # else:
+        #     power = 0.0
+
+        # if self.controller.get_amp_lift_amp():
+        #     self.amp.set_height(Amp.Height.AMP)
+        # elif self.controller.get_amp_lift_trap():
+        #     self.amp.set_height(Amp.Height.TRAP)
+        # elif self.controller.get_amp_lift_home():
+        #     self.amp.set_height(Amp.Height.HOME)
+
+        # self.amp.set_feed(power)

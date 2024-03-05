@@ -6,7 +6,7 @@ from subsystems.amp import Amp
 from subsystems.photoeyes import Photoeyes
 from subsystems.leds import Leds
 
-class IntakeNote(Command):
+class ReturnToHome(Command):
     def __init__(self, intake:Intake, shooter:Shooter, amp:Amp, photoeyes:Photoeyes, leds:Leds):
         super().__init__()
         self.intake = intake
@@ -24,27 +24,34 @@ class IntakeNote(Command):
         #    if c is True:
         #         self.forceQuit = True
         #         return
-        self.intake.tilt_down()
         self.timer = Timer()
         self.forceQuit = False
-        if self.photoeyes.get_shooter_loaded() or self.photoeyes.get_amp_loaded():
+        self.tripped = False
+        if self.photoeyes.get_intake_loaded():
             self.forceQuit = True
-        self.timer.start()
+        # self.timer.start()
 
     def execute(self):
-        print(self.timer.get())
+        # print(self.timer.get())
         if self.forceQuit:
             return
-        self.intake.feed()
-        if self.photoeyes.get_intake_loaded():
+        if self.photoeyes.get_amp_loaded():
+            self.amp.reverse()
+        elif self.photoeyes.get_shooter_loaded():
+            self.shooter.reverse()
+        self.intake.reverse()
+        if self.photoeyes.get_intake_loaded() and not self.tripped:
+            self.tripped = True
+            self.timer.start()
+        if self.timer.hasElapsed(0.1):
             self.intake.halt()
-            self.intake.tilt_up()
+            self.amp.halt()
             self.forceQuit = True
         pass
 
     def end(self, interrupted: bool):
         self.intake.halt()
-        self.intake.tilt_up()
+        self.amp.halt()
         pass
 
     def isFinished(self):

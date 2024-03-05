@@ -27,8 +27,8 @@ class Shooter(Subsystem):
         self.target_speed = 0
         self.target_tilt = 0
         # Initialize the motor controllers
-        self.shooter_motor_left = TalonFX(RMM.shooter_motor_left)
-        self.shooter_motor_right = TalonFX(RMM.shooter_motor_right)
+        self.shooter_motor_left = TalonFX(RMM.shooter_motor_left, "canivore")
+        self.shooter_motor_right = TalonFX(RMM.shooter_motor_right, "canivore")
         
         self.shooter_motor_left_configurator = self.shooter_motor_left.configurator
         self.shooter_motor_left_config = TalonFXConfiguration()
@@ -42,10 +42,10 @@ class Shooter(Subsystem):
         self.shooter_motor_left_configurator.apply(self.shooter_motor_left_config)
         self.shooter_motor_right_configurator.apply(self.shooter_motor_right_config)
 
-        self.shooter_motor_right.set_control(Follower(RMM.shooter_motor_left, True))
+        # self.shooter_motor_right.set_control(Follower(RMM.shooter_motor_left, True))
 
         ### Shooter Feed Motor ###
-        self.feed_motor = TalonFX(RMM.shooter_motor_feed)
+        self.feed_motor = TalonFX(RMM.shooter_motor_feed, "canivore")
 
         ### Shooter Tilt Motors ###
         self.tilt_motor_left = CANSparkMax(RMM.shooter_motor_tilt_left,
@@ -87,14 +87,17 @@ class Shooter(Subsystem):
         return self.shooter_motor_left.get_velocity() >= self.target_speed
 
     def feed_note(self):
-        self.feed_motor.set_control(DutyCycleOut(0.5))
+        self.feed_motor.set_control(DutyCycleOut(1.0))
+
+    def feed_reverse(self):
+        self.feed_motor.set_control(DutyCycleOut(-0.5))
 
     def feed_off(self):
         self.feed_motor.set_control(DutyCycleOut(0.0))
 
     def halt(self):
         # Stop the shooter motor
-        self.shooter_motor_left.set_control(DutyCycleOut(0), override_brake_dur_neutral=True)
+        self.shooter_motor_left.set_control(DutyCycleOut(0), override_brake_dur_neutral=False)
 
     def periodic(self) -> None:
         pn = SmartDashboard.putNumber

@@ -11,16 +11,16 @@ class Photoeyes(Subsystem):
         self.shooter_hold_photoeye = DigitalInput(RSM.shooter_hold_photoeye)
 
     def get_intake_front(self) -> bool:
-        return self.intake_front_photoeye.get()
+        return not self.intake_front_photoeye.get()
 
     def get_intake_loaded(self) -> bool:
-        return self.intake_hold_photoeye.get()
+        return not self.intake_hold_photoeye.get()
 
     def get_shooter_loaded(self) -> bool:
-        return self.shooter_hold_photoeye.get()
+        return not self.shooter_hold_photoeye.get()
 
     def get_amp_loaded(self) -> bool:
-        return self.amp_hold_photoeye.get()
+        return not self.amp_hold_photoeye.get()
 
     def periodic(self) -> None:
         pb = SmartDashboard.putBoolean

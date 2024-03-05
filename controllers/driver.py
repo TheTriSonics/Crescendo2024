@@ -12,17 +12,17 @@ class DriverController():
     @square
     @deadband(0.04)
     def get_drive_x(self) -> float:
-        return self.joystick.getRawAxis(0)
+        return -self.joystick.getRawAxis(1)
 
     @square
     @deadband(0.04)
     def get_drive_y(self) -> float:
-        return self.joystick.getRawAxis(1)
+        return -self.joystick.getRawAxis(0)
 
     @square
     @deadband(0.04)
     def get_drive_rot(self) -> float:
-        return self.joystick.getRawAxis(4)
+        return -self.joystick.getRawAxis(4) * 0.6
 
     # Controller has no equivalent for this method
     # so default to full throttle
@@ -33,3 +33,6 @@ class DriverController():
     # or field relative mode
     def get_field_relative_toggle(self) -> bool:
         return self.joystick.getRawButton(3)
+    
+    def get_note_lockon(self) -> bool:
+        return self.joystick.getRawButton(1)

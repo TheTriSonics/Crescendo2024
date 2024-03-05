@@ -8,21 +8,21 @@ class RobotPIDConstants():
 class RobotMotorMap():
     # REAL CAN ASSIGNMENTS
     # Swerve Motors
-    # front_left_drive = 11
-    # front_right_drive = 12
-    # back_left_drive = 13
-    # back_right_drive = 14
+    front_left_drive = 11
+    front_right_drive = 12
+    back_left_drive = 13
+    back_right_drive = 14
 
-    # front_left_turn = 21
-    # front_right_turn = 22
-    # back_left_turn = 23
-    # back_right_turn = 24
-    #
+    front_left_turn = 21
+    front_right_turn = 22
+    back_left_turn = 23
+    back_right_turn = 24
+    
     # Cancoders
-    # front_left_drive_encoder = 31
-    # front_right_drive_encoder = 32
-    # back_left_drive_encoder = 33
-    # back_right_drive_encoder = 34
+    front_left_turn_encoder = 31
+    front_right_turn_encoder = 32
+    back_left_turn_encoder = 33
+    back_right_turn_encoder = 34
 
     # MIN CAN ID = 1 DO NOT USE ZERO FOR CAN ID
     # MAX CAN ID = 62
@@ -30,21 +30,21 @@ class RobotMotorMap():
 
     ### CHASSIS BOT ###
     # Swerve
-    front_right_drive = 11
-    front_right_turn = 21
-    front_right_turn_encoder = 31
+    # front_right_drive = 11
+    # front_right_turn = 21
+    # front_right_turn_encoder = 31
 
-    front_left_drive = 12
-    front_left_turn = 22
-    front_left_turn_encoder = 32
+    # front_left_drive = 12
+    # front_left_turn = 22
+    # front_left_turn_encoder = 32
 
-    back_right_drive = 13
-    back_right_turn = 23
-    back_right_turn_encoder = 33
+    # back_right_drive = 13
+    # back_right_turn = 23
+    # back_right_turn_encoder = 33
 
-    back_left_drive = 14
-    back_left_turn = 24
-    back_left_turn_encoder = 34
+    # back_left_drive = 14
+    # back_left_turn = 24
+    # back_left_turn_encoder = 34
     ### CHASSIS BOT ###
 
     if is_sim():
@@ -72,22 +72,22 @@ class RobotMotorMap():
 
 class RobotSensorMap():
     # Gyro
-    pigeon2_id = 41
+    pigeon2_id = 35
 
     # Limit Switches DIO
-    amp_lift_bottom_limit_switch = 0
+    amp_lift_bottom_limit_switch = 9
 
     # Photoeyes DIO
-    intake_front_photoeye = 1
-    intake_hold_photoeye = 2
-    amp_hold_photoeye = 3
-    shooter_hold_photoeye = 4
+    intake_front_photoeye = 2
+    intake_hold_photoeye = 1
+    amp_hold_photoeye = 0
+    shooter_hold_photoeye = 3
 
     # Encoders DIO
-    intake_tilt_encoder = 5
-    shooter_tilt_encoder = 6
-    climber_left_encoder = 7
-    climber_right_encoder = 8
+    intake_tilt_encoder = 6
+    shooter_tilt_encoder = 7
+    climber_left_encoder = 4
+    climber_right_encoder = 5
 
     # Addressable LEDS PWM
     addressable_leds = 0
@@ -108,8 +108,8 @@ class RobotButtonMap():
 
     # Commander button assignments
     ### Controller 1 ###
-    intake_ready = 0
-    intake_eject = 1
+    intake_ready = 1
+    intake_eject = 2
 
     load_note_shooter = 2
     load_note_amp = 3

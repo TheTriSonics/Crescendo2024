@@ -2,17 +2,17 @@ import rev
 import wpilib
 from rev import CANSparkLowLevel
 from misc import is_sim
-from wpilib import SmartDashboard
-from constants import RobotMotorMap as RMM
+from wpilib import DutyCycleEncoder, Joystick, SmartDashboard
+from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
 from commands2 import Subsystem, Command
-from wpimath.controller import PIDController
+from wpimath.controller import PIDController, SimpleMotorFeedforwardMeters
 from subsystems.photoeyes import Photoeyes
 from controllers.commander import CommanderController
 
 # TODO: Sort these actual values out with real hardware
-tilt_encoder_setpoint_down = 0
-tilt_encoder_setpoint_up = 200
-tilt_encoder_error_margin = 5
+tilt_encoder_setpoint_down = 0.44
+tilt_encoder_setpoint_up = 0.365
+tilt_encoder_error_margin = 0.005
 
 
 if is_sim():
@@ -57,27 +57,27 @@ class Intake(Subsystem):
                                       CANSparkLowLevel.MotorType.kBrushed)
 
         # Set the tilt_motor to brake mode
-        self.tilt_pid = PIDController(0.1, 0, 0)
+        # TODO: Tuning needed
+        self.tilt_pid = PIDController(6.0, 0, 0)
+        self.tilt_ff = SimpleMotorFeedforwardMeters(1.5, 0.0, 0.0)
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
-        self.tilt_encoder = self.tilt_motor.getAbsoluteEncoder()
+        self.tilt_encoder = DutyCycleEncoder(RSM.intake_tilt_encoder)
 
         # Wherever the lift is on boot is good enough for us right now.
-        self.tilt_setpoint = self.tilt_encoder.getPosition()
-        defcmd = IntakeDefaultCommand(self, self.controller,
-                                      self.photoeyes)
-        self.setDefaultCommand(defcmd)
+        self.tilt_setpoint = tilt_encoder_setpoint_up
+
+        # defcmd = IntakeDefaultCommand(self, self.controller,
+        #                               self.photoeyes)
+        # self.setDefaultCommand(defcmd)
 
     def feed(self) -> None:
-        # self.feed_motors.set(1)
-        pass
+        self.feed_motors.set(1)
 
     def reverse(self) -> None:
-        # self.feed_motors.set(-1)
-        pass
+        self.feed_motors.set(-1)
 
     def halt(self) -> None:
-        # self.feed_motors.set(0)
-        pass
+        self.feed_motors.set(0)
 
     def tilt_up(self) -> None:
         self.tilt_setpoint = tilt_encoder_setpoint_up
@@ -93,13 +93,13 @@ class Intake(Subsystem):
 
     def is_up(self) -> bool:
         return (
-            abs(self.tilt_encoder.getPosition() - tilt_encoder_setpoint_up)
+            abs(self.tilt_encoder.getAbsolutePosition() - tilt_encoder_setpoint_up)
             < tilt_encoder_error_margin
         )
 
     def is_down(self) -> bool:
         return (
-            abs(self.tilt_encoder.getPosition() - tilt_encoder_setpoint_down)
+            abs(self.tilt_encoder.getAbsolutePosition() - tilt_encoder_setpoint_down)
             < tilt_encoder_error_margin
         )
 
@@ -111,7 +111,7 @@ class Intake(Subsystem):
     # lift to the desired position using our PID controller
     def periodic(self) -> None:
         # Get the encoder reading, a number value.
-        current_pos = self.tilt_encoder.getPosition()
+        current_pos = self.tilt_encoder.getAbsolutePosition()
 
         # Set default output to no power, so unless we change this
         # the tilt motor won't be run.
@@ -120,25 +120,26 @@ class Intake(Subsystem):
         # Determie if we're too far away from the setpoint to stop
         if abs(current_pos - self.tilt_setpoint) > tilt_encoder_error_margin:
             output = self.tilt_pid.calculate(current_pos, self.tilt_setpoint)
+            # output -= self.tilt_ff.calculate(self.tilt_setpoint)
 
         # Now give whatever value we decided on to the tilt motors.
-        self.tilt_motor.set(output)
+        self.tilt_motor.set(-output)
 
         # Display the subsystem status on a dashboard
         SmartDashboard.putNumber('intake/tilt_setpoint', self.tilt_setpoint)
         SmartDashboard.putNumber('intake/tilt_current',
-                                 self.tilt_encoder.getPosition())
+                                 self.tilt_encoder.getAbsolutePosition())
         SmartDashboard.putNumber('intake/tilt_output', output)
 
     def getSimulatedPosition(self):
         return self.simulated_position
 
     def simulationPeriodic(self) -> None:
-        current_pos = self.tilt_encoder.getPosition()
-        if self.tilt_setpoint > current_pos:
-            self.tilt_encoder._position = current_pos + 1
-        else:
-            self.tilt_encoder._position = current_pos - 1
+        current_pos = self.tilt_encoder.getAbsolutePosition()
+        # if self.tilt_setpoint > current_pos:
+        #     self.tilt_encoder._position = current_pos + 1
+        # else:
+        #     self.tilt_encoder._position = current_pos - 1
         # print(current_pos, self.tilt_setpoint)
         pass
 
@@ -151,40 +152,64 @@ class IntakeDefaultCommand(Command):
 
         self.intake = intake
         self.photoeyes = photoeyes
-        self.controller = controller
+        self.controller = Joystick(1)
         self.addRequirements(intake)
+        self.feed = False
 
     def execute(self) -> None:
         # Pattern: 1) Gather Info
 
         # Read all of the buttons we need to take into account to make our
         # decision
-        intake_on = self.controller.get_intake_ready()
-        reverse_down = self.controller.get_override_intake_roller_out()
-        override_down = self.controller.get_override_intake_tilt_down()
-        eye_blocked = self.photoeyes.get_intake_loaded()
+        # intake_on = self.controller.get_intake_ready()
+        # reverse_down = self.controller.get_override_intake_roller_out()
+        # override_down = self.controller.get_override_intake_tilt_down()
+        # eye_blocked = self.photoeyes.get_intake_loaded()
 
-        tilt_down = self.controller.get_override_intake_tilt_down()
-        tilt_up = self.controller.get_override_intake_tilt_up()
+        # tilt_down = self.controller.get_override_intake_tilt_down()
+        # tilt_up = self.controller.get_override_intake_tilt_up()
 
         # Pattern:  2) Make decision
         # Set up a default value for if no conditions match, or no buttons are
         # pressed.
         intake_speed = 0
+        
         # Now step through combinations to see what we should do
-        if intake_on and eye_blocked is False:
-            intake_speed = 0.5
-        elif intake_on and override_down:
-            intake_speed = 0.5
-        elif reverse_down and override_down:
-            intake_speed = -0.5
+        # if abs(self.controller.getRawAxis(1)) >= 0.04:
+        #     intake_speed = self.controller.getRawAxis(1)
+        # else:
+        #     intake_speed = 0
+        
+        # tilt_speed = 0
+        # if abs(self.controller.getRawAxis(5)) >= 0.04:
+        #     tilt_speed = self.controller.getRawAxis(5) * 0.2
+        # else:
+        #     tilt_speed = 0
 
-        if tilt_up:
-            self.tilt_setpoint = tilt_encoder_setpoint_up
-        elif tilt_down:
-            self.tilt_setpoint = tilt_encoder_setpoint_down
+        if self.controller.getRawButton(1):
+            self.intake.reverse() 
+
+        if self.controller.getRawButton(2):
+            self.intake.tilt_up()
+        elif self.controller.getRawButton(3):
+            self.intake.tilt_down()
+
+        # if intake_on and eye_blocked is False:
+        #     intake_speed = 0.5
+        # elif intake_on and override_down:
+        #     intake_speed = 0.5
+        # elif reverse_down and override_down:
+        #     intake_speed = -0.5
+
+        # if tilt_up:
+        #     self.tilt_setpoint = tilt_encoder_setpoint_up
+        # elif tilt_down:
+        #     self.tilt_setpoint = tilt_encoder_setpoint_down
 
         # Pattern: 3) Execute decision
         # Now commit some values to the physical subsystem.
-        self.intake.feed()
+        # self.intake.feed()
+        print(self.intake.tilt_encoder.getAbsolutePosition())
+        # self.intake.feed_motors.set(intake_speed)
+        # self.intake.tilt_motor.set(tilt_speed)
         SmartDashboard.putNumber('intake/intake_speed', intake_speed)

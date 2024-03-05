@@ -31,7 +31,7 @@ from constants import RobotPIDConstants as PIDC
 kMaxSpeed = 4.8  # m/s
 kMaxAngularSpeed = math.pi * 5
 
-swerve_offset = 30 / 100  # cm converted to meters
+swerve_offset = 55 / 100  # cm converted to meters
 
 
 class DrivetrainDefaultCommand(Command):
@@ -115,25 +115,25 @@ class Drivetrain(Subsystem):
             RMM.front_left_drive,
             RMM.front_left_turn,
             RMM.front_left_turn_encoder,
-            False,
+            True,
             'Front left')
         self.frontRight = swervemodule.SwerveModule(
             RMM.front_right_drive,
             RMM.front_right_turn,
             RMM.front_right_turn_encoder,
-            True,
+            False,
             'Front right')
         self.backLeft = swervemodule.SwerveModule(
             RMM.back_left_drive,
             RMM.back_left_turn,
             RMM.back_left_turn_encoder,
-            False,
+            True,
             'Back left')
         self.backRight = swervemodule.SwerveModule(
             RMM.back_right_drive,
             RMM.back_right_turn,
             RMM.back_right_turn_encoder,
-            True,
+            False,
             'Back right')
 
         self.modules = [

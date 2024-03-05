@@ -6,7 +6,7 @@ from subsystems.photoeyes import Photoeyes
 from subsystems.amp import Amp
 
 
-class AmpLoad(Command):
+class AmpScore(Command):
     def __init__(self, amp: Amp, intake: Intake, photoeyes: Photoeyes) -> None:
         super().__init__()
         self.amp = amp
@@ -16,22 +16,27 @@ class AmpLoad(Command):
 
     def initialize(self) -> None:
         self.timer = Timer()
+        self.dump_timer = Timer()
         self.forceQuit = False
-        if not self.intake.is_loaded():
+        if not self.photoeyes.get_amp_loaded():
             self.forceQuit = True
+            pass
         self.timer.start()
 
     def execute(self) -> None:
         if self.forceQuit is True:
             return
-
-        self.intake.feed()
+        if not self.photoeyes.get_amp_loaded():
+            self.dump_timer.start()
+        # self.intake.feed()
         self.amp.feed()
         pass
 
     def end(self, isInterrupted) -> None:
         self.intake.halt()
         self.amp.halt()
+        self.timer.stop()
+        self.dump_timer.stop()
         pass
 
     def isFinished(self) -> bool:
@@ -39,7 +44,7 @@ class AmpLoad(Command):
             return True
         if self.timer.get() > 3.0:
             return True
-        if self.photoeyes.get_amp_loaded() is True:
+        if self.photoeyes.get_amp_loaded() is False and self.dump_timer.get() > 0.1:
             return True
         return False
 

@@ -6,24 +6,15 @@ from subsystems.amp import Amp
 from subsystems.photoeyes import Photoeyes
 from subsystems.leds import Leds
 
-class IntakeNote(Command):
-    def __init__(self, intake:Intake, shooter:Shooter, amp:Amp, photoeyes:Photoeyes, leds:Leds):
+class EjectNote(Command):
+    def __init__(self, intake:Intake, photoeyes:Photoeyes, leds:Leds):
         super().__init__()
         self.intake = intake
-        self.shooter = shooter
-        self.amp = amp
         self.photoeyes = photoeyes
         self.leds = leds
         self.addRequirements(intake)
 
     def initialize(self):
-        # shooter_loaded = False
-        # amp_loaded = False
-        # intake_loaded = False
-        # for c in [shooter_loaded, amp_loaded, intake_loaded]:
-        #    if c is True:
-        #         self.forceQuit = True
-        #         return
         self.intake.tilt_down()
         self.timer = Timer()
         self.forceQuit = False
@@ -32,24 +23,20 @@ class IntakeNote(Command):
         self.timer.start()
 
     def execute(self):
-        print(self.timer.get())
+        print("Ejecting Note")
         if self.forceQuit:
             return
-        self.intake.feed()
-        if self.photoeyes.get_intake_loaded():
-            self.intake.halt()
-            self.intake.tilt_up()
-            self.forceQuit = True
-        pass
+        if self.intake.is_down():
+            self.intake.reverse()
 
     def end(self, interrupted: bool):
+        print("Eject done")
         self.intake.halt()
         self.intake.tilt_up()
-        pass
 
     def isFinished(self):
         if self.forceQuit:
             return True
-        if self.timer.get() > 3.0:
+        if self.timer.get() > 2.0:
             return True
         return False

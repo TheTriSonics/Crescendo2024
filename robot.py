@@ -12,7 +12,10 @@ from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
 from pathplannerlib.commands import FollowPathHolonomic
+from commands.amp_score import AmpScore
 from commands.drive_over_note import DriveOverNote
+from commands.eject_note import EjectNote
+from commands.return_to_home import ReturnToHome
 
 from commands.rotate import Rotate
 from commands.haltdrive import HaltDrive
@@ -24,8 +27,9 @@ from commands.intake_note import IntakeNote
 from commands.field_relative_toggle import FieldRelativeToggle
 
 from commands.amp_load import AmpLoad
+from commands.shooter_launch_note_test import ShooterLaunchNoteTest
 
-
+import subsystems.amp as amp
 import subsystems.gyro as gyro
 import subsystems.intake as intake
 import subsystems.shooter as shooter
@@ -36,7 +40,7 @@ import subsystems.leds as leds
 
 from constants import RobotButtonMap as RBM
 
-from controllers.thrust_driver import DriverController
+from controllers.driver import DriverController
 from controllers.commander import CommanderController
 
 from misc import is_sim
@@ -59,8 +63,9 @@ class MyRobot(TimedCommandRobot):
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.Photoeyes()
         self.leds = leds.Leds()
+        self.amp = amp.Amp(self.commander, self.photoeyes)
 
-        #self.shooter = shooter.Shooter()
+        self.shooter = shooter.Shooter()
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
@@ -68,11 +73,25 @@ class MyRobot(TimedCommandRobot):
 
         # button = JoystickButton(driver_joystick, 4)
         # button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
-        # load_amp_button = JoystickButton(commander_joystick1, RBM.load_note_amp)
-        # load_amp_button.onTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
+        
+        intake_button = JoystickButton(self.commander_joystick1, RBM.intake_ready)
+        intake_button.onTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
+        
+        eject_button = JoystickButton(self.commander_joystick1, RBM.intake_eject)
+        eject_button.onTrue(EjectNote(self.intake, self.photoeyes, self.leds))
+        
+        amp_load_button = JoystickButton(self.commander_joystick1, RBM.load_note_amp)
+        amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
+
+        amp_dump_button = JoystickButton(self.commander_joystick1, 4)
+        amp_dump_button.onTrue(AmpScore(self.amp, self.intake, self.photoeyes))
+
+        shoot = JoystickButton(self.commander_joystick1, 5)
+        shoot.onTrue(ShooterLaunchNoteTest(self.shooter))
+        
         fr_button = JoystickButton(self.driver_joystick, RBM.toggle_field_relative)
         # fr_button.onTrue(FieldRelativeToggle(self.swerve))
-        fr_button.onTrue(InstantCommand( self.swerve.toggleFieldRelative))
+        fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
 
 
     def configure_driver_controls(self):
