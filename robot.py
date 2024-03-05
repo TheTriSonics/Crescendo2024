@@ -2,6 +2,7 @@
 
 import json
 
+from math import radians
 from wpilib import SmartDashboard, Joystick, DriverStation
 from commands2 import TimedCommandRobot, SequentialCommandGroup, InstantCommand
 from commands2.button import JoystickButton
@@ -43,7 +44,7 @@ from constants import RobotButtonMap as RBM
 from controllers.driver import DriverController
 from controllers.commander import CommanderController
 
-from misc import is_sim
+from misc import is_sim, add_timing
 
 
 class MyRobot(TimedCommandRobot):
@@ -93,7 +94,6 @@ class MyRobot(TimedCommandRobot):
         # fr_button.onTrue(FieldRelativeToggle(self.swerve))
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
 
-
     def configure_driver_controls(self):
         button = JoystickButton(self.driver_joystick, 4)
         button.whileTrue(
@@ -108,22 +108,43 @@ class MyRobot(TimedCommandRobot):
             AmpLoad(self.shooter, self.intake, self.photoeyes)
         )
 
-
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
             self.leds.set_connect_status()
 
+        # Rough idea of how to incorporate vision into odometry
+        if self.swerve.vision_stable is True:
+            # Here's our method to pull data from LimeLight's network table
+            [ll_poses], cameralag, computelag = self.get_poses_from_limelight()
+            # TODO:
+            # Here we can make a determination to use the vision data or not
+            # For example we might only want to accept posees that are already
+            # within 1 meter of where we think we are.
+            # But after a certain amount of time we might want to accept the
+            # pose anyway to correct for drift.
+            # We may also need to add a 'fudge factor' to this number
+            # to get things performing right. Nothing is set in stone.
+            timelag = cameralag + computelag
+            for p in ll_poses:
+                self.swerve.odometry.setVisionMeasurementStdDevs(
+                    # TODO: This is a placeholder for the actual std devs used
+                    # in the Kalman filter
+                    (0.1, 0.1, 0.1),
+                    timelag
+                )
+                self.swerve.odometry.addVisionMeasurement(p)
+        pass
+
     def testPathToFollow(self):
-        from pathplannerlib.path import PathPlannerPath, PathConstraints, GoalEndState
-        from wpimath.geometry import Pose2d, Rotation2d
+        from pathplannerlib.path import PathConstraints, GoalEndState
         import math
 
         # Create a list of bezier points from poses. Each pose represents one waypoint.
         # The rotation component of the pose should be the direction of travel. Do not use holonomic rotation.
         bezierPoints = PathPlannerPath.bezierFromPoses(
             [Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0)),
-            Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0)),
-            Pose2d(3.0, 2.0, Rotation2d.fromDegrees(90))]
+             Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0)),
+             Pose2d(3.0, 2.0, Rotation2d.fromDegrees(90))]
         )
 
         # Create the path using the bezier points created above
@@ -172,16 +193,30 @@ class MyRobot(TimedCommandRobot):
             lock_cmd = HaltDrive(self.swerve)
             lock_cmd.schedule()
 
-        # Rough idea of how to incorporate vision into odometry
-        if self.swerve.vision_stable is True:
-            # Here's our method to pull data from LimeLight's network table
-            x, y, heading = self.getVisionXY()
-            vpose = Pose2d(x, y, Rotation2d(heading))
-            # TODO: This is a placeholder for the actual std devs used in
-            # the Kalman filter
-            self.swerve.odometry.setVisionMeasurementStdDevs((0.1, 0.1, 0.1))
-            self.swerve.odometry.addVisionMeasurement(vpose)
-            pass
+    # Documentation on JSON return:
+    # https://docs.limelightvision.io/docs/docs-limelight/apis/json-dump-specification
+    # We are going to be using 't6r_fs' aka "Robot Pose in field space as
+    # computed by this fiducial (x,y,z,rx,ry,rz)"
+    @add_timing
+    def get_poses_from_limelight(self) -> tuple[list[Pose2d], float]:
+        data = self.swerve.ll_json_entry.get()
+        obj = json.loads(data)
+        poses = []
+        tl = None
+        # Short circuit any JSON processing if we got back an empty list, which
+        # is the default value for the limelight network table entry
+        if len(obj) == 0:
+            return poses, tl
+
+        for result in obj['Results']:
+            tl = result['tl']
+            for fid in obj['Fiducial']:
+                robot_pose_raw = fid['t6r_fs']
+                # TODO: Verify that the rotation is the right value
+                pose = Pose2d(robot_pose_raw[0], robot_pose_raw[1],
+                              Rotation2d(radians(robot_pose_raw[3])))
+                poses.append(pose)
+        return poses, tl
 
     # TODO: Heading needs to be added to the return on this
     # and the overal processing could be a lot cleaner.
