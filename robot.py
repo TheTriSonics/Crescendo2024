@@ -22,6 +22,7 @@ from commands.rotate import Rotate
 from commands.haltdrive import HaltDrive
 from commands.drivetopoint import DriveToPoint
 from commands.drivefordistance import DriveForDistance
+from commands.set_amp_height import SetAmpHeight
 from commands.shooter_launch_note import ShooterLaunchNote
 from commands.intake_note import IntakeNote
 
@@ -89,7 +90,14 @@ class MyRobot(TimedCommandRobot):
 
         shoot = JoystickButton(self.commander_joystick1, 5)
         shoot.onTrue(ShooterLaunchNoteTest(self.shooter))
+        # shoot.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes))
+
+        # amp_set_height_amp = JoystickButton(self.commander_joystick1, 5)
+        # amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME))
         
+        # amp_set_height_amp = JoystickButton(self.commander_joystick1, 6)
+        # amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
+
         fr_button = JoystickButton(self.driver_joystick, RBM.toggle_field_relative)
         # fr_button.onTrue(FieldRelativeToggle(self.swerve))
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))

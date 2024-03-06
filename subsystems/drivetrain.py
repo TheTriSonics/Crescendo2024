@@ -45,8 +45,8 @@ class DrivetrainDefaultCommand(Command):
         self.photon = photon
         self.pid = PIDController(*PIDC.note_tracking_pid)
         # Slew rate limiters to make joystick inputs more gentle
-        self.xslew = SlewRateLimiter(2)
-        self.yslew = SlewRateLimiter(2)
+        self.xslew = SlewRateLimiter(0.75)
+        self.yslew = SlewRateLimiter(0.75)
         self.rotslew = SlewRateLimiter(1)
         self.idle_counter = 0
         self.addRequirements(drivetrain)

@@ -1,5 +1,5 @@
-from rev import CANSparkMax, CANSparkLowLevel
-from wpilib import DutyCycleEncoder, SmartDashboard
+from rev import CANSensor, CANSparkMax, CANSparkLowLevel, MotorFeedbackSensor, SparkAbsoluteEncoder
+from wpilib import DutyCycleEncoder, Joystick, SmartDashboard
 from commands2 import Subsystem, Command
 from phoenix6.hardware import TalonFX
 from phoenix6.configs import TalonFXConfiguration
@@ -20,12 +20,22 @@ class Shooter(Subsystem):
     # or nothing.
     rotate_pid: PIDController
 
+    class Tilt():
+        HOME = 0.3
+        SUB = 0.5
+        SAFE = 0.5
+        MAX = 0.986
+
     def __init__(self):
         super().__init__()
+        defcmd = ShooterDefaultCommand(self)
+        self.setDefaultCommand(defcmd)
+
         ### Shooter Launch Motors ###
         # Initialize the target speed
         self.target_speed = 0
         self.target_tilt = 0
+
         # Initialize the motor controllers
         self.shooter_motor_left = TalonFX(RMM.shooter_motor_left, "canivore")
         self.shooter_motor_right = TalonFX(RMM.shooter_motor_right, "canivore")
@@ -55,10 +65,11 @@ class Shooter(Subsystem):
         
         self.tilt_position = 0 # TODO: Get the actual position of the tilt
         
-        # self.tilt_motor_right.follow(self.tilt_motor_left.get, invertOutput=False)
+        self.tilt_motor_right.follow(self.tilt_motor_left)
 
         self.tilt_pid_controller = self.tilt_motor_left.getPIDController()
-        self.tilt_encoder = DutyCycleEncoder(RSM.shooter_tilt_encoder)
+        self.tilt_encoder = self.tilt_motor_left.getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle)
+        self.tilt_encoder.setAverageDepth(32)
 
         self.tilt_pid_controller.setP(0.1)
         self.tilt_pid_controller.setI(0.0)
@@ -66,7 +77,7 @@ class Shooter(Subsystem):
         self.tilt_pid_controller.setIZone(0)
         self.tilt_pid_controller.setFF(0.0)
         self.tilt_pid_controller.setOutputRange(-1, 1)
-        # self.tilt_pid_controller.setFeedbackDevice(self.tilt_encoder)
+        self.tilt_pid_controller.setFeedbackDevice(self.tilt_encoder)
         
     def set_auto_target_shot(self):
         pass
@@ -76,8 +87,9 @@ class Shooter(Subsystem):
 
     def set_speaker_shot(self):
         pass
+
     def set_tilt(self, tilt):
-        self.tilt_pid_controller.setReference(tilt, CANSparkMax.ControlType.kPosition)        
+        self.target_tilt = tilt
 
     def set_velocity(self, velocity):
         self.target_speed = velocity
@@ -87,7 +99,7 @@ class Shooter(Subsystem):
         return self.shooter_motor_left.get_velocity() >= self.target_speed
 
     def feed_note(self):
-        self.feed_motor.set_control(DutyCycleOut(1.0))
+        self.feed_motor.set_control(DutyCycleOut(0.25))
 
     def feed_reverse(self):
         self.feed_motor.set_control(DutyCycleOut(-0.5))
@@ -103,5 +115,25 @@ class Shooter(Subsystem):
         pn = SmartDashboard.putNumber
         pn("shooter/target_speed", self.target_speed)
         pn("shooter/target_tilt", self.target_tilt)
-        # TODO: Add the feed motor's output to the dashboard
-        pass
+        pn("Shooter Feed Speed", self.feed_motor.get_duty_cycle().value_as_double)
+        pn("Shooter Tilt Encoder", self.tilt_encoder.getPosition())
+        # self.tilt_pid_controller.setReference(self.target_tilt, CANSparkMax.ControlType.kPosition)
+
+class ShooterDefaultCommand(Command):
+
+    def __init__(self, shooter: Shooter):
+        self.addRequirements(shooter)
+        self.shooter = shooter
+        self.controller = Joystick(5)
+
+    def execute(self):
+        power = 0
+
+        if abs(self.controller.getRawAxis(1)) >= 0.04:
+            power = self.controller.getRawAxis(1) * 0.1
+        else:
+            power = 0
+
+        self.shooter.tilt_motor_left.set(power)
+        self.shooter.tilt_motor_right.set(power)
+

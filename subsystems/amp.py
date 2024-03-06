@@ -11,13 +11,13 @@ from controllers.commander import CommanderController
 from subsystems.photoeyes import Photoeyes
 
 class Amp(Subsystem):
-    class Direction(Enum):
+    class Direction():
         SHOOTER = 1
         AMP = -1
 
-    class Height(Enum):
-        HOME = 0
-        AMP = 1
+    class Height():
+        HOME = 0.67
+        AMP = 17.327
         TRAP = 2
 
     def __init__(self, controller: CommanderController, photoeyes: Photoeyes):
@@ -53,8 +53,8 @@ class Amp(Subsystem):
 
         self.height = self.Height.HOME
 
-        defcmd = AmpDefaultCommand(self, self.controller, self.photoeyes)
-        self.setDefaultCommand(defcmd)
+        # defcmd = AmpDefaultCommand(self, self.controller, self.photoeyes)
+        # self.setDefaultCommand(defcmd)
 
     def set_height(self, height):
         self.height = height
@@ -74,9 +74,8 @@ class Amp(Subsystem):
 
 
     def periodic(self) -> None:
-        # self.request = DynamicMotionMagicVoltage(0, 80, 400, 4000, override_brake_dur_neutral=True, limit_reverse_motion=True).with_limit_reverse_motion(not self.limit_switch.get())
-        # self.lift_motor.set_control(self.request.with_position(self.get_height()))
-        pass
+        self.request = DynamicMotionMagicVoltage(0, 80, 400, 4000, override_brake_dur_neutral=True, limit_reverse_motion=True).with_limit_reverse_motion(not self.limit_switch.get())
+        self.lift_motor.set_control(self.request.with_position(self.height))
 
 
 class AmpDefaultCommand(Command):
