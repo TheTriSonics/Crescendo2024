@@ -52,6 +52,7 @@ class SwerveModule:
             drive_Output.inverted = signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         else:
             drive_Output.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
+        drive_Output.supply_current_limit(30, 1.5, 20)
         driveConfigurator.apply(drive_Output)
         drive_feedback = configs.FeedbackConfigs()
         drive_feedback.with_sensor_to_mechanism_ratio(7.131)
