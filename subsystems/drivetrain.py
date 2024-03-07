@@ -195,7 +195,7 @@ class Drivetrain(Subsystem):
                 # furthest module.
                 0.431,
                 # Default path replanning config. See the API for options
-                ReplanningConfig(enableDynamicReplanning=True)
+                ReplanningConfig(enableDynamicReplanning=False)
             ),
             # Supplier to control path flipping based on alliance color
             self.shouldFlipPath,

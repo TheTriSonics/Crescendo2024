@@ -22,8 +22,8 @@ class Shooter(Subsystem):
         super().__init__()
         self.alive_timer = Timer()
         self.alive_timer.start()
-        defcmd = ShooterDefaultCommand(self)
-        self.setDefaultCommand(defcmd)
+        # defcmd = ShooterDefaultCommand(self)
+        # self.setDefaultCommand(defcmd)
 
         ### Shooter Launch Motors ###
         # Initialize the target speed
