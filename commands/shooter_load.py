@@ -42,7 +42,7 @@ class ShooterLoad(Command):
     def isFinished(self) -> bool:
         if self.forceQuit is True:
             return True
-        if self.timer.get() > 2.0:
+        if self.timer.get() > 4.0:
             return True
         if self.photoeyes.get_shooter_loaded() is True:
             return True

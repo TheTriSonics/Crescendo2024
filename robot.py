@@ -32,6 +32,7 @@ from commands.amp_load import AmpLoad
 from commands.shooter_launch_note_test import ShooterLaunchNoteTest
 
 import subsystems.amp as amp
+import subsystems.climber as climber
 import subsystems.gyro as gyro
 import subsystems.intake as intake
 import subsystems.shooter as shooter
@@ -72,6 +73,7 @@ class MyRobot(TimedCommandRobot):
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
         self.note_tracker = note_tracker.NoteTracker()
+        self.climber = climber.Climber(self.driver)
 
         # button = JoystickButton(driver_joystick, 4)
         # button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
@@ -85,22 +87,34 @@ class MyRobot(TimedCommandRobot):
         amp_load_button = JoystickButton(self.commander_joystick1, RBM.load_note_amp)
         amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
 
-        amp_dump_button = JoystickButton(self.commander_joystick1, 4)
+        amp_dump_button = JoystickButton(self.commander_joystick1, RBM.amp_eject)
         amp_dump_button.onTrue(AmpScore(self.amp, self.intake, self.photoeyes))
 
         shoot = JoystickButton(self.commander_joystick1, 5)
         shoot.onTrue(ShooterLaunchNoteTest(self.shooter))
         # shoot.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes))
 
-        # amp_set_height_amp = JoystickButton(self.commander_joystick1, 5)
-        # amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME))
+        """
+        Not now, bro.
+        amp_set_height_amp = JoystickButton(self.commander_joystick1, RBM.amp_lift_home)
+        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME))
         
-        # amp_set_height_amp = JoystickButton(self.commander_joystick1, 6)
-        # amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
+        amp_set_height_amp = JoystickButton(self.commander_joystick1, RBM.amp_lift_amp)
+        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
+
+        amp_set_height_amp = JoystickButton(self.commander_joystick1, RBM.amp_lift_trap)
+        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.TRAP))
+        """
 
         fr_button = JoystickButton(self.driver_joystick, RBM.toggle_field_relative)
         # fr_button.onTrue(FieldRelativeToggle(self.swerve))
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
+
+        safe_shot_button = JoystickButton(self.commander_joystick2, RBM.shooter_aim_safe)  
+        safe_shot_button.onTrue(InstantCommand(self.shooter.safe_shot))
+        
+        sub_shot_button = JoystickButton(self.commander_joystick2, RBM.shooter_aim_sub)  
+        sub_shot_button.onTrue(InstantCommand(self.shooter.sub_shot))
 
     def configure_driver_controls(self):
         button = JoystickButton(self.driver_joystick, 4)
@@ -119,6 +133,8 @@ class MyRobot(TimedCommandRobot):
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
             self.leds.set_connect_status()
+
+        SmartDashboard.putNumber("Climber Speed", self.driver.get_climber_trigger())
 
         # Rough idea of how to incorporate vision into odometry
         if self.swerve.vision_stable is True:

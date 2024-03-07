@@ -18,7 +18,7 @@ class Amp(Subsystem):
     class Height():
         HOME = 0.67
         AMP = 17.327
-        TRAP = 2
+        TRAP = 20.327
 
     def __init__(self, controller: CommanderController, photoeyes: Photoeyes):
         super().__init__()

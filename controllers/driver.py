@@ -23,6 +23,9 @@ class DriverController():
     @deadband(0.04)
     def get_drive_rot(self) -> float:
         return -self.joystick.getRawAxis(4) * 0.6
+    
+    def get_climber_trigger(self) -> float:
+        return self.joystick.getRawAxis(3) - self.joystick.getRawAxis(2)
 
     # Controller has no equivalent for this method
     # so default to full throttle

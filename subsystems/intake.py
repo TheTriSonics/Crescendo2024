@@ -10,8 +10,8 @@ from subsystems.photoeyes import Photoeyes
 from controllers.commander import CommanderController
 
 # TODO: Sort these actual values out with real hardware
-tilt_encoder_setpoint_down = 0.44
-tilt_encoder_setpoint_up = 0.365
+tilt_encoder_setpoint_down = 0.42
+tilt_encoder_setpoint_up = 0.335
 tilt_encoder_error_margin = 0.005
 
 
@@ -58,10 +58,12 @@ class Intake(Subsystem):
 
         # Set the tilt_motor to brake mode
         # TODO: Tuning needed
-        self.tilt_pid = PIDController(6.0, 0, 0)
-        self.tilt_ff = SimpleMotorFeedforwardMeters(1.5, 0.0, 0.0)
+        self.tilt_pid = PIDController(9.0, 0, 0)
+        self.tilt_ff = SimpleMotorFeedforwardMeters(0.2, 0.0, 0.0)
         self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
         self.tilt_encoder = DutyCycleEncoder(RSM.intake_tilt_encoder)
+
+        self.tilt_motor.setInverted(True)
 
         # Wherever the lift is on boot is good enough for us right now.
         self.tilt_setpoint = tilt_encoder_setpoint_up
@@ -120,16 +122,17 @@ class Intake(Subsystem):
         # Determie if we're too far away from the setpoint to stop
         if abs(current_pos - self.tilt_setpoint) > tilt_encoder_error_margin:
             output = self.tilt_pid.calculate(current_pos, self.tilt_setpoint)
-            # output -= self.tilt_ff.calculate(self.tilt_setpoint)
+            # output += self.tilt_ff.calculate(self.tilt_setpoint)
 
         # Now give whatever value we decided on to the tilt motors.
-        self.tilt_motor.set(-output)
+        self.tilt_motor.set(output)
 
         # Display the subsystem status on a dashboard
         SmartDashboard.putNumber('intake/tilt_setpoint', self.tilt_setpoint)
         SmartDashboard.putNumber('intake/tilt_current',
                                  self.tilt_encoder.getAbsolutePosition())
         SmartDashboard.putNumber('intake/tilt_output', output)
+        SmartDashboard.putNumber('intake/tilt_feedF', self.tilt_ff.calculate(self.tilt_setpoint))
 
     def getSimulatedPosition(self):
         return self.simulated_position

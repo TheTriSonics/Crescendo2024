@@ -2,7 +2,7 @@ from misc import is_sim
 
 
 class RobotPIDConstants():
-    note_tracking_pid = (0.04, 0, 0)
+    note_tracking_pid = (0.020, 0, 0)
 
 
 class RobotMotorMap():
@@ -121,10 +121,10 @@ class RobotButtonMap():
     shooter_shoot = 8
     
     ### Controller 2 ###
-    amp_lift_amp = 0
-    amp_lift_trap = 1
-    amp_lift_home = 2
-    amp_eject = 3
+    amp_lift_home = 4
+    amp_lift_amp = 5
+    amp_lift_trap = 6
+    amp_eject = 7
 
     # Commander Override Buttons
     intake_tilt_up = 4

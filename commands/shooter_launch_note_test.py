@@ -11,31 +11,27 @@ class ShooterLaunchNoteTest(Command):
         self.shooter = shooter
         self.target_rpm = 0
         self.timer = Timer()
+        self.shot_timer = Timer()
         self.addRequirements(shooter)
 
     def initialize(self) -> None:
         # self.shooter_set_speed(self.target_rpm)
         self.shot_fired = False
+        self.shooter.set_velocity(78)
+        self.timer.restart()
 
     def execute(self) -> None:
         # if self.shooter.is_up_to_speed():
-        self.shooter.shooter_motor_left.set_control(DutyCycleOut(1.0))
-        self.shooter.shooter_motor_right.set_control(DutyCycleOut(-1.0))
-        self.timer.start()
-        if not self.shot_fired and self.timer.hasElapsed(2.0):
+        if not self.shot_fired and self.timer.hasElapsed(5.0):
             self.shooter.feed_note()
             self.shot_fired = True
+            self.shot_timer.restart()
             # self.timer.start()
 
     def end(self, interrupted: bool) -> None:
         self.shooter.feed_off()
         self.shooter.shooter_motor_left.set_control(DutyCycleOut(0.0))
         self.shooter.shooter_motor_right.set_control(DutyCycleOut(0.0))
-        self.timer.reset()
-        self.shot_fired = False
-
 
     def isFinished(self) -> bool:
-        if self.timer.hasElapsed(3.0):
-            return True
-        return False
+        return self.shot_fired and self.shot_timer.hasElapsed(1.0)
