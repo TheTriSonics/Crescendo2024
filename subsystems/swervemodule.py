@@ -52,11 +52,15 @@ class SwerveModule:
             drive_Output.inverted = signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         else:
             drive_Output.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
-        drive_Output.supply_current_limit(30, 1.5, 20)
         driveConfigurator.apply(drive_Output)
         drive_feedback = configs.FeedbackConfigs()
         drive_feedback.with_sensor_to_mechanism_ratio(7.131)
         driveConfigurator.apply(drive_feedback)
+        limit_config = configs.CurrentLimitsConfigs()
+        limit_config.supply_current_threshold = 40
+        limit_config.supply_time_threshold = 0.5
+        limit_config.supply_current_limit = 30
+        driveConfigurator.apply(limit_config)
 
         drive_PID = configs.Slot0Configs()
         drive_PID.k_p = 0.16
