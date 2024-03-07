@@ -6,6 +6,7 @@
 
 import math
 
+from commands2 import Subsystem
 from wpimath.geometry import Rotation2d
 from wpimath.controller import PIDController
 from wpimath.kinematics import (
@@ -20,12 +21,12 @@ from wpilib import SmartDashboard
 kModuleMaxAngularVelocity = math.pi*10
 kModuleMaxAngularAcceleration = math.tau
 kWheelRadius = 0.0508  # m
-# kGearRatio = 7.131
 
-# encoder_to_mech_ratio =
+# encoder_to_mech_ratio = 2.50
+encoder_to_mech_ratio = 7.131 * 2.50
 
 
-class SwerveModule:
+class SwerveModule(Subsystem):
     def __init__(
         self,
         driveMotorChannel: int,
@@ -54,7 +55,7 @@ class SwerveModule:
             drive_Output.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
         driveConfigurator.apply(drive_Output)
         drive_feedback = configs.FeedbackConfigs()
-        drive_feedback.with_sensor_to_mechanism_ratio(7.131)
+        drive_feedback.with_sensor_to_mechanism_ratio(encoder_to_mech_ratio)
         driveConfigurator.apply(drive_feedback)
         limit_config = configs.CurrentLimitsConfigs()
         limit_config.supply_current_threshold = 40
@@ -161,3 +162,7 @@ class SwerveModule:
         # SmartDashboard.putNumber(f'{self.name} driveOutput', driveOutput)
         self.driveMotor.set_control(VelocityDutyCycle(driveOutput))
         self.turningMotor.set_control(DutyCycleOut(turnOutput))
+
+    def periodic(self):
+        pn = SmartDashboard.putNumber
+        pn(f'drivetrain/swervemodule/{self.name}_encoder', self.driveMotor.get_position().value)
