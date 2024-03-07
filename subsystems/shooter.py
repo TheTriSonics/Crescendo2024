@@ -27,6 +27,8 @@ class Shooter(Subsystem):
 
         ### Shooter Launch Motors ###
         # Initialize the target speed
+        # Valid speeds seem to be 0-83 RPM.
+        # We need to find a stable speed to shoot at at various distances
         self.speed_target = 0
         self.tilt_target = tilt_load_limit
 
@@ -37,7 +39,7 @@ class Shooter(Subsystem):
         p, i, d = 0.1, 0.0, 0.0
         self.left_shooter_pid = PIDController(p, i, d)
         self.right_shooter_pid = PIDController(p, i, d)
-        
+
         self.shooter_motor_left_configurator = self.shooter_motor_left.configurator
         self.shooter_motor_left_config = TalonFXConfiguration()
 
@@ -46,7 +48,7 @@ class Shooter(Subsystem):
 
         # Shooter PID gains
         left_slot0_configs = self.shooter_motor_left_config.slot0
-        
+
         self.shooter_motor_left_configurator.apply(self.shooter_motor_left_config)
         self.shooter_motor_right_configurator.apply(self.shooter_motor_right_config)
 
@@ -60,15 +62,13 @@ class Shooter(Subsystem):
                                        CANSparkLowLevel.MotorType.kBrushless)
         self.tilt_motor_right = CANSparkMax(RMM.shooter_motor_tilt_right,
                                         CANSparkLowLevel.MotorType.kBrushless)
-        
-        self.tilt_position = 0 # TODO: Get the actual position of the tilt
-        
+
         self.tilt_motor_right.follow(self.tilt_motor_left)
-        
+
         ### Shooter Tilt Encoder ###
         self.tilt_encoder = DutyCycleEncoder(RSM.shooter_tilt_encoder)
         self.tilt_encoder.setDistancePerRotation(360.0)
-        
+
         ### Shooter Tilt Motor Encoders ###
         self.tilt_motor_left_encoder = self.tilt_motor_left.getEncoder()
         self.tilt_motor_right_encoder = self.tilt_motor_right.getEncoder()
@@ -80,7 +80,7 @@ class Shooter(Subsystem):
         ### Shooter Tilt Left Motor PID Controller ###
 
         self.tilt_pid = PIDController(30.0, 0, 0)
-        
+
         """
         For now we will use the sofwree PID controller, but we will
         switch to the SparkMAX PID controller later
@@ -103,11 +103,9 @@ class Shooter(Subsystem):
         self.tilt_right_pid_controller.setFF(0.0)
         self.tilt_right_pid_controller.setOutputRange(-1, 1)
         """
-        
-
         self.tilt_motor_left.burnFlash()
         self.tilt_motor_right.burnFlash()
-        
+
     def set_auto_target_shot(self):
         pass
 
@@ -119,8 +117,6 @@ class Shooter(Subsystem):
 
     def set_velocity(self, velocity):
         self.speed_target = velocity
-        # self.shooter_motor_left.set_control(VelocityDutyCycle(velocity))
-        pass
 
     def is_up_to_speed(self):
         return self.shooter_motor_left.get_velocity() >= self.speed_target
@@ -143,7 +139,7 @@ class Shooter(Subsystem):
 
     def sub_shot(self):
         self.tilt_target = tilt_upper_limit
-    
+
 
     def periodic(self) -> None:
         pn = SmartDashboard.putNumber
@@ -159,11 +155,11 @@ class Shooter(Subsystem):
         # Control the shooter flywheels with a software PID Controller
         self.left_shooter_pid.setSetpoint(self.speed_target)
         self.right_shooter_pid.setSetpoint(self.speed_target)
-        left_power = self.left_shooter_pid.calculate(left_velocity)    
+        left_power = self.left_shooter_pid.calculate(left_velocity)
         right_power = self.right_shooter_pid.calculate(right_velocity)
         pn("shooter/left_power", left_power)
         pn("shooter/right_power", right_power)
-        self.shooter_motor_left.set_control(DutyCycleOut(left_power))  
+        self.shooter_motor_left.set_control(DutyCycleOut(left_power))
         self.shooter_motor_right.set_control(DutyCycleOut(right_power))
         return
         # Do NOTHING for 3 seconds after the robot starts up
@@ -188,7 +184,7 @@ class Shooter(Subsystem):
         self.tilt_motor_left.set(tilt_power)
         self.tilt_motor_right.set(tilt_power)
         pn("shooter/tilt_power", tilt_power)
-        
+
 
 
 class ShooterDefaultCommand(Command):

@@ -1,4 +1,4 @@
-from math import asin, acos, atan
+from math import atan, dist
 from commands2 import Command
 
 from subsystems.shooter import Shooter
@@ -51,13 +51,17 @@ class ShooterTrack(Command):
         return retval
 
     def calc_target_tilt(self, pose):
-        return
+        base = dist(pose.getTranslation(), self._target_xy())
+        rise = 2.5  # Height of target is fixed, and robot can't rise up.
+        theta = atan(rise/base)
+        return theta
 
     def execute(self):
         pose = self.drive.getPose()
         heading = self.calc_target_heading(pose)
         tilt_deg = self.calc_target_tilt(pose)
         tilt = self._deg_to_shooter_tilt(tilt_deg)
+        self.shooter.tilt_target = tilt
 
 
     def end(self, interrupted):
