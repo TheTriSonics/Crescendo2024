@@ -7,13 +7,15 @@ from wpilib import SmartDashboard, Joystick, DriverStation
 from commands2 import TimedCommandRobot, SequentialCommandGroup, InstantCommand
 from commands2.button import JoystickButton
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
-from pathplannerlib.auto import PathPlannerAuto, AutoBuilder
+from pathplannerlib.auto import PathPlannerAuto, NamedCommands
 from pathplannerlib.path import PathPlannerPath
 from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
 from pathplannerlib.commands import FollowPathHolonomic
 from commands.amp_score import AmpScore
+from commands.auton_commands.auto_shooter_launch_note import AutoShooterLaunchNote
+from commands.auton_commands.pickup_note import AutoPickupNote
 from commands.drive_over_note import DriveOverNote
 from commands.eject_note import EjectNote
 from commands.return_to_home import ReturnToHome
@@ -78,9 +80,20 @@ class MyRobot(TimedCommandRobot):
         self.note_tracker = note_tracker.NoteTracker()
         self.climber = climber.Climber(self.driver)
 
-        # button = JoystickButton(driver_joystick, 4)
-        # button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
+        sim = is_sim()
+        if not sim:
+            NamedCommands.registerCommand("PickupNote", AutoPickupNote(self.swerve, self.intake, self.note_tracker))
+            NamedCommands.registerCommand("AutoShoot", AutoShooterLaunchNote(self.shooter))
 
+        self.configure_driver_controls()
+        self.configure_commander_controls()
+
+    def configure_driver_controls(self):
+        fr_button = JoystickButton(self.driver_joystick, RBM.toggle_field_relative)
+        fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
+        pass
+
+    def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1, RBM.intake_ready_c1)
         intake_button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
 
@@ -117,14 +130,6 @@ class MyRobot(TimedCommandRobot):
         amp_dump_button = JoystickButton(self.commander_joystick2, RBM.amp_dump_note_c2)
         amp_dump_button.onTrue(AmpScore(self.amp, self.photoeyes))
 
-        # shoot = JoystickButton(self.commander_joystick1, 5)
-        # shoot.onTrue(ShooterLaunchNoteTest(self.shooter))
-        # shoot.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes))
-
-        fr_button = JoystickButton(self.driver_joystick, RBM.toggle_field_relative)
-        # fr_button.onTrue(FieldRelativeToggle(self.swerve))
-        fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
-
         safe_shot_button = JoystickButton(self.commander_joystick1, RBM.shooter_aim_safe_c1)
         safe_shot_button.onTrue(InstantCommand(self.shooter.safe_shot))
 
@@ -132,16 +137,12 @@ class MyRobot(TimedCommandRobot):
         sub_shot_button.onTrue(InstantCommand(self.shooter.sub_shot))
 
         shoot_button = JoystickButton(self.commander_joystick2, RBM.shooter_shoot_c2)
-        shoot_button.onTrue(ShooterLaunchNote(self.shooter))
+        # shoot_button.onTrue(ShooterLaunchNote(self.shooter))
+        shoot_button.onTrue(AutoShooterLaunchNote(self.shooter))
 
         shooter_spin = JoystickButton(self.commander_joystick2, RBM.shooter_spin_c2)
         shooter_spin.onTrue(InstantCommand(self.shooter.spin_up))
         shooter_spin.onFalse(InstantCommand(self.shooter.spin_down))
-
-    def configure_driver_controls(self):
-        pass
-
-    def configure_commander_controls(self):
         pass
 
     def robotPeriodic(self) -> None:
@@ -173,57 +174,26 @@ class MyRobot(TimedCommandRobot):
                 self.swerve.odometry.addVisionMeasurement(p)
         pass
 
-    def testPathToFollow(self):
-        from pathplannerlib.path import PathConstraints, GoalEndState
-        import math
-
-        # Create a list of bezier points from poses. Each pose represents one waypoint.
-        # The rotation component of the pose should be the direction of travel. Do not use holonomic rotation.
-        bezierPoints = PathPlannerPath.bezierFromPoses(
-            [Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0)),
-             Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0)),
-             Pose2d(3.0, 2.0, Rotation2d.fromDegrees(90))]
-        )
-
-        # Create the path using the bezier points created above
-        path = PathPlannerPath(
-            bezierPoints,
-            PathConstraints(3.0, 3.0, 2 * math.pi, 4 * math.pi), # The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-            GoalEndState(0.0, Rotation2d.fromDegrees(-90)) # Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
-        )
-
-        # Prevent the path from being flipped if the coordinates are already correct
-        path.preventFlipping = True
-        return path
-
     def autonomousInit(self):
-        # cmd = DriveForDistance(self.swerve, 50)
-        # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
         self.swerve.updateOdometry()
         self.gyro.set_yaw(0)
-        cmd = PathPlannerAuto("Calibrate")
+        cmd = PathPlannerAuto("LakeCityTwoNote")
         # cmd = Rotate(self.swerve, self.gyro, 0)
         # cmd = DriveToPoint(self.swerve, self.gyro, 3, 0, 0)
         # seek = DriveOverNote(self.note_tracker, self.swerve)
         # followPath = AutoBuilder.followPath(self.testPathToFollow())
         haltcmd = HaltDrive(self.swerve)
+        rotcmd = Rotate(self.swerve, self.gyro, -180)
         scg = SequentialCommandGroup([cmd, haltcmd])
         scg.schedule()
-        """
-        drive1 = DriveToPoint(self.swerve, self.gyro, 200, 100, 180)
-        halt1 = HaltDrive(self.swerve)
-        drive2 = DriveToPoint(self.swerve, self.gyro, 0, 0, 0)
-        halt2 = HaltDrive(self.swerve)
-        scg = commands2.SequentialCommandGroup([drive1, halt1, drive2, halt2])
-        scg.schedule()
-        """
         pass
 
     def autonomousPeriodic(self) -> None:
         pass
 
     def teleopInit(self) -> None:
+        self.swerve.lock_heading()
         pass
 
     def teleopPeriodic(self) -> None:

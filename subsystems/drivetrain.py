@@ -54,10 +54,17 @@ class DrivetrainDefaultCommand(Command):
         self.yslew = SlewRateLimiter(0.8)
         self.rotslew = SlewRateLimiter(0.1)
         self.idle_counter = 0
-        self.desired_heading = self.drivetrain.get_heading_rotation_2d().degrees()
+        self.desired_heading = None
         self.addRequirements(drivetrain)
 
+    def lock_heading(self):
+        self.desired_heading = self.drivetrain.get_heading_rotation_2d().degrees()
+
+
     def execute(self) -> None:
+        if self.desired_heading is None:
+            self.desired_heading = self.drivetrain.get_heading_rotation_2d().degrees()
+        curr = self.drivetrain.get_heading_rotation_2d().degrees()
         xSpeed = self.xslew.calculate(self.controller.get_drive_x())
         xSpeed *= kMaxSpeed
 
@@ -75,12 +82,16 @@ class DrivetrainDefaultCommand(Command):
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
-        curr = self.drivetrain.get_heading_rotation_2d().degrees()
-        if rot > 0:
-            self.desired_heading = curr
+        if rot != 0:
+            self.lock_heading()
         else:
-            # Use PID to keep us straight
-            rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
+            # Don't correct until we're X degrees off
+            if abs(self.desired_heading - curr) > 1:
+                # Use PID to keep us straight
+                rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
+            else:
+                # Rotation is still going to be 0, no power.
+                pass
 
         # When in lockon mode, the robot will rotate to face the node
         # that PhtonVision is detecting
@@ -220,8 +231,8 @@ class Drivetrain(Subsystem):
             # ChassisSpeeds
             self.driveRobotRelative,
             HolonomicPathFollowerConfig(
-                PIDConstants(6.5, 0.0, 0.0),  # Translation PID constants
-                PIDConstants(0.75, 0.0, 0.0),  # Rotation PID constants
+                PIDConstants(6.0, 0.0, 0.0),  # Translation PID constants
+                PIDConstants(5, 0.0, 0.16),  # Rotation PID constants
                 kMaxSpeed,  # Max module speed, in m/s.
                 # Drive base radius in meters. Distance from robot center to
                 # furthest module.
@@ -236,6 +247,9 @@ class Drivetrain(Subsystem):
 
         defcmd = DrivetrainDefaultCommand(self, self.controller, photon)
         self.setDefaultCommand(defcmd)
+    
+    def lock_heading(self):
+        self.desired_heading = self.get_heading_rotation_2d().degrees()
 
     def llJson(self) -> str:
         return self.ll_json.getEntry("[]")

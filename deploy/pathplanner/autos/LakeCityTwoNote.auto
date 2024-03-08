@@ -5,22 +5,28 @@
       "x": 0.5350275612831927,
       "y": 6.661898586955068
     },
-    "rotation": -118.84266013541209
+    "rotation": -120.0
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "Station1ToNote1"
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "AutoShoot"
+            "name": "PickupNote"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Station1ToNote1"
+            "pathName": "Note1ToNote2LC"
           }
         }
       ]

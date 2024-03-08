@@ -11,7 +11,7 @@ from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
 tilt_bottom_limit = 0.76
 tilt_load_limit = 0.77
 tilt_upper_limit = 0.856
-max_tilt_diff = (tilt_upper_limit - tilt_bottom_limit) / 50
+max_tilt_diff = 0.0015
 
 tilt_sub = 0.84
 tilt_safe = 0.77
@@ -57,13 +57,13 @@ class Shooter(Subsystem):
         left_slot0_configs = self.shooter_motor_left_config.slot0
         right_slot0_configs = self.shooter_motor_right_config.slot0
 
-        left_slot0_configs.k_p = 0.025
-        left_slot0_configs.k_s = 0.0025
-        left_slot0_configs.k_v = 0.005
+        left_slot0_configs.k_p = 0.065
+        left_slot0_configs.k_s = 0.0065
+        left_slot0_configs.k_v = 0.0095
 
-        right_slot0_configs.k_p = 0.025
-        right_slot0_configs.k_s = 0.0025
-        right_slot0_configs.k_v = 0.005
+        right_slot0_configs.k_p = 0.065
+        right_slot0_configs.k_s = 0.0065
+        right_slot0_configs.k_v = 0.0095
 
         self.shooter_motor_left_configurator.apply(self.shooter_motor_left_config)
         self.shooter_motor_right_configurator.apply(self.shooter_motor_right_config)
@@ -135,10 +135,10 @@ class Shooter(Subsystem):
         self.waiting_speed_target = velocity
 
     def is_up_to_speed(self):
-        return abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 4
+        return abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1
 
     def is_tilt_aimed(self):
-        return abs(self.tilt_encoder.getAbsolutePosition()-self.tilt_target) < max_tilt_diff
+        return abs(self.tilt_encoder.getAbsolutePosition() - self.tilt_target) < max_tilt_diff
 
     def feed_note(self):
         self.feed_motor.set_control(DutyCycleOut(0.25))
@@ -219,4 +219,3 @@ class Shooter(Subsystem):
         self.tilt_motor_left.set(tilt_power)
         self.tilt_motor_right.set(tilt_power)
         pn("shooter/tilt_power", tilt_power)
-

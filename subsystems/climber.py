@@ -13,8 +13,8 @@ class Climber(Subsystem):
 
         self.controller = controller
 
-        # defcmd = ClimberDefaultCommand(self, controller)
-        # self.setDefaultCommand(defcmd)
+        defcmd = ClimberDefaultCommand(self, controller)
+        self.setDefaultCommand(defcmd)
 
         # Initialize the motor controller
         self.climber_motor_l = CANSparkMax(RMM.climber_motor_left, CANSparkLowLevel.MotorType.kBrushed)
@@ -37,3 +37,12 @@ class Climber(Subsystem):
     def go_down(self):
         # Set the motor to go down
         self.climber_motor_l.set(-1.0)
+
+class ClimberDefaultCommand(Command):
+    def __init__(self, climber: Climber, controller: DriverController):
+        self.climber = climber
+        self.controller = controller
+        self.addRequirements(climber)
+
+    def execute(self):
+        self.climber.set_speed(self.controller.get_climber_trigger())
