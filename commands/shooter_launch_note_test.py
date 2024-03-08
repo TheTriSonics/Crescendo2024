@@ -22,7 +22,7 @@ class ShooterLaunchNoteTest(Command):
 
     def execute(self) -> None:
         # if self.shooter.is_up_to_speed():
-        if not self.shot_fired and self.timer.hasElapsed(5.0):
+        if not self.shot_fired and self.timer.hasElapsed(2.0):
             self.shooter.feed_note()
             self.shot_fired = True
             self.shot_timer.restart()
@@ -34,4 +34,4 @@ class ShooterLaunchNoteTest(Command):
         self.shooter.shooter_motor_right.set_control(DutyCycleOut(0.0))
 
     def isFinished(self) -> bool:
-        return self.shot_fired and self.shot_timer.hasElapsed(1.0)
+        return self.shot_fired and self.shot_timer.hasElapsed(3.0)

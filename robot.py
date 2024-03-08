@@ -23,6 +23,7 @@ from commands.haltdrive import HaltDrive
 from commands.drivetopoint import DriveToPoint
 from commands.drivefordistance import DriveForDistance
 from commands.set_amp_height import SetAmpHeight
+from commands.set_amp_override import SetAmpOverride
 from commands.shooter_launch_note import ShooterLaunchNote
 from commands.intake_note import IntakeNote
 
@@ -30,6 +31,8 @@ from commands.field_relative_toggle import FieldRelativeToggle
 
 from commands.amp_load import AmpLoad
 from commands.shooter_launch_note_test import ShooterLaunchNoteTest
+from commands.shooter_load import ShooterLoad
+from commands.shooter_move import ShooterMove
 
 import subsystems.amp as amp
 import subsystems.climber as climber
@@ -78,57 +81,68 @@ class MyRobot(TimedCommandRobot):
         # button = JoystickButton(driver_joystick, 4)
         # button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
         
-        intake_button = JoystickButton(self.commander_joystick1, RBM.intake_ready)
+        intake_button = JoystickButton(self.commander_joystick1, RBM.intake_ready_c1)
         intake_button.onTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
         
-        eject_button = JoystickButton(self.commander_joystick1, RBM.intake_eject)
+        eject_button = JoystickButton(self.commander_joystick1, RBM.intake_eject_c1)
         eject_button.onTrue(EjectNote(self.intake, self.photoeyes, self.leds))
         
-        amp_load_button = JoystickButton(self.commander_joystick1, RBM.load_note_amp)
+        amp_load_button = JoystickButton(self.commander_joystick2, RBM.load_note_amp_c2)
         amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
 
-        amp_dump_button = JoystickButton(self.commander_joystick1, RBM.amp_eject)
-        amp_dump_button.onTrue(AmpScore(self.amp, self.intake, self.photoeyes))
+        shooter_load_button = JoystickButton(self.commander_joystick1, RBM.load_note_shooter_c1)
+        shooter_load_button.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes))
 
-        shoot = JoystickButton(self.commander_joystick1, 5)
-        shoot.onTrue(ShooterLaunchNoteTest(self.shooter))
-        # shoot.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes))
-
-        """
-        Not now, bro.
-        amp_set_height_amp = JoystickButton(self.commander_joystick1, RBM.amp_lift_home)
-        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME))
+        amp_set_height_amp = JoystickButton(self.commander_joystick2, RBM.amp_lift_home_c2)
+        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME)) 
         
-        amp_set_height_amp = JoystickButton(self.commander_joystick1, RBM.amp_lift_amp)
+        amp_set_height_amp = JoystickButton(self.commander_joystick2, RBM.amp_lift_amp_c2)
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
 
-        amp_set_height_amp = JoystickButton(self.commander_joystick1, RBM.amp_lift_trap)
+        amp_set_height_amp = JoystickButton(self.commander_joystick2, RBM.amp_lift_trap_c2)
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.TRAP))
-        """
+
+        amp_override_up = JoystickButton(self.commander_joystick2, RBM.amp_override_up_c2)
+        amp_override_up.whileTrue(SetAmpOverride(self.amp, self.amp.dir_up))
+        
+        amp_override_down = JoystickButton(self.commander_joystick2, RBM.amp_override_down_c2)
+        amp_override_down.whileTrue(SetAmpOverride(self.amp, self.amp.dir_down))
+
+        shooter_tilt_up = JoystickButton(self.commander_joystick1, RBM.shooter_override_up_c1)
+        shooter_tilt_up.whileTrue(ShooterMove(self.shooter, self.shooter.dir_up))
+
+        shooter_tilt_down = JoystickButton(self.commander_joystick1, RBM.shooter_override_down_c1)
+        shooter_tilt_down.whileTrue(ShooterMove(self.shooter, self.shooter.dir_down))
+
+        amp_dump_button = JoystickButton(self.commander_joystick2, RBM.amp_dump_note_c2)
+        amp_dump_button.onTrue(AmpScore(self.amp, self.photoeyes))
+
+        # shoot = JoystickButton(self.commander_joystick1, 5)
+        # shoot.onTrue(ShooterLaunchNoteTest(self.shooter))
+        # shoot.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes))
 
         fr_button = JoystickButton(self.driver_joystick, RBM.toggle_field_relative)
         # fr_button.onTrue(FieldRelativeToggle(self.swerve))
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
 
-        safe_shot_button = JoystickButton(self.commander_joystick2, RBM.shooter_aim_safe)  
+        safe_shot_button = JoystickButton(self.commander_joystick1, RBM.shooter_aim_safe_c1)  
         safe_shot_button.onTrue(InstantCommand(self.shooter.safe_shot))
         
-        sub_shot_button = JoystickButton(self.commander_joystick2, RBM.shooter_aim_sub)  
+        sub_shot_button = JoystickButton(self.commander_joystick1, RBM.shooter_aim_sub_c1)  
         sub_shot_button.onTrue(InstantCommand(self.shooter.sub_shot))
 
+        shoot_button = JoystickButton(self.commander_joystick2, RBM.shooter_shoot_c2)
+        shoot_button.onTrue(ShooterLaunchNote(self.shooter))
+
+        shooter_spin = JoystickButton(self.commander_joystick2, RBM.shooter_spin_c2)
+        shooter_spin.onTrue(InstantCommand(self.shooter.spin_up))
+        shooter_spin.onFalse(InstantCommand(self.shooter.spin_down))
+
     def configure_driver_controls(self):
-        button = JoystickButton(self.driver_joystick, 4)
-        button.whileTrue(
-            IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes,
-                       self.leds)
-        )
+        pass
 
     def configure_commander_controls(self):
-        load_amp_button = JoystickButton(self.commander_joystick1,
-                                         RBM.load_note_amp)
-        load_amp_button.onTrue(
-            AmpLoad(self.shooter, self.intake, self.photoeyes)
-        )
+        pass
 
     def robotPeriodic(self) -> None:
         if DriverStation.isDisabled():
@@ -213,9 +227,7 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def teleopPeriodic(self) -> None:
-        if self.swerve.lockable is True and self.swerve.locked is False:
-            lock_cmd = HaltDrive(self.swerve)
-            lock_cmd.schedule()
+        pass
 
     # Documentation on JSON return:
     # https://docs.limelightvision.io/docs/docs-limelight/apis/json-dump-specification

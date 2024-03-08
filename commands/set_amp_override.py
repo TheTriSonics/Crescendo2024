@@ -5,22 +5,26 @@ from subsystems.intake import Intake
 from subsystems.amp import Amp
 
 
-class SetAmpHeight(Command):
-    def __init__(self, amp: Amp, height) -> None:
+class SetAmpOverride(Command):
+    def __init__(self, amp: Amp, dir) -> None:
         super().__init__()
         self.amp = amp
-        self.height = height
+        self.dir = dir
         self.addRequirements(amp)
 
     def initialize(self) -> None:
-        self.amp.set_height(self.height)
+        pass
 
     def execute(self) -> None:
+        if self.dir == 1:
+            self.amp.height += 0.05
+        elif self.dir == -1:
+            self.amp.height -= 0.05
         pass
 
     def end(self, isInterrupted) -> None:
         pass
 
     def isFinished(self) -> bool:
-        return True
+        return False
 

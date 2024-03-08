@@ -37,6 +37,8 @@ class ShooterLoad(Command):
         self.intake.halt()
         self.amp.halt()
         self.shooter.feed_off()
+        self.timer.stop()
+        self.timer.reset()
         pass
 
     def isFinished(self) -> bool:

@@ -16,9 +16,13 @@ class Amp(Subsystem):
         AMP = -1
 
     class Height():
-        HOME = 0.67
+        HOME = 0.075
         AMP = 17.327
         TRAP = 20.327
+        LIMIT = 30.35
+
+    dir_up = 1
+    dir_down = -1
 
     def __init__(self, controller: CommanderController, photoeyes: Photoeyes):
         super().__init__()
@@ -74,6 +78,8 @@ class Amp(Subsystem):
 
 
     def periodic(self) -> None:
+        if self.height >= self.Height.LIMIT:
+            self.height = self.Height.LIMIT
         self.request = DynamicMotionMagicVoltage(0, 80, 400, 4000, override_brake_dur_neutral=True, limit_reverse_motion=True).with_limit_reverse_motion(not self.limit_switch.get())
         self.lift_motor.set_control(self.request.with_position(self.height))
 

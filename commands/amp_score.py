@@ -7,11 +7,10 @@ from subsystems.amp import Amp
 
 
 class AmpScore(Command):
-    def __init__(self, amp: Amp, intake: Intake, photoeyes: Photoeyes) -> None:
+    def __init__(self, amp: Amp, photoeyes: Photoeyes) -> None:
         super().__init__()
         self.amp = amp
         self.photoeyes = photoeyes
-        self.intake = intake
         self.addRequirements(amp)
 
     def initialize(self) -> None:
@@ -28,15 +27,15 @@ class AmpScore(Command):
             return
         if not self.photoeyes.get_amp_loaded():
             self.dump_timer.start()
-        # self.intake.feed()
         self.amp.feed()
         pass
 
     def end(self, isInterrupted) -> None:
-        self.intake.halt()
         self.amp.halt()
         self.timer.stop()
+        self.timer.reset()
         self.dump_timer.stop()
+        self.dump_timer.reset()
         pass
 
     def isFinished(self) -> bool:

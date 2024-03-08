@@ -23,7 +23,7 @@ kModuleMaxAngularAcceleration = math.tau
 kWheelRadius = 0.0508  # m
 
 # encoder_to_mech_ratio = 2.50
-encoder_to_mech_ratio = 7.131 * 2.50
+encoder_to_mech_ratio = 4
 
 
 class SwerveModule(Subsystem):
@@ -58,15 +58,17 @@ class SwerveModule(Subsystem):
         drive_feedback.with_sensor_to_mechanism_ratio(encoder_to_mech_ratio)
         driveConfigurator.apply(drive_feedback)
         limit_config = configs.CurrentLimitsConfigs()
-        limit_config.supply_current_threshold = 40
+        limit_config.supply_current_limit_enable = True
+        limit_config.supply_current_threshold = 35
         limit_config.supply_time_threshold = 0.5
-        limit_config.supply_current_limit = 30
+        limit_config.supply_current_limit = 25
         driveConfigurator.apply(limit_config)
 
         drive_PID = configs.Slot0Configs()
-        drive_PID.k_p = 0.16
-        drive_PID.k_s = 0.045
-        drive_PID.k_v = 0.09
+        drive_PID.k_p = 0.00  # Was 0.16
+        drive_PID.k_d = 0.00
+        drive_PID.k_s = 0.045  # Was 0.045 but we got dithering / jitter
+        drive_PID.k_v = 0.09  # Was 0.09
         driveConfigurator.apply(drive_PID)
 
         turnConfigurator = self.turningMotor.configurator
@@ -77,8 +79,8 @@ class SwerveModule(Subsystem):
 
         self.turnEncoder = CANcoder(canCoderChannel, "canivore")
 
-        self.drivePIDController = PIDController(0.24, 0, 0)
         self.turningPIDController = PIDController(0.25, 0, 0)
+        self.drivePIDController = PIDController(0.16, 0, 0)
 
         # Limit the PID Controller's input range between -pi and pi and
         # set the input to be continuous.
@@ -157,10 +159,13 @@ class SwerveModule(Subsystem):
         turnOutput = self.turningPIDController.calculate(
             turn_pos, state.angle.radians()
         )
+        pn = SmartDashboard.putNumber
+        pn(f'drivetrain/swervemodule/{self.name} turnOutput', turnOutput)
+        pn(f'drivetrain/swervemodule/{self.name} driveOutput', driveOutput)
 
         # Now set the motor outputs where 0 is none and 1 is full
         # SmartDashboard.putNumber(f'{self.name} driveOutput', driveOutput)
-        self.driveMotor.set_control(VelocityDutyCycle(driveOutput))
+        self.driveMotor.set_control(VelocityDutyCycle(driveOutput, enable_foc=False))
         self.turningMotor.set_control(DutyCycleOut(turnOutput))
 
     def periodic(self):

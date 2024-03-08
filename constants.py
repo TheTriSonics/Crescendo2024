@@ -98,7 +98,10 @@ class RobotButtonMap():
     driver_controller = 0
     commander_controller_1 = 1
     commander_controller_2 = 2
+    
+    # Driver button assignments
     toggle_field_relative = 3
+
     # Button Panel List
     # INTAKE: Intake Ready, Intake Eject
     # SHOOTER: Load Shooter, On The Fly(OTF) Aim, Safe Spot Aim, Against Sub Aim, Shoot
@@ -108,27 +111,35 @@ class RobotButtonMap():
 
     # Commander button assignments
     ### Controller 1 ###
-    intake_ready = 1
-    intake_eject = 2
+    intake_ready_c1 = 9
+    intake_eject_c1 = 8
 
-    load_note_shooter = 2
-    load_note_amp = 3
-    load_note_back_to_home = 4
+    load_note_shooter_c1 = 7
+    
+    shooter_aim_otf_c1 = 2
+    shooter_aim_safe_c1 = 3
+    shooter_aim_sub_c1 = 6
 
-    shooter_aim_otf = 5
-    shooter_aim_safe = 6
-    shooter_aim_sub = 7
-    shooter_shoot = 8
+    shooter_override_up_c1 = 4
+    shooter_override_down_c1 = 5
     
     ### Controller 2 ###
-    amp_lift_home = 4
-    amp_lift_amp = 5
-    amp_lift_trap = 6
-    amp_eject = 7
 
-    # Commander Override Buttons
-    intake_tilt_up = 4
-    intake_tilt_down = 5
+    load_note_amp_c2 = 6
 
-    intake_roller_in = 6
-    intake_roller_out = 7
+    amp_lift_home_c2 = 8
+    amp_lift_amp_c2 = 11
+    amp_lift_trap_c2 = 10
+
+    amp_override_up_c2 = 9
+    amp_override_down_c2 = 7
+
+    amp_dump_note_c2 = 2
+
+    shooter_shoot_c2 = 4
+
+    shooter_spin_c2 = 3
+    intake_override_up_c2 = 5
+    intake_override_down_c2 = 1
+    
+    
