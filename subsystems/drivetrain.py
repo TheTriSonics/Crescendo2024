@@ -208,14 +208,14 @@ class Drivetrain(Subsystem):
             # ChassisSpeeds
             self.driveRobotRelative,
             HolonomicPathFollowerConfig(
-                PIDConstants(7, 0.0, 0.0),  # Translation PID constants
-                PIDConstants(1, 0.0, 0.0),  # Rotation PID constants
+                PIDConstants(6.5, 0.0, 0.0),  # Translation PID constants
+                PIDConstants(0.75, 0.0, 0.0),  # Rotation PID constants
                 kMaxSpeed,  # Max module speed, in m/s.
                 # Drive base radius in meters. Distance from robot center to
                 # furthest module.
                 0.350,
                 # Default path replanning config. See the API for options
-                ReplanningConfig(enableDynamicReplanning=False)
+                ReplanningConfig()
             ),
             # Supplier to control path flipping based on alliance color
             self.shouldFlipPath,
