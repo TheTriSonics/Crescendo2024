@@ -46,11 +46,12 @@ class DrivetrainDefaultCommand(Command):
         self.drivetrain = drivetrain
         self.controller = controller
         self.photon = photon
-        self.pid = PIDController(*PIDC.note_tracking_pid)
+        self.note_pid = PIDController(*PIDC.note_tracking_pid)
+        self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(0.8)
         self.yslew = SlewRateLimiter(0.8)
-        self.rotslew = SlewRateLimiter(0.5)
+        self.rotslew = SlewRateLimiter(0.1)
         self.idle_counter = 0
         self.addRequirements(drivetrain)
 
@@ -78,7 +79,7 @@ class DrivetrainDefaultCommand(Command):
             elif abs(yaw) < 1.7:
                 rot = 0
             else:
-                rot = self.pid.calculate(yaw, 0)
+                rot = self.note_pid.calculate(yaw, 0)
 
         if self.controller.get_slow_mode():
             xSpeed *= slow_mode_factor
@@ -86,10 +87,15 @@ class DrivetrainDefaultCommand(Command):
             rot *= slow_mode_factor
 
         if self.controller.get_speaker_lockon():
-            fid = 4 if self.is_red_alliance() else 7
+            print('speaker lockon')
+            fid = 4 if self.drivetrain.is_red_alliance() else 7
             heading = self.drivetrain.get_fid_heading(fid)
             if heading is not None:
-                rot = self.pid.calculate(heading, 0)
+                print(f'heading: {heading} fid: {fid}')
+                if abs(heading) < 3.0:
+                    rot = 0
+                else:
+                    rot = self.speaker_pid.calculate(heading, 0)
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
@@ -342,12 +348,14 @@ class Drivetrain(Subsystem):
         # is the default value for the limelight network table entry
         if len(obj) == 0:
             return None
-        for result in obj['Results']:
-            # tl = result['tl']
-            for fid in obj['Fiducial']:
-                if fid['fID'] != id:
-                    continue
-                tag_heading = fid['tx']
+        results = obj['Results']
+        if not 'Fiducial' in results:
+            return None
+        fids = results['Fiducial']
+        for f in fids:
+            if f['fID'] != id:
+                continue
+            tag_heading = f['tx']
         return tag_heading
 
     def periodic(self) -> None:
