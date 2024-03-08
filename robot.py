@@ -82,7 +82,7 @@ class MyRobot(TimedCommandRobot):
         # button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
         
         intake_button = JoystickButton(self.commander_joystick1, RBM.intake_ready_c1)
-        intake_button.onTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
+        intake_button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
         
         eject_button = JoystickButton(self.commander_joystick1, RBM.intake_eject_c1)
         eject_button.onTrue(EjectNote(self.intake, self.photoeyes, self.leds))

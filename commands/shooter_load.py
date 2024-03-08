@@ -21,6 +21,7 @@ class ShooterLoad(Command):
     def initialize(self) -> None:
         self.timer = Timer()
         self.forceQuit = False
+        self.shooter.prepare_to_load()
         if not self.intake.is_loaded():
             self.forceQuit = True
         self.timer.start()

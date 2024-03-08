@@ -10,9 +10,11 @@ from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
 
 tilt_bottom_limit = 0.76
 tilt_load_limit = 0.77
-tilt_sub = 0.84
 tilt_upper_limit = 0.856
 max_tilt_diff = (tilt_upper_limit - tilt_bottom_limit) / 50
+
+tilt_sub = 0.84
+tilt_safe = 0.77
 
 
 class Shooter(Subsystem):
@@ -160,7 +162,7 @@ class Shooter(Subsystem):
         self.shooter_motor_left.set_control(DutyCycleOut(0, override_brake_dur_neutral=False))
 
     def safe_shot(self):
-        self.tilt_target = tilt_bottom_limit 
+        self.tilt_target = tilt_safe
         self.waiting_speed_target = 75
 
     def sub_shot(self):

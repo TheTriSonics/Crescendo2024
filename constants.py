@@ -2,7 +2,7 @@ from misc import is_sim
 
 
 class RobotPIDConstants():
-    note_tracking_pid = (0.020, 0, 0)
+    note_tracking_pid = (0.010, 0, 0)
 
 
 class RobotMotorMap():
@@ -116,9 +116,9 @@ class RobotButtonMap():
 
     load_note_shooter_c1 = 7
     
-    shooter_aim_otf_c1 = 2
-    shooter_aim_safe_c1 = 3
     shooter_aim_sub_c1 = 6
+    shooter_aim_otf_c1 = 3
+    shooter_aim_safe_c1 = 2
 
     shooter_override_up_c1 = 4
     shooter_override_down_c1 = 5
