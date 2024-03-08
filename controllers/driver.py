@@ -42,5 +42,8 @@ class DriverController():
     def get_note_lockon(self) -> bool:
         return self.joystick.getRawButton(RBM.note_tracking)
 
+    def get_speaker_lockon(self) -> bool:
+        return self.joystick.getRawButton(RBM.speaker_tracking)
+
     def get_slow_mode(self) -> bool:
         return self.joystick.getRawButton(RBM.slow_drive_mode)

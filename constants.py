@@ -102,6 +102,7 @@ class RobotButtonMap():
     # Driver button assignments
     note_tracking = 1
     toggle_field_relative = 3
+    speaker_tracking = 4
     slow_drive_mode = 6  # Right bumper?
 
     # Button Panel List
