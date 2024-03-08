@@ -11,10 +11,10 @@ class DriveToPoint(CommandBase):
         self.x = x
         self.y = y
         self.targetHeading = targetHeading
-        p, i, d = 3, 0.45, 0
+        p, i, d = 0.40, 0, 0
         self.xPID = PIDController(p, i, d)
         self.yPID = PIDController(p, i, d)
-        self.rotPID = PIDController(0.10, 0, 0)
+        self.rotPID = PIDController(0.05, 0, 0)
 
     def initialize(self):
         SmartDashboard.putString("dtp" , "i AM the dtp")
@@ -43,6 +43,4 @@ class DriveToPoint(CommandBase):
         SmartDashboard.putNumber('dtp err', total_distance)
         if total_distance < 5/100:
             return True
-        return False
-
         return False

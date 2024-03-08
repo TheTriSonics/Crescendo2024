@@ -23,7 +23,7 @@ kModuleMaxAngularAcceleration = math.tau
 kWheelRadius = 0.0508  # m
 
 # encoder_to_mech_ratio = 2.50
-encoder_to_mech_ratio = 4
+encoder_to_mech_ratio = 6.11
 
 
 class SwerveModule(Subsystem):

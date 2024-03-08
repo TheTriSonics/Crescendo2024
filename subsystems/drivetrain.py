@@ -29,7 +29,7 @@ from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
 from constants import RobotPIDConstants as PIDC
 
-kMaxSpeed = 4.8  # m/s
+kMaxSpeed = 4.5  # m/s
 kMaxAngularSpeed = math.pi * 5
 
 swerve_offset = 55 / 100  # cm converted to meters
@@ -208,12 +208,12 @@ class Drivetrain(Subsystem):
             # ChassisSpeeds
             self.driveRobotRelative,
             HolonomicPathFollowerConfig(
-                PIDConstants(1.9, 0.0, 0.0),  # Translation PID constants
-                PIDConstants(1.6, 0.0, 0.0),  # Rotation PID constants
+                PIDConstants(7, 0.0, 0.0),  # Translation PID constants
+                PIDConstants(1, 0.0, 0.0),  # Rotation PID constants
                 kMaxSpeed,  # Max module speed, in m/s.
                 # Drive base radius in meters. Distance from robot center to
                 # furthest module.
-                0.431,
+                0.350,
                 # Default path replanning config. See the API for options
                 ReplanningConfig(enableDynamicReplanning=False)
             ),

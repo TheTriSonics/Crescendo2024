@@ -204,7 +204,7 @@ class MyRobot(TimedCommandRobot):
         self.gyro.set_yaw(0)
         cmd = PathPlannerAuto("Calibrate")
         # cmd = Rotate(self.swerve, self.gyro, 0)
-        # cmd = DriveToPoint(self.swerve, self.gyro, 1, 0, 0)
+        # cmd = DriveToPoint(self.swerve, self.gyro, 3, 0, 0)
         # seek = DriveOverNote(self.note_tracker, self.swerve)
         # followPath = AutoBuilder.followPath(self.testPathToFollow())
         haltcmd = HaltDrive(self.swerve)
