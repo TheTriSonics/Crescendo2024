@@ -32,6 +32,7 @@ class AmpScore(Command):
 
     def end(self, isInterrupted) -> None:
         self.amp.halt()
+        self.amp.go_home()
         self.timer.stop()
         self.timer.reset()
         self.dump_timer.stop()
@@ -43,7 +44,9 @@ class AmpScore(Command):
             return True
         if self.timer.get() > 3.0:
             return True
-        if self.photoeyes.get_amp_loaded() is False and self.dump_timer.get() > 0.1:
+        loaded = self.photoeyes.get_amp_loaded()
+        timeout = self.dump_timer.get() > 0.2
+        if loaded is False and timeout:
             return True
         return False
 

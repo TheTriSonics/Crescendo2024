@@ -64,15 +64,18 @@ class Amp(Subsystem):
         self.height = height
         pass
 
+    def go_home(self):
+        self.height = self.Height.HOME
+
     def get_height(self):
         return self.height
 
     def feed(self):
         self.feed_motor.set(1.0)
-    
+
     def reverse(self):
         self.feed_motor.set(-1.0)
-    
+
     def halt(self):
         self.feed_motor.set(0.0)
 
@@ -101,7 +104,7 @@ class AmpDefaultCommand(Command):
             power = 0
 
         # self.amp.lift_motor.set_control(DutyCycleOut(-power, override_brake_dur_neutral=True))
-        # print(self.amp.lift_motor.get_position()) 
+        # print(self.amp.lift_motor.get_position())
         # power = 0.0
 
         # if self.controller.get_load_amp() & self.amp.get_height() == Amp.Height.HOME & self.photoeyes.get_intake_loaded():
