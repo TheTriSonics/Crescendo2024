@@ -74,7 +74,8 @@ class MyRobot(TimedCommandRobot):
         self.shooter = shooter.Shooter()
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
-        self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
+        self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
+                                            self.note_tracker, self.shooter)
         self.note_tracker = note_tracker.NoteTracker()
         self.climber = climber.Climber(self.driver)
 

@@ -27,6 +27,7 @@ from pathplannerlib.config import (
 from controllers.driver import DriverController
 from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
+from subsystems.shooter import Shooter
 from constants import RobotPIDConstants as PIDC
 
 kMaxSpeed = 4.5  # m/s
@@ -41,11 +42,13 @@ class DrivetrainDefaultCommand(Command):
     """
     Default command for the drivetrain.
     """
-    def __init__(self, drivetrain, controller: DriverController, photon: NoteTracker) -> None:
+    def __init__(self, drivetrain, controller: DriverController,
+                 photon: NoteTracker, shooter: Shooter) -> None:
         super().__init__()
         self.drivetrain = drivetrain
         self.controller = controller
         self.photon = photon
+        self.shooter = shooter
         self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         # Slew rate limiters to make joystick inputs more gentle
@@ -89,13 +92,17 @@ class DrivetrainDefaultCommand(Command):
         if self.controller.get_speaker_lockon():
             print('speaker lockon')
             fid = 4 if self.drivetrain.is_red_alliance() else 7
-            heading = self.drivetrain.get_fid_heading(fid)
+            heading, elev, area = self.drivetrain.get_fid_data(fid)
             if heading is not None:
                 print(f'heading: {heading} fid: {fid}')
                 if abs(heading) < 3.0:
                     rot = 0
                 else:
                     rot = self.speaker_pid.calculate(heading, 0)
+            if elev is not None:
+                self.shooter.set_otf_elevation(elev)
+            if area is not None:
+                self.shooter.set_otf_rpm(area)
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
@@ -118,7 +125,8 @@ class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
-    def __init__(self, gyro: gyro.Gyro, driver_controller, photon: NoteTracker) -> None:
+    def __init__(self, gyro: gyro.Gyro, driver_controller, photon: NoteTracker,
+                 shooter: Shooter) -> None:
         super().__init__()
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
@@ -126,6 +134,7 @@ class Drivetrain(Subsystem):
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
         self.photon = photon
+        self.shooter = shooter
 
         self.lockable = False
         self.locked = False
@@ -222,7 +231,8 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        defcmd = DrivetrainDefaultCommand(self, self.controller, photon)
+        defcmd = DrivetrainDefaultCommand(self, self.controller, photon,
+                                          self.shooter)
         self.setDefaultCommand(defcmd)
 
     def llJson(self) -> str:
@@ -339,7 +349,7 @@ class Drivetrain(Subsystem):
     def getPose(self) -> Pose2d:
         return self.odometry.getEstimatedPosition()
 
-    def get_fid_heading(self, id) -> tuple[list[Pose2d], float]:
+    def get_fid_data(self, id):
         tag_heading = None
         data = self.ll_json_entry.get()
         obj = json.loads(data)
@@ -349,14 +359,16 @@ class Drivetrain(Subsystem):
         if len(obj) == 0:
             return None
         results = obj['Results']
-        if not 'Fiducial' in results:
+        if 'Fiducial' not in results:
             return None
         fids = results['Fiducial']
         for f in fids:
             if f['fID'] != id:
                 continue
             tag_heading = f['tx']
-        return tag_heading
+            tag_elevation = f['ty']
+            tag_area = f['ta']
+        return tag_heading, tag_elevation, tag_area
 
     def periodic(self) -> None:
         self.updateOdometry()

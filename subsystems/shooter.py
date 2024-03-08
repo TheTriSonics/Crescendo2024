@@ -161,6 +161,39 @@ class Shooter(Subsystem):
         # Stop the shooter motor
         self.shooter_motor_left.set_control(DutyCycleOut(0, override_brake_dur_neutral=False))
 
+    def _deg_to_shooter_tilt(self, deg):
+        deg_min = 30
+        deg_max = 80
+        run = sm.tilt_upper_limit - sm.tilt_bottom_limit
+        rise = deg_max - deg_min
+        m = rise/run
+        b = sm.tilt_bottom_limit
+        if deg < deg_min:
+            retval = sm.tilt_bottom_limit
+        elif deg >= deg_min and deg <= deg_max:
+            retval = m*deg + b
+        elif deg > deg_max:
+            retval = sm.tilt_top_limit
+        return retval
+
+    # TODO: Actual numbers need to be sorted out for this
+    def _fidarea_to_shooter_rpm(self, fidarea):
+        if fidarea < 100:
+            self.speed_target = 40
+        elif fidarea < 200:
+            self.speed_target = 30
+        elif fidarea < 300:
+            self.speed_target = 20
+        else:
+            self.speed_target = 10
+
+    def set_otf_elevation(self, deg):
+        self.tilt_target = self._deg_to_shooter_tilt(deg)
+
+    def set_otf_rpm(self, fidarea):
+        self.speed_target = self._fidarea_to_shooter_rpm(fidarea)
+
+
     def safe_shot(self):
         self.tilt_target = tilt_safe
         self.waiting_speed_target = 75
@@ -171,9 +204,9 @@ class Shooter(Subsystem):
 
     def spin_up(self):
         self.speed_target = self.waiting_speed_target
-    
+
     def spin_down(self):
-        self.speed_target = 0 
+        self.speed_target = 0
 
     def prepare_to_load(self):
         self.tilt_target = tilt_load_limit
