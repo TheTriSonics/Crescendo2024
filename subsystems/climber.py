@@ -4,7 +4,7 @@ from commands.climb import Climb
 
 from constants import RobotMotorMap as RMM
 from controllers.commander import CommanderController
-from controllers.thrust_driver import DriverController
+from controllers.driver import DriverController
 
 
 class Climber(Subsystem):
@@ -13,8 +13,8 @@ class Climber(Subsystem):
 
         self.controller = controller
 
-        defcmd = ClimberDefaultCommand(self, controller)
-        self.setDefaultCommand(defcmd)
+        # defcmd = ClimberDefaultCommand(self, controller)
+        # self.setDefaultCommand(defcmd)
 
         # Initialize the motor controller
         self.climber_motor_l = CANSparkMax(RMM.climber_motor_left, CANSparkLowLevel.MotorType.kBrushed)
