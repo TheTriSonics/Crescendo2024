@@ -4,6 +4,7 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
+import json
 import math
 import subsystems.swervemodule as swervemodule
 import subsystems.gyro as gyro
@@ -23,7 +24,7 @@ from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
 
-from controllers.thrust_driver import DriverController
+from controllers.driver import DriverController
 from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
 from constants import RobotPIDConstants as PIDC
@@ -32,6 +33,8 @@ kMaxSpeed = 4.8  # m/s
 kMaxAngularSpeed = math.pi * 5
 
 swerve_offset = 55 / 100  # cm converted to meters
+
+slow_mode_factor = 1/2
 
 
 class DrivetrainDefaultCommand(Command):
@@ -65,7 +68,7 @@ class DrivetrainDefaultCommand(Command):
         xSpeed *= master_throttle
         ySpeed *= master_throttle
         rot *= master_throttle
-        
+
         # When in lockon mode, the robot will rotate to face the node
         # that PhtonVision is detecting
         if self.controller.get_note_lockon():
@@ -76,6 +79,17 @@ class DrivetrainDefaultCommand(Command):
                 rot = 0
             else:
                 rot = self.pid.calculate(yaw, 0)
+
+        if self.controller.get_slow_mode():
+            xSpeed *= slow_mode_factor
+            ySpeed *= slow_mode_factor
+            rot *= slow_mode_factor
+
+        if self.controller.get_speaker_lockon():
+            fid = 4 if self.is_red_alliance() else 7
+            heading = self.drivetrain.get_fid_heading(fid)
+            if heading is not None:
+                rot = self.pid.calculate(heading, 0)
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
@@ -229,6 +243,9 @@ class Drivetrain(Subsystem):
     def shouldFlipPath(self):
         return DriverStation.getAlliance() == DriverStation.Alliance.kRed
 
+    def is_red_alliance(self):
+        return DriverStation.getAlliance() == DriverStation.Alliance.kRed
+
     def resetOdometry(self, pose: Pose2d = None):
         if pose is None:
             self.gyro.set_yaw(0)
@@ -270,7 +287,7 @@ class Drivetrain(Subsystem):
         :param rot: Angular rate of the robot.
         :param periodSeconds: Time
         """
-    
+
         if self.fieldRelative:
             pn = SmartDashboard.putNumber
             pn("drivetrain/field_relative", self.fieldRelative)
@@ -315,6 +332,23 @@ class Drivetrain(Subsystem):
 
     def getPose(self) -> Pose2d:
         return self.odometry.getEstimatedPosition()
+
+    def get_fid_heading(self, id) -> tuple[list[Pose2d], float]:
+        tag_heading = None
+        data = self.ll_json_entry.get()
+        obj = json.loads(data)
+        # tl = None
+        # Short circuit any JSON processing if we got back an empty list, which
+        # is the default value for the limelight network table entry
+        if len(obj) == 0:
+            return None
+        for result in obj['Results']:
+            # tl = result['tl']
+            for fid in obj['Fiducial']:
+                if fid['fID'] != id:
+                    continue
+                tag_heading = fid['tx']
+        return tag_heading
 
     def periodic(self) -> None:
         self.updateOdometry()

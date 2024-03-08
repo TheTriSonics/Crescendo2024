@@ -80,13 +80,13 @@ class MyRobot(TimedCommandRobot):
 
         # button = JoystickButton(driver_joystick, 4)
         # button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
-        
+
         intake_button = JoystickButton(self.commander_joystick1, RBM.intake_ready_c1)
         intake_button.whileTrue(IntakeNote(self.intake, self.shooter, self.gyro, self.photoeyes, self.leds))
-        
+
         eject_button = JoystickButton(self.commander_joystick1, RBM.intake_eject_c1)
         eject_button.onTrue(EjectNote(self.intake, self.photoeyes, self.leds))
-        
+
         amp_load_button = JoystickButton(self.commander_joystick2, RBM.load_note_amp_c2)
         amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
 
@@ -94,8 +94,8 @@ class MyRobot(TimedCommandRobot):
         shooter_load_button.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes))
 
         amp_set_height_amp = JoystickButton(self.commander_joystick2, RBM.amp_lift_home_c2)
-        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME)) 
-        
+        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME))
+
         amp_set_height_amp = JoystickButton(self.commander_joystick2, RBM.amp_lift_amp_c2)
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
 
@@ -104,7 +104,7 @@ class MyRobot(TimedCommandRobot):
 
         amp_override_up = JoystickButton(self.commander_joystick2, RBM.amp_override_up_c2)
         amp_override_up.whileTrue(SetAmpOverride(self.amp, self.amp.dir_up))
-        
+
         amp_override_down = JoystickButton(self.commander_joystick2, RBM.amp_override_down_c2)
         amp_override_down.whileTrue(SetAmpOverride(self.amp, self.amp.dir_down))
 
@@ -125,10 +125,10 @@ class MyRobot(TimedCommandRobot):
         # fr_button.onTrue(FieldRelativeToggle(self.swerve))
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
 
-        safe_shot_button = JoystickButton(self.commander_joystick1, RBM.shooter_aim_safe_c1)  
+        safe_shot_button = JoystickButton(self.commander_joystick1, RBM.shooter_aim_safe_c1)
         safe_shot_button.onTrue(InstantCommand(self.shooter.safe_shot))
-        
-        sub_shot_button = JoystickButton(self.commander_joystick1, RBM.shooter_aim_sub_c1)  
+
+        sub_shot_button = JoystickButton(self.commander_joystick1, RBM.shooter_aim_sub_c1)
         sub_shot_button.onTrue(InstantCommand(self.shooter.sub_shot))
 
         shoot_button = JoystickButton(self.commander_joystick2, RBM.shooter_shoot_c2)
