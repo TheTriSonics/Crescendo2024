@@ -17,7 +17,7 @@ class RobotMotorMap():
     front_right_turn = 22
     back_left_turn = 23
     back_right_turn = 24
-    
+
     # Cancoders
     front_left_turn_encoder = 31
     front_right_turn_encoder = 32
@@ -98,9 +98,11 @@ class RobotButtonMap():
     driver_controller = 0
     commander_controller_1 = 1
     commander_controller_2 = 2
-    
+
     # Driver button assignments
+    note_tracking = 1
     toggle_field_relative = 3
+    slow_drive_mode = 6  # Right bumper?
 
     # Button Panel List
     # INTAKE: Intake Ready, Intake Eject
@@ -115,14 +117,14 @@ class RobotButtonMap():
     intake_eject_c1 = 8
 
     load_note_shooter_c1 = 7
-    
+
     shooter_aim_sub_c1 = 6
     shooter_aim_otf_c1 = 3
     shooter_aim_safe_c1 = 2
 
     shooter_override_up_c1 = 4
     shooter_override_down_c1 = 5
-    
+
     ### Controller 2 ###
 
     load_note_amp_c2 = 6
@@ -141,5 +143,5 @@ class RobotButtonMap():
     shooter_spin_c2 = 3
     intake_override_up_c2 = 5
     intake_override_down_c2 = 1
-    
-    
+
+

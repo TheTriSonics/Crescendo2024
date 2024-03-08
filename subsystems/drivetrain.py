@@ -23,7 +23,7 @@ from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
 
-from controllers.thrust_driver import DriverController
+from controllers.driver import DriverController
 from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
 from constants import RobotPIDConstants as PIDC
@@ -32,6 +32,8 @@ kMaxSpeed = 4.8  # m/s
 kMaxAngularSpeed = math.pi * 5
 
 swerve_offset = 55 / 100  # cm converted to meters
+
+slow_mode_factor = 1/2
 
 
 class DrivetrainDefaultCommand(Command):
@@ -65,7 +67,7 @@ class DrivetrainDefaultCommand(Command):
         xSpeed *= master_throttle
         ySpeed *= master_throttle
         rot *= master_throttle
-        
+
         # When in lockon mode, the robot will rotate to face the node
         # that PhtonVision is detecting
         if self.controller.get_note_lockon():
@@ -76,6 +78,11 @@ class DrivetrainDefaultCommand(Command):
                 rot = 0
             else:
                 rot = self.pid.calculate(yaw, 0)
+
+        if self.controller.get_slow_mode():
+            xSpeed *= slow_mode_factor
+            ySpeed *= slow_mode_factor
+            rot *= slow_mode_factor
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
@@ -270,7 +277,7 @@ class Drivetrain(Subsystem):
         :param rot: Angular rate of the robot.
         :param periodSeconds: Time
         """
-    
+
         if self.fieldRelative:
             pn = SmartDashboard.putNumber
             pn("drivetrain/field_relative", self.fieldRelative)
