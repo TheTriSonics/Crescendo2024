@@ -2,7 +2,7 @@ from misc import is_sim
 
 
 class RobotPIDConstants():
-    note_tracking_pid = (0.010, 0, 0)
+    note_tracking_pid = (0.005, 0, 0)
 
 
 class RobotMotorMap():

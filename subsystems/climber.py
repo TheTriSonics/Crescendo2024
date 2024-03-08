@@ -37,12 +37,3 @@ class Climber(Subsystem):
     def go_down(self):
         # Set the motor to go down
         self.climber_motor_l.set(-1.0)
-
-class ClimberDefaultCommand(Command):
-    def __init__(self, climber: Climber, controller: DriverController):
-        self.climber = climber
-        self.controller = controller
-        self.addRequirements(climber)
-
-    def execute(self):
-        self.climber.set_speed(self.controller.get_climber_trigger())
