@@ -48,11 +48,13 @@ class DrivetrainDefaultCommand(Command):
         self.photon = photon
         self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
+        self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(0.8)
         self.yslew = SlewRateLimiter(0.8)
         self.rotslew = SlewRateLimiter(0.1)
         self.idle_counter = 0
+        self.desired_heading = self.drivetrain.get_heading_rotation_2d().degrees()
         self.addRequirements(drivetrain)
 
     def execute(self) -> None:
@@ -69,6 +71,16 @@ class DrivetrainDefaultCommand(Command):
         xSpeed *= master_throttle
         ySpeed *= master_throttle
         rot *= master_throttle
+
+        # If the user is commanding rotation set the desired heading to the
+        # current heading so if they let off we can use PID to keep the robot
+        # driving straight
+        curr = self.drivetrain.get_heading_rotation_2d().degrees()
+        if rot > 0:
+            self.desired_heading = curr
+        else:
+            # Use PID to keep us straight
+            rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
 
         # When in lockon mode, the robot will rotate to face the node
         # that PhtonVision is detecting
@@ -273,7 +285,11 @@ class Drivetrain(Subsystem):
             )
 
     def get_heading_rotation_2d(self) -> Rotation2d:
-        return Rotation2d(math.radians(self.gyro.get_yaw()))
+        from misc import is_sim
+        if not is_sim():
+            return Rotation2d(math.radians(self.gyro.get_yaw()))
+        else:
+            return Rotation2d(0)
 
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
