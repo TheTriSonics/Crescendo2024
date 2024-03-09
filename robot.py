@@ -61,10 +61,10 @@ class MyRobot(TimedCommandRobot):
                                              self.commander_joystick2)
 
         self.gyro = gyro.Gyro()
-        self.photoeyes = photoeyes.Photoeyes()
         self.leds = leds.Leds()
+        self.photoeyes = photoeyes.Photoeyes()
+        
         self.amp = amp.Amp(self.commander, self.photoeyes)
-
         self.shooter = shooter.Shooter(self.leds)
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
@@ -105,7 +105,7 @@ class MyRobot(TimedCommandRobot):
 
         amp_load_button = JoystickButton(self.commander_joystick2,
                                          RBM.load_note_amp_c2)
-        amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
+        amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes, self.leds))
 
         shooter_load_button = JoystickButton(self.commander_joystick1,
                                              RBM.load_note_shooter_c1)
@@ -197,7 +197,7 @@ class MyRobot(TimedCommandRobot):
     def autonomousInit(self):
         self.swerve.resetOdometry()
         self.swerve.updateOdometry()
-        self.gyro.set_yaw(0)
+        self.gyro.set_yaw(-120)
         cmd = PathPlannerAuto("LakeCityTwoNote")
         # cmd = Rotate(self.swerve, self.gyro, 0)
         # cmd = DriveToPoint(self.swerve, self.gyro, 3, 0, 0)
