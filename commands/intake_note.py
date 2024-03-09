@@ -32,13 +32,14 @@ class IntakeNote(Command):
         self.timer.start()
 
     def execute(self):
-        print(self.timer.get())
+        self.leds.intake_running()
         if self.forceQuit:
             return
         self.intake.feed()
         if self.photoeyes.get_intake_loaded():
             self.intake.halt()
             self.intake.tilt_up()
+            self.leds.intake_loaded()
             self.forceQuit = True
         pass
 

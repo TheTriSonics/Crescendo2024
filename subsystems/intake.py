@@ -175,13 +175,13 @@ class IntakeDefaultCommand(Command):
         # Set up a default value for if no conditions match, or no buttons are
         # pressed.
         intake_speed = 0
-        
+
         # Now step through combinations to see what we should do
         # if abs(self.controller.getRawAxis(1)) >= 0.04:
         #     intake_speed = self.controller.getRawAxis(1)
         # else:
         #     intake_speed = 0
-        
+
         # tilt_speed = 0
         # if abs(self.controller.getRawAxis(5)) >= 0.04:
         #     tilt_speed = self.controller.getRawAxis(5) * 0.2
@@ -189,7 +189,7 @@ class IntakeDefaultCommand(Command):
         #     tilt_speed = 0
 
         if self.controller.getRawButton(1):
-            self.intake.reverse() 
+            self.intake.reverse()
 
         if self.controller.getRawButton(2):
             self.intake.tilt_up()
@@ -211,7 +211,6 @@ class IntakeDefaultCommand(Command):
         # Pattern: 3) Execute decision
         # Now commit some values to the physical subsystem.
         # self.intake.feed()
-        print(self.intake.tilt_encoder.getAbsolutePosition())
         # self.intake.feed_motors.set(intake_speed)
         # self.intake.tilt_motor.set(tilt_speed)
         SmartDashboard.putNumber('intake/intake_speed', intake_speed)

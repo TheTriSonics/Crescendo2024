@@ -6,6 +6,7 @@
 
 import json
 import math
+from subsystems.leds import Leds
 import subsystems.swervemodule as swervemodule
 import subsystems.gyro as gyro
 from commands2 import Subsystem, Command
@@ -41,11 +42,13 @@ class DrivetrainDefaultCommand(Command):
     """
     Default command for the drivetrain.
     """
-    def __init__(self, drivetrain, controller: DriverController, photon: NoteTracker) -> None:
+    def __init__(self, drivetrain, controller: DriverController,
+                 photon: NoteTracker, leds: Leds) -> None:
         super().__init__()
         self.drivetrain = drivetrain
         self.controller = controller
         self.photon = photon
+        self.leds = leds
         self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
@@ -98,27 +101,32 @@ class DrivetrainDefaultCommand(Command):
         if self.controller.get_note_lockon():
             yaw = self.photon.getYawOffset()
             if yaw is None:
+                self.leds.tracking_note_not_found()
                 pass
             elif abs(yaw) < 1.7:
                 rot = 0
+                self.leds.tracking_note()
             else:
                 rot = self.note_pid.calculate(yaw, 0)
+                self.leds.tracking_note()
 
         if self.controller.get_slow_mode():
+            self.leds.drivetrain_slow()
             xSpeed *= slow_mode_factor
             ySpeed *= slow_mode_factor
             rot *= slow_mode_factor
 
         if self.controller.get_speaker_lockon():
-            print('speaker lockon')
             fid = 4 if self.drivetrain.is_red_alliance() else 7
             heading = self.drivetrain.get_fid_heading(fid)
             if heading is not None:
-                print(f'heading: {heading} fid: {fid}')
+                self.leds.tracking_speaker()
                 if abs(heading) < 3.0:
                     rot = 0
                 else:
                     rot = self.speaker_pid.calculate(heading, 0)
+            else:  # Not found
+                self.leds.tracking_speaker_not_found()
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
@@ -141,7 +149,8 @@ class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
-    def __init__(self, gyro: gyro.Gyro, driver_controller, photon: NoteTracker) -> None:
+    def __init__(self, gyro: gyro.Gyro, driver_controller, photon: NoteTracker,
+                 leds: Leds) -> None:
         super().__init__()
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
@@ -149,6 +158,7 @@ class Drivetrain(Subsystem):
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
         self.photon = photon
+        self.leds = leds
 
         self.lockable = False
         self.locked = False
@@ -245,9 +255,9 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        defcmd = DrivetrainDefaultCommand(self, self.controller, photon)
+        defcmd = DrivetrainDefaultCommand(self, self.controller, photon, leds)
         self.setDefaultCommand(defcmd)
-    
+
     def lock_heading(self):
         self.desired_heading = self.get_heading_rotation_2d().degrees()
 
@@ -307,7 +317,6 @@ class Drivetrain(Subsystem):
 
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
-        print("yes")
 
     def drive(
         self,

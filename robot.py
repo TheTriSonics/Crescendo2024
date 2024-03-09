@@ -73,10 +73,11 @@ class MyRobot(TimedCommandRobot):
         self.leds = leds.Leds()
         self.amp = amp.Amp(self.commander, self.photoeyes)
 
-        self.shooter = shooter.Shooter()
+        self.shooter = shooter.Shooter(self.leds)
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
-        self.swerve = drivetrain.Drivetrain(self.gyro, self.driver, self.note_tracker)
+        self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
+                                            self.note_tracker, self.leds)
         self.note_tracker = note_tracker.NoteTracker()
         self.climber = climber.Climber(self.driver)
 
@@ -104,7 +105,7 @@ class MyRobot(TimedCommandRobot):
         amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
 
         shooter_load_button = JoystickButton(self.commander_joystick1, RBM.load_note_shooter_c1)
-        shooter_load_button.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes))
+        shooter_load_button.onTrue(ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, self.leds))
 
         amp_set_height_amp = JoystickButton(self.commander_joystick2, RBM.amp_lift_home_c2)
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME))
