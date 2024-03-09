@@ -162,8 +162,8 @@ class SwerveModule(Subsystem):
             turn_pos, state.angle.radians()
         )
         pn = SmartDashboard.putNumber
-        pn(f'drivetrain/swervemodule/{self.name} turnOutput', turnOutput)
-        pn(f'drivetrain/swervemodule/{self.name} driveOutput', driveOutput)
+        # pn(f'drivetrain/swervemodule/{self.name} turnOutput', turnOutput)
+        # pn(f'drivetrain/swervemodule/{self.name} driveOutput', driveOutput)
 
         # Now set the motor outputs where 0 is none and 1 is full
         # SmartDashboard.putNumber(f'{self.name} driveOutput', driveOutput)
@@ -172,4 +172,4 @@ class SwerveModule(Subsystem):
 
     def periodic(self):
         pn = SmartDashboard.putNumber
-        pn(f'drivetrain/swervemodule/{self.name}_encoder', self.driveMotor.get_position().value)
+        # pn(f'drivetrain/swervemodule/{self.name}_encoder', self.driveMotor.get_position().value)

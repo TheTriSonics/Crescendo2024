@@ -1,9 +1,8 @@
-from commands2 import CommandBase
-from wpilib import SmartDashboard
+from commands2 import Command
 from wpimath.controller import PIDController
 from subsystems.drivetrain import Drivetrain
 
-class DriveToPoint(CommandBase):
+class DriveToPoint(Command):
     def __init__(self, drive: Drivetrain, gyro, x, y, targetHeading):
         super().__init__()
         self.drive = drive
@@ -17,7 +16,7 @@ class DriveToPoint(CommandBase):
         self.rotPID = PIDController(0.05, 0, 0)
 
     def initialize(self):
-        SmartDashboard.putString("dtp" , "i AM the dtp")
+        pass
 
     def execute(self):
         pose = self.drive.getPose()
@@ -40,7 +39,6 @@ class DriveToPoint(CommandBase):
         deltax = currx - self.x
         deltay = curry - self.y
         total_distance = sqrt(deltax*deltax + deltay*deltay)
-        SmartDashboard.putNumber('dtp err', total_distance)
         if total_distance < 5/100:
             return True
         return False

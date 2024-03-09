@@ -1,8 +1,6 @@
 from wpilib import Timer
 from commands2 import Command
 from subsystems.intake import Intake
-from subsystems.shooter import Shooter
-from subsystems.amp import Amp
 from subsystems.photoeyes import Photoeyes
 from subsystems.leds import Leds
 

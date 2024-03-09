@@ -63,7 +63,7 @@ class NoteTracker(Subsystem):
             self.largest = t 
             # TODO: Remove break when the above methods are implemented
             break  # Only process the first target
-        pn('photon/note/closest/yaw', self.closest.yaw)
-        pn('photon/note/closest/pitch', self.closest.pitch)
-        pn('photon/note/largest/yaw', self.largest.yaw)
-        pn('photon/note/largest/pitch', self.largest.pitch)
+        # pn('photon/note/closest/yaw', self.closest.yaw)
+        # pn('photon/note/closest/pitch', self.closest.pitch)
+        # pn('photon/note/largest/yaw', self.largest.yaw)
+        # pn('photon/note/largest/pitch', self.largest.pitch)

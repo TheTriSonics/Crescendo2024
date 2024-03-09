@@ -17,22 +17,13 @@ class ReturnToHome(Command):
         self.addRequirements(intake)
 
     def initialize(self):
-        # shooter_loaded = False
-        # amp_loaded = False
-        # intake_loaded = False
-        # for c in [shooter_loaded, amp_loaded, intake_loaded]:
-        #    if c is True:
-        #         self.forceQuit = True
-        #         return
         self.timer = Timer()
         self.forceQuit = False
         self.tripped = False
         if self.photoeyes.get_intake_loaded():
             self.forceQuit = True
-        # self.timer.start()
 
     def execute(self):
-        # print(self.timer.get())
         if self.forceQuit:
             return
         if self.photoeyes.get_amp_loaded():
