@@ -44,6 +44,7 @@ from controllers.driver import DriverController
 from controllers.commander import CommanderController
 
 from misc import is_sim, add_timing
+from commands2.button import Trigger
 
 
 class MyRobot(TimedCommandRobot):
@@ -86,11 +87,28 @@ class MyRobot(TimedCommandRobot):
         self.configure_driver_controls()
         self.configure_commander_controls()
 
+    def trigger_axis(self, joystick, axis, threshold):
+        if threshold > 0:
+            return joystick.getRawAxis(axis) > threshold
+        else:
+            return joystick.getRawAxis(axis) < threshold
+        return False
+
     def configure_driver_controls(self):
         fr_button = JoystickButton(self.driver_joystick,
                                    RBM.toggle_field_relative)
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
-        pass
+        climb_up = Trigger(
+            lambda: self.trigger_axis(
+                self.driver_joystick, RBM.climber_up, 0.5)
+        )
+        climb_down = Trigger(
+            lambda: self.trigger_axis(
+                self.driver_joystick, RBM.climber_down, 0.5)
+        )
+
+        climb_up.onTrue(InstantCommand(self.climber.go_up))
+        climb_down.onTrue(InstantCommand(self.climber.go_down))
 
     def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1,

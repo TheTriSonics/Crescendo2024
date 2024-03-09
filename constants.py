@@ -127,6 +127,10 @@ class RobotButtonMap():
     shooter_aim_otf_c1 = 3
     shooter_aim_safe_c1 = 2
 
+    # climber axis -- probably not right
+    climber_up = 4
+    climber_down = 5
+
     shooter_override_up_c1 = 4
     shooter_override_down_c1 = 5
 
