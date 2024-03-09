@@ -204,10 +204,11 @@ class MyRobot(TimedCommandRobot):
         # seek = DriveOverNote(self.note_tracker, self.swerve)
         # followPath = AutoBuilder.followPath(self.testPathToFollow())
         # haltcmd = HaltDrive(self.swerve)
-        rotcmd = Rotate(self.swerve, self.gyro, -180)
+        # rotcmd = Rotate(self.swerve, self.gyro, -180)
+        intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, self.leds)
         shootcmd = AutoShooterLaunchNote(self.shooter,
-                                         shooter.tilt_sub*.80, 80)
-        scg = SequentialCommandGroup([cmd, rotcmd, shootcmd])
+                                         shooter.tilt_safe, 80)
+        scg = SequentialCommandGroup([cmd, intake_to_shooter, shootcmd])
         scg.schedule()
         pass
 

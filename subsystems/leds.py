@@ -134,7 +134,8 @@ class Leds(Subsystem):
         # self.set_color(MAGENTA)
         pass
 
-
+    def off(self):
+        self.set_color(0)
 
     def drivetrain_slow(self):
         # self.set_color(RED)

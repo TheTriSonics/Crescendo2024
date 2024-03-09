@@ -19,7 +19,7 @@ tilt_upper_limit = 0.856
 max_tilt_diff = 0.0015
 
 tilt_sub = 0.84
-tilt_safe = 0.80
+tilt_safe = 0.79
 
 
 class Shooter(Subsystem):
@@ -199,7 +199,7 @@ class Shooter(Subsystem):
             if self.is_up_to_speed():
                 self.leds.shooter_up_to_speed()
             else:
-                self.leds.shooter_running()
+                self.leds.off()
         self.shooter_motor_left.set_control(VelocityDutyCycle(self.speed_target))
         self.shooter_motor_right.set_control(VelocityDutyCycle(-self.speed_target))
         # Do NOTHING for 3 seconds after the robot starts up

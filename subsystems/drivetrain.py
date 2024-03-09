@@ -28,6 +28,7 @@ from pathplannerlib.config import (
 from controllers.driver import DriverController
 from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
+from subsystems.gyro import Gyro
 from constants import RobotPIDConstants as PIDC
 
 kMaxSpeed = 4.5  # m/s
@@ -43,12 +44,13 @@ class DrivetrainDefaultCommand(Command):
     Default command for the drivetrain.
     """
     def __init__(self, drivetrain, controller: DriverController,
-                 photon: NoteTracker, leds: Leds) -> None:
+                 photon: NoteTracker, leds: Leds, gyro: Gyro) -> None:
         super().__init__()
         self.drivetrain = drivetrain
         self.controller = controller
         self.photon = photon
         self.leds = leds
+        self.gyro = gyro
         self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
@@ -97,6 +99,10 @@ class DrivetrainDefaultCommand(Command):
             else:
                 # Rotation is still going to be 0, no power.
                 pass
+
+
+        if self.controller.get_yaw_reset():
+            self.gyro.set_yaw(0)
 
         # When in lockon mode, the robot will rotate to face the node
         # that PhtonVision is detecting
@@ -257,7 +263,7 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        defcmd = DrivetrainDefaultCommand(self, self.controller, photon, leds)
+        defcmd = DrivetrainDefaultCommand(self, self.controller, photon, leds, gyro)
         self.setDefaultCommand(defcmd)
 
     def lock_heading(self):
@@ -308,7 +314,8 @@ class Drivetrain(Subsystem):
     def get_heading_rotation_2d(self) -> Rotation2d:
         from misc import is_sim
         if not is_sim():
-            return Rotation2d(math.radians(self.gyro.get_yaw()))
+            yaw = self.gyro.get_yaw()
+            return Rotation2d(math.radians(yaw))
         else:
             return Rotation2d(0)
 
@@ -331,6 +338,10 @@ class Drivetrain(Subsystem):
         """
 
         if self.fieldRelative:
+            flip = self.shouldFlipPath()
+            if flip:
+                xSpeed = -xSpeed
+                ySpeed = -ySpeed
             cs = ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
                 )
