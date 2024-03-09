@@ -70,13 +70,22 @@ class DrivetrainDefaultCommand(Command):
         if self.desired_heading is None:
             self.desired_heading = self._curr_heading()
         curr = self.drivetrain.get_heading_rotation_2d().degrees()
-        xSpeed = self.xslew.calculate(self.controller.get_drive_x())
+        xraw = self.controller.get_drive_x()
+        yraw = self.controller.get_drive_y()
+        xSpeed = self.xslew.calculate(xraw)
+        if xraw == 0:
+            xSpeed /= 2
         xSpeed *= kMaxSpeed
 
-        ySpeed = self.yslew.calculate(self.controller.get_drive_y())
+        ySpeed = self.yslew.calculate(yraw)
+        if yraw == 0:
+            ySpeed /= 2
         ySpeed *= kMaxSpeed
 
-        rot = self.rotslew.calculate(self.controller.get_drive_rot())
+        rotraw = self.controller.get_drive_rot()
+        rot = self.rotslew.calculate(rotraw)
+        if rotraw == 0:
+            rot /= 2
         rot *= kMaxAngularSpeed
 
         master_throttle = self.controller.get_master_throttle()
