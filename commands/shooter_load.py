@@ -32,6 +32,8 @@ class ShooterLoad(Command):
     def execute(self) -> None:
         if self.forceQuit is True:
             return
+        if not self.shooter.is_tilt_aimed():
+            return
         self.intake.feed()
         self.amp.reverse()
         self.shooter.feed_note()
