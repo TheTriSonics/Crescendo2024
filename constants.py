@@ -108,6 +108,8 @@ class RobotButtonMap():
     speaker_tracking = 4  # Y button on controller
     slow_drive_mode = 6  # Right bumper?
 
+    RESET_YAW = 9
+
     # Button Panel List
     # INTAKE: Intake Ready, Intake Eject
     # SHOOTER: Load Shooter, On The Fly(OTF) Aim, Safe Spot Aim,

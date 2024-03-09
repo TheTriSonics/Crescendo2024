@@ -32,7 +32,7 @@ class Leds(Subsystem):
 
         self.leds = AddressableLED(RSM.addressable_leds)
 
-        self.led_length = 30  # TODO: Set the correct length
+        self.led_length = 135
         self.blinking = False
         self.blink_counter = 0
         self.blink_on = True
@@ -77,7 +77,7 @@ class Leds(Subsystem):
 
     # Yellow, like Pac man. Gobble gobble, blink blink.
     def intake_running(self):
-        self.set_color(YELLOW, True)
+        self.set_color(YELLOW)
 
     # Pac man is sick
     def intake_ejecting(self):
@@ -85,7 +85,7 @@ class Leds(Subsystem):
 
     # Pac man full
     def intake_loaded(self):
-        self.set_color(YELLOW)
+        self.set_color(GREEN)
 
     def intake_empty(self):
         pass
@@ -115,22 +115,31 @@ class Leds(Subsystem):
         pass
 
     def amp_reversed(self):
-        self.set_color(RED, True)
+        # self.set_color(RED, True)
+        pass
 
     def tracking_note(self):
-        self.set_color(ORANGE)
+        # self.set_color(ORANGE)
+        pass
 
     def tracking_note_not_found(self):
-        self.set_color(MAGENTA)
+        # self.set_color(MAGENTA)
+        pass
 
     def tracking_speaker(self):
-        self.set_color(YELLOW)
+        # self.set_color(YELLOW)
+        pass
 
     def tracking_speaker_not_found(self):
-        self.set_color(MAGENTA)
+        # self.set_color(MAGENTA)
+        pass
+
+    def off(self):
+        self.set_color(0)
 
     def drivetrain_slow(self):
-        self.set_color(RED)
+        # self.set_color(RED)
+        pass
 
     def periodic(self) -> None:
         if self.rainbow_mode:

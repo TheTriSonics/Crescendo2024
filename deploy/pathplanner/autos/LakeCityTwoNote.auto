@@ -34,12 +34,6 @@
           "data": {
             "pathName": "Note1ToNote2LC"
           }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "AutoShoot"
-          }
         }
       ]
     }

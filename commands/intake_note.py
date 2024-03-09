@@ -29,9 +29,9 @@ class IntakeNote(Command):
         self.timer.restart()
 
     def execute(self):
-        self.leds.intake_running()
         if self.forceQuit:
             return
+        self.leds.intake_running()
         self.intake.feed()
         if self.photoeyes.get_intake_loaded():
             self.intake.halt()

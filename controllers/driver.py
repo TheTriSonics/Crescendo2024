@@ -47,3 +47,6 @@ class DriverController():
 
     def get_slow_mode(self) -> bool:
         return self.joystick.getRawButton(RBM.slow_drive_mode)
+
+    def get_yaw_reset(self) -> bool:
+        return self.joystick.getRawButton(RBM.RESET_YAW)
