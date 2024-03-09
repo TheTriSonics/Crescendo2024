@@ -15,18 +15,15 @@ class ShooterLaunchNoteTest(Command):
         self.addRequirements(shooter)
 
     def initialize(self) -> None:
-        # self.shooter_set_speed(self.target_rpm)
         self.shot_fired = False
         self.shooter.set_velocity(78)
         self.timer.restart()
 
     def execute(self) -> None:
-        # if self.shooter.is_up_to_speed():
         if not self.shot_fired and self.timer.hasElapsed(2.0):
             self.shooter.feed_note()
             self.shot_fired = True
             self.shot_timer.restart()
-            # self.timer.start()
 
     def end(self, interrupted: bool) -> None:
         self.shooter.feed_off()

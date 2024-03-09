@@ -1,10 +1,9 @@
-import commands2
+from commands2 import Command
 from time import time
 from subsystems.drivetrain import Drivetrain
-from wpilib import SmartDashboard
 
 
-class DriveForTime(commands2.CommandBase):
+class DriveForTime(Command):
 
     def __init__(self, drive: Drivetrain):
         super().__init__()
@@ -17,8 +16,6 @@ class DriveForTime(commands2.CommandBase):
 
     def execute(self):
         self.drive.drive(self.power, 0, 0, False, 0.02)
-        SmartDashboard.putNumber("power", self.power)
-        # self.power += 1
 
     def end(self, i):
         self.drive.lockWheels()

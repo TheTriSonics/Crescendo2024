@@ -12,6 +12,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "AutoShoot"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Station1ToNote1"
@@ -27,6 +33,12 @@
           "type": "path",
           "data": {
             "pathName": "Note1ToNote2LC"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AutoShoot"
           }
         }
       ]

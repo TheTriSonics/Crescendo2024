@@ -18,10 +18,6 @@ class ShooterLaunchNote(Command):
         self.timer.restart()
 
     def execute(self) -> None:
-        # if not self.shooter.is_up_to_speed() or not self.shooter.is_tilt_aimed():
-        #     return
-        # TODO:
-        # Add in check for vision targets here?
         if not self.shot_fired:
             self.shooter.feed_note()
             self.shot_fired = True

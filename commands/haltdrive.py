@@ -59,7 +59,7 @@ class HaltDrive(commands2.CommandBase):
         error += abs(br-(-math.pi/4))
         pn = SmartDashboard.putNumber
         error_threshold = 4
-        pn("commands/haltdrive/angle_error", math.degrees(error))
-        pn("commands/haltdrive/error_threshold", error_threshold)
+        # pn("commands/haltdrive/angle_error", math.degrees(error))
+        # pn("commands/haltdrive/error_threshold", error_threshold)
         timeout = self.timeout.get() > 1  # End after 1 second no matter what
         return error < math.radians(error_threshold) or timeout

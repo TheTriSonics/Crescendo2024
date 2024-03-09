@@ -127,11 +127,11 @@ class Intake(Subsystem):
         self.tilt_motor.set(output)
 
         # Display the subsystem status on a dashboard
-        SmartDashboard.putNumber('intake/tilt_setpoint', self.tilt_setpoint)
-        SmartDashboard.putNumber('intake/tilt_current',
-                                 self.tilt_encoder.getAbsolutePosition())
-        SmartDashboard.putNumber('intake/tilt_output', output)
-        SmartDashboard.putNumber('intake/tilt_feedF', self.tilt_ff.calculate(self.tilt_setpoint))
+        # SmartDashboard.putNumber('intake/tilt_setpoint', self.tilt_setpoint)
+        # SmartDashboard.putNumber('intake/tilt_current',
+        #                          self.tilt_encoder.getAbsolutePosition())
+        # SmartDashboard.putNumber('intake/tilt_output', output)
+        # SmartDashboard.putNumber('intake/tilt_feedF', self.tilt_ff.calculate(self.tilt_setpoint))
 
     def getSimulatedPosition(self):
         return self.simulated_position

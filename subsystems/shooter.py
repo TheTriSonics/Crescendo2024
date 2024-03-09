@@ -1,11 +1,15 @@
-from rev import CANSensor, CANSparkMax, CANSparkLowLevel, MotorFeedbackSensor, SparkAbsoluteEncoder
-from wpilib import DutyCycleEncoder, Joystick, SmartDashboard, Timer
-from commands2 import Subsystem, Command
-from phoenix6.hardware import TalonFX
-from phoenix6.configs import TalonFXConfiguration
-from phoenix6.controls import Follower, DutyCycleOut, VelocityDutyCycle
+# Standard library imports
+from commands2 import Subsystem
+from wpilib import DutyCycleEncoder, SmartDashboard, Timer
 from wpimath.controller import PIDController
 
+# Third party imports
+from phoenix6.configs import TalonFXConfiguration
+from phoenix6.controls import DutyCycleOut, VelocityDutyCycle
+from phoenix6.hardware import TalonFX
+from rev import CANSparkMax, CANSparkLowLevel
+
+# Local application/library specific imports
 from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
 
 tilt_bottom_limit = 0.76
@@ -14,7 +18,7 @@ tilt_upper_limit = 0.856
 max_tilt_diff = 0.0015
 
 tilt_sub = 0.84
-tilt_safe = 0.77
+tilt_safe = 0.80
 
 
 class Shooter(Subsystem):
@@ -122,15 +126,6 @@ class Shooter(Subsystem):
         self.tilt_motor_left.burnFlash()
         self.tilt_motor_right.burnFlash()
 
-    def set_auto_target_shot(self):
-        pass
-
-    def set_protected_shot(self):
-        pass
-
-    def set_speaker_shot(self):
-        pass
-
     def set_velocity(self, velocity):
         self.waiting_speed_target = velocity
 
@@ -181,14 +176,14 @@ class Shooter(Subsystem):
 
     def periodic(self) -> None:
         pn = SmartDashboard.putNumber
-        left_velocity = self.shooter_motor_left.get_velocity().value
-        right_velocity = self.shooter_motor_right.get_velocity().value
-        pn("shooter/target_speed", self.speed_target)
-        pn("shooter/left_actual_speed", left_velocity)
-        pn("shooter/right_actual_speed", right_velocity)
-        pn("Shooter Feed Speed", self.tilt_motor_left.get())
-        pn("Shooter Tilt Encoder", self.tilt_encoder.getAbsolutePosition())
-        pn("Shooter tilt motor Encoder", self.tilt_motor_left_encoder.getPosition())
+        # left_velocity = self.shooter_motor_left.get_velocity().value
+        # right_velocity = self.shooter_motor_right.get_velocity().value
+        # pn("shooter/target_speed", self.speed_target)
+        # pn("shooter/left_actual_speed", left_velocity)
+        # pn("shooter/right_actual_speed", right_velocity)
+        # pn("Shooter Feed Speed", self.tilt_motor_left.get())
+        # pn("Shooter Tilt Encoder", self.tilt_encoder.getAbsolutePosition())
+        # pn("Shooter tilt motor Encoder", self.tilt_motor_left_encoder.getPosition())
 
         # Control the shooter flywheels with a software PID Controller
         # self.left_shooter_pid.setSetpoint(self.speed_target)

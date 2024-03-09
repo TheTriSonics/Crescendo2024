@@ -1,7 +1,5 @@
 from commands2 import Command
-from wpilib import Timer
 
-from subsystems.intake import Intake
 from subsystems.amp import Amp
 
 

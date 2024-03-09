@@ -1,9 +1,9 @@
-from commands2 import CommandBase
+from commands2 import Command
 from wpilib import SmartDashboard
 from wpimath.controller import PIDController
 from subsystems.drivetrain import Drivetrain
 
-class Rotate(CommandBase):
+class Rotate(Command):
     def __init__(self, drive: Drivetrain, gyro, targetHeading):
         super().__init__()
         self.drive = drive
@@ -31,7 +31,7 @@ class Rotate(CommandBase):
         pose = self.drive.getPose()
         currRot = pose.rotation().degrees()
         deltaRot = currRot - self.targetHeading
-        SmartDashboard.putNumber('dtp err', deltaRot)
+        # SmartDashboard.putNumber('dtp err', deltaRot)
         if deltaRot < 2:
             return True
         return False

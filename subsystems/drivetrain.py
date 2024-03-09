@@ -16,7 +16,7 @@ from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
 from wpimath.controller import PIDController
 from wpimath.kinematics import (
-    SwerveModuleState, SwerveDrive4Kinematics, SwerveDrive4Odometry,
+    SwerveModuleState, SwerveDrive4Kinematics,
     SwerveModulePosition, ChassisSpeeds
 )
 from pathplannerlib.auto import AutoBuilder
@@ -262,11 +262,6 @@ class Drivetrain(Subsystem):
 
     def driveRobotRelative(self, speeds):
         self.fieldRelative = False
-        # self.drive(speeds.vx, speeds.vy, speeds.omega)
-        # SmartDashboard.putNumber("vx", speeds.vx)
-        # SmartDashboard.putNumber("vy", speeds.vy)
-        # SmartDashboard.putNumber("omega", speeds.omega)
-        # self.cs = speeds
         states = self.kinematics.toSwerveModuleStates(speeds)
         SwerveDrive4Kinematics.desaturateWheelSpeeds(states, kMaxSpeed)
         for m, s in zip(self.modules, states):
@@ -325,12 +320,6 @@ class Drivetrain(Subsystem):
         """
 
         if self.fieldRelative:
-            pn = SmartDashboard.putNumber
-            pn("drivetrain/field_relative", self.fieldRelative)
-            pn("drivetrain/xSpeed", xSpeed)
-            pn("drivetrain/ySpeed", ySpeed)
-            pn("drivetrain/rot", rot)
-            pn("drivetrain/heading", self.get_heading_rotation_2d().degrees())
             cs = ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
                 )
@@ -390,13 +379,4 @@ class Drivetrain(Subsystem):
 
     def periodic(self) -> None:
         self.updateOdometry()
-        pose = self.getPose()
-        speeds = self.getSpeeds()
-        pn = SmartDashboard.putNumber
-        pb = SmartDashboard.putBoolean
-        pn("drivetrain/odometry/x_pos", pose.X())
-        pn("drivetrain/odometry/y_pos", pose.Y())
-        pn("drivetrain/odometry/heading_pos", pose.rotation().degrees())
-        pn("drivetrain/odometry/x_speed", speeds.vx)
-        pn("drivetrain/odometry/y_speed", speeds.vy)
-        pb("drivetrain/field_relative", self.fieldRelative)
+        SmartDashboard.putBoolean("drivetrain/field_relative", self.fieldRelative)

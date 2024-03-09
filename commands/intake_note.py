@@ -17,13 +17,6 @@ class IntakeNote(Command):
         self.addRequirements(intake)
 
     def initialize(self):
-        # shooter_loaded = False
-        # amp_loaded = False
-        # intake_loaded = False
-        # for c in [shooter_loaded, amp_loaded, intake_loaded]:
-        #    if c is True:
-        #         self.forceQuit = True
-        #         return
         self.intake.tilt_down()
         self.timer = Timer()
         self.forceQuit = False
@@ -50,6 +43,4 @@ class IntakeNote(Command):
     def isFinished(self):
         if self.forceQuit:
             return True
-        # if self.timer.get() > 3.0:
-        #     return True
         return False

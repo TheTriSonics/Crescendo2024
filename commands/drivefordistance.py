@@ -20,8 +20,6 @@ class DriveForDistance(commands2.CommandBase):
 
     def execute(self):
         self.drive.drive(self.power, 0, 0, False, 0.02)
-        SmartDashboard.putNumber("power", self.power)
-        # self.power += 1
 
     def end(self, i):
         SmartDashboard.putString("done", "done again")

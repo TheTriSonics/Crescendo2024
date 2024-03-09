@@ -137,8 +137,8 @@ class MyRobot(TimedCommandRobot):
         sub_shot_button.onTrue(InstantCommand(self.shooter.sub_shot))
 
         shoot_button = JoystickButton(self.commander_joystick2, RBM.shooter_shoot_c2)
-        # shoot_button.onTrue(ShooterLaunchNote(self.shooter))
-        shoot_button.onTrue(AutoShooterLaunchNote(self.shooter))
+        shoot_button.onTrue(ShooterLaunchNote(self.shooter))
+        # shoot_button.onTrue(AutoShooterLaunchNote(self.shooter))
 
         shooter_spin = JoystickButton(self.commander_joystick2, RBM.shooter_spin_c2)
         shooter_spin.onTrue(InstantCommand(self.shooter.spin_up))
@@ -149,7 +149,7 @@ class MyRobot(TimedCommandRobot):
         if DriverStation.isDisabled():
             self.leds.set_connect_status()
 
-        SmartDashboard.putNumber("Climber Speed", self.driver.get_climber_trigger())
+        # SmartDashboard.putNumber("Climber Speed", self.driver.get_climber_trigger())
 
         # Rough idea of how to incorporate vision into odometry
         if self.swerve.vision_stable is True:
