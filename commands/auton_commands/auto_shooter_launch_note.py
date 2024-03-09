@@ -4,18 +4,22 @@ from commands2 import Command
 from subsystems.shooter import Shooter
 from phoenix6.controls import DutyCycleOut
 
+import subsystems.shooter as sm
+
 
 class AutoShooterLaunchNote(Command):
-    def __init__(self, shooter: Shooter) -> None:
+    def __init__(self, shooter: Shooter, tilt=sm.tilt_sub, rpm=75) -> None:
         super().__init__()
         self.shooter = shooter
         self.timer = Timer()
         self.shot_timer = Timer()
+        self.tilt = tilt
+        self.rpm = rpm
         self.addRequirements(shooter)
 
     def initialize(self) -> None:
-        self.shooter.sub_shot()
-        self.shooter.set_velocity(75)
+        self.shooter.set_tilt(self.tilt)
+        self.shooter.set_velocity(self.rpm)
         self.shooter.spin_up()
         self.shot_fired = False
         self.timer.restart()

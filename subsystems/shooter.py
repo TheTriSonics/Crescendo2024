@@ -122,17 +122,11 @@ class Shooter(Subsystem):
         self.tilt_motor_left.burnFlash()
         self.tilt_motor_right.burnFlash()
 
-    def set_auto_target_shot(self):
-        pass
-
-    def set_protected_shot(self):
-        pass
-
-    def set_speaker_shot(self):
-        pass
-
     def set_velocity(self, velocity):
         self.waiting_speed_target = velocity
+
+    def set_tilt(self, tilt):
+        self.tilt_target = tilt
 
     def is_up_to_speed(self):
         return abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1
@@ -171,9 +165,9 @@ class Shooter(Subsystem):
 
     def spin_up(self):
         self.speed_target = self.waiting_speed_target
-    
+
     def spin_down(self):
-        self.speed_target = 0 
+        self.speed_target = 0
 
     def prepare_to_load(self):
         self.tilt_target = tilt_load_limit
