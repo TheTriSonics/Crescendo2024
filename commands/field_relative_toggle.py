@@ -4,6 +4,7 @@ from commands2 import Command
 
 from subsystems.drivetrain import Drivetrain
 
+
 class FieldRelativeToggle(Command):
 
     def __init__(self, drive: Drivetrain):

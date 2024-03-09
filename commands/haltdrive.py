@@ -9,7 +9,7 @@ from wpimath.kinematics import SwerveModuleState
 
 class HaltDrive(commands2.CommandBase):
 
-    def __init__(self, drive: Drivetrain, forever = False):
+    def __init__(self, drive: Drivetrain, forever=False):
         super().__init__()
         self.drive = drive
         self.forever = forever
@@ -57,8 +57,8 @@ class HaltDrive(commands2.CommandBase):
         error += abs(fr-(math.pi/4))
         error += abs(bl-(math.pi/4))
         error += abs(br-(-math.pi/4))
-        pn = SmartDashboard.putNumber
         error_threshold = 4
+        # pn = SmartDashboard.putNumber
         # pn("commands/haltdrive/angle_error", math.degrees(error))
         # pn("commands/haltdrive/error_threshold", error_threshold)
         timeout = self.timeout.get() > 1  # End after 1 second no matter what

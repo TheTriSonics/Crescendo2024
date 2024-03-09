@@ -1,7 +1,6 @@
 from wpilib import SmartDashboard, DutyCycleEncoder
 from commands2 import Command, Subsystem
 from rev import CANSparkLowLevel, CANSparkMax
-from commands.climb import Climb
 
 from constants import RobotMotorMap as RMM
 from constants import RobotSensorMap as RSM
@@ -18,10 +17,12 @@ class Climber(Subsystem):
         self.setDefaultCommand(defcmd)
 
         # Initialize the motor controller
-        self.climber_motor_l = CANSparkMax(RMM.climber_motor_left, CANSparkLowLevel.MotorType.kBrushed)
-        self.climber_motor_r = CANSparkMax(RMM.climber_motor_right, CANSparkLowLevel.MotorType.kBrushed)
-        self.encoder_l = DutyCycleEncoder(RSM.climber_left_encoder) 
-        self.encoder_r = DutyCycleEncoder(RSM.climber_right_encoder) 
+        self.climber_motor_l = CANSparkMax(RMM.climber_motor_left,
+                                           CANSparkLowLevel.MotorType.kBrushed)
+        self.climber_motor_r = CANSparkMax(RMM.climber_motor_right,
+                                           CANSparkLowLevel.MotorType.kBrushed)
+        self.encoder_l = DutyCycleEncoder(RSM.climber_left_encoder)
+        self.encoder_r = DutyCycleEncoder(RSM.climber_right_encoder)
         self.encoder_l.setDistancePerRotation(1)
         self.encoder_r.setDistancePerRotation(1)
         self.encoder_l.reset()
@@ -30,7 +31,7 @@ class Climber(Subsystem):
         # self.encoder_r.setPositionOffset(.227)
         # self.loffset = self.encoder_l.getDistance()
         # self.roffset = self.encoder_r.getDistance()
-        
+
         self.climber_motor_l.setIdleMode(CANSparkMax.IdleMode.kBrake)
         self.climber_motor_r.setIdleMode(CANSparkMax.IdleMode.kBrake)
 
@@ -40,7 +41,7 @@ class Climber(Subsystem):
         # Set the motor to a specific speed
         self.climber_motor_l.set(speed)
         self.climber_motor_r.set(speed)
-        
+
     def go_up(self):
         # Set the motor to go up
         self.climber_motor_l.set(1.0)
@@ -53,6 +54,7 @@ class Climber(Subsystem):
         pn = SmartDashboard.putNumber
         pn('climber/left/encoder', self.encoder_l.get())
         pn('climber/right/encoder', self.encoder_r.get())
+
 
 class ClimberDefaultCommand(Command):
     def __init__(self, climber: Climber, controller: DriverController):

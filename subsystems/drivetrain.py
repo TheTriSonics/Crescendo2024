@@ -60,13 +60,15 @@ class DrivetrainDefaultCommand(Command):
         self.desired_heading = None
         self.addRequirements(drivetrain)
 
-    def lock_heading(self):
-        self.desired_heading = self.drivetrain.get_heading_rotation_2d().degrees()
+    def _curr_heading(self) -> float:
+        return self.drivetrain.get_heading_rotation_2d().degrees()
 
+    def lock_heading(self):
+        self.desired_heading = self._curr_heading()
 
     def execute(self) -> None:
         if self.desired_heading is None:
-            self.desired_heading = self.drivetrain.get_heading_rotation_2d().degrees()
+            self.desired_heading = self._curr_heading()
         curr = self.drivetrain.get_heading_rotation_2d().degrees()
         xSpeed = self.xslew.calculate(self.controller.get_drive_x())
         xSpeed *= kMaxSpeed
@@ -377,7 +379,7 @@ class Drivetrain(Subsystem):
         if len(obj) == 0:
             return None
         results = obj['Results']
-        if not 'Fiducial' in results:
+        if 'Fiducial' not in results:
             return None
         fids = results['Fiducial']
         for f in fids:

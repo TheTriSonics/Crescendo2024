@@ -4,8 +4,9 @@ from subsystems.intake import Intake
 from subsystems.photoeyes import Photoeyes
 from subsystems.leds import Leds
 
+
 class EjectNote(Command):
-    def __init__(self, intake:Intake, photoeyes:Photoeyes, leds:Leds):
+    def __init__(self, intake: Intake, photoeyes: Photoeyes, leds: Leds):
         super().__init__()
         self.intake = intake
         self.photoeyes = photoeyes
@@ -16,7 +17,10 @@ class EjectNote(Command):
         self.intake.tilt_down()
         self.timer = Timer()
         self.forceQuit = False
-        if self.photoeyes.get_shooter_loaded() or self.photoeyes.get_amp_loaded():
+        shooter_loaded = self.photoeyes.get_shooter_loaded()
+        amp_loaded = self.photoeyes.get_amp_loaded()
+        # We don't want two notes at once!
+        if shooter_loaded or amp_loaded:
             self.forceQuit = True
         self.timer.start()
 

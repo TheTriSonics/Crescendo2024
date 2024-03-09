@@ -28,9 +28,10 @@ class RobotMotorMap():
 
     # MIN CAN ID = 1 DO NOT USE ZERO FOR CAN ID
     # MAX CAN ID = 62
-    # Can Ranges: Swerve Motors = 11-24, Swerve Cancoders = 31-34, Pigeon = 35, Shooter = 41-45, Intake = 51-52, Amp = 54-55, Climber = 57-58
+    # Can Ranges: Swerve Motors = 11-24, Swerve Cancoders = 31-34, Pigeon = 35,
+    # Shooter = 41-45, Intake = 51-52, Amp = 54-55, Climber = 57-58
 
-    ### CHASSIS BOT ###
+    # ## CHASSIS BOT ## #
     # Swerve
     # front_right_drive = 11
     # front_right_turn = 21
@@ -47,7 +48,7 @@ class RobotMotorMap():
     # back_left_drive = 14
     # back_left_turn = 24
     # back_left_turn_encoder = 34
-    ### CHASSIS BOT ###
+    # ## CHASSIS BOT ## #
 
     if is_sim():
         intake_motor_feed = 5
@@ -109,13 +110,14 @@ class RobotButtonMap():
 
     # Button Panel List
     # INTAKE: Intake Ready, Intake Eject
-    # SHOOTER: Load Shooter, On The Fly(OTF) Aim, Safe Spot Aim, Against Sub Aim, Shoot
+    # SHOOTER: Load Shooter, On The Fly(OTF) Aim, Safe Spot Aim,
+    #          Against Sub Aim, Shoot
     # AMP: Load Amp, Go Amp Height, Go Trap Height, Eject Note
     # OVERRIDES: Intake Up, Intake Down, Intake Feed In, Intake Feed Out
     # MISC: Note Return to Home
 
     # Commander button assignments
-    ### Controller 1 ###
+    # # Controller 1 ## #
     intake_ready_c1 = 9
     intake_eject_c1 = 8
 
@@ -128,8 +130,7 @@ class RobotButtonMap():
     shooter_override_up_c1 = 4
     shooter_override_down_c1 = 5
 
-    ### Controller 2 ###
-
+    # ## Controller 2 ## #
     load_note_amp_c2 = 6
 
     amp_lift_home_c2 = 8
@@ -146,5 +147,3 @@ class RobotButtonMap():
     shooter_spin_c2 = 3
     intake_override_up_c2 = 5
     intake_override_down_c2 = 1
-
-

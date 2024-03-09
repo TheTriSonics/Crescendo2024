@@ -1,13 +1,13 @@
 from wpilib import Timer
 from wpimath.controller import PIDController
 from commands2 import Command
-from commands2.wrappercommand import WrapperCommand
 
 from subsystems.drivetrain import Drivetrain
 from subsystems.intake import Intake
 from subsystems.note_tracker import NoteTracker
 
 from constants import RobotPIDConstants as PIDC
+
 
 class AutoPickupNote(Command):
 
@@ -36,7 +36,7 @@ class AutoPickupNote(Command):
         if pitch is not None and pitch < -15:
             self.ontop_timer.restart()
         self.drive.drive(0.5, 0, rot)
-    
+
     def end(self, isInterrupted):
         self.drive.drive(0, 0, 0)
         self.intake.tilt_up()
@@ -44,7 +44,7 @@ class AutoPickupNote(Command):
 
     def isFinished(self):
         timeout = self.timer.get() > 5
-        timeout = False 
+        timeout = False
         pitch = self.photon.getPitchOffset()
         gotnote = self.intake.is_loaded()
         ontop = (pitch is None or pitch < -15) and self.ontop_timer.get() > 1.0

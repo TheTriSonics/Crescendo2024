@@ -93,16 +93,14 @@ class Intake(Subsystem):
         return self.tilt_setpoint == tilt_encoder_setpoint_down
 
     def is_up(self) -> bool:
-        return (
-            abs(self.tilt_encoder.getAbsolutePosition() - tilt_encoder_setpoint_up)
-            < tilt_encoder_error_margin
-        )
+        curr = self.tilt_encoder.getAbsolutePosition()
+        setpoint = tilt_encoder_setpoint_up
+        return abs(curr - setpoint) < tilt_encoder_error_margin
 
     def is_down(self) -> bool:
-        return (
-            abs(self.tilt_encoder.getAbsolutePosition() - tilt_encoder_setpoint_down)
-            < tilt_encoder_error_margin
-        )
+        curr = self.tilt_encoder.getAbsolutePosition()
+        setpoint = tilt_encoder_setpoint_down
+        return abs(curr - setpoint) < tilt_encoder_error_margin
 
     def is_loaded(self) -> bool:
         # If the intake is loaded this should return True
@@ -133,11 +131,11 @@ class Intake(Subsystem):
         # SmartDashboard.putNumber('intake/tilt_output', output)
         # SmartDashboard.putNumber('intake/tilt_feedF', self.tilt_ff.calculate(self.tilt_setpoint))
 
-    def getSimulatedPosition(self):
-        return self.simulated_position
+    # def getSimulatedPosition(self):
+    #     return self.simulated_position
 
     def simulationPeriodic(self) -> None:
-        current_pos = self.tilt_encoder.getAbsolutePosition()
+        # current_pos = self.tilt_encoder.getAbsolutePosition()
         # if self.tilt_setpoint > current_pos:
         #     self.tilt_encoder._position = current_pos + 1
         # else:

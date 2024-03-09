@@ -3,8 +3,10 @@ from commands2 import Command
 
 from subsystems.shooter import Shooter
 
+
 class ShootShot(Command):
-    def __init__(self, shooter: Shooter, on_the_fly: bool = True, protected_shot=False, speaker_shot=False):
+    def __init__(self, shooter: Shooter, on_the_fly=True,
+                 protected_shot=False, speaker_shot=False):
         self.shooter = shooter
         self.on_the_fly = on_the_fly
         self.protected_shot = protected_shot
@@ -19,7 +21,7 @@ class ShootShot(Command):
             self.shooter.set_speaker_shot()
         else:
             self.shooter.set_auto_target_shot()
-            
+
     def execute(self):
         if self.shooter.is_up_to_speed():
             self.shooter.feed_note()

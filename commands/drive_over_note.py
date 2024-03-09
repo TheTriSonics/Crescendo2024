@@ -6,6 +6,7 @@ from subsystems.drivetrain import Drivetrain
 
 from constants import RobotPIDConstants as PIDC
 
+
 class DriveOverNote(Command):
 
     def __init__(self, photon: NoteTracker, drive: Drivetrain):
@@ -39,5 +40,6 @@ class DriveOverNote(Command):
     def isFinished(self):
         timeout = self.timer.get() > 5
         pitch = self.photon.getPitchOffset()
-        ontop = (pitch is None or pitch < -15) and self.ontop_timer.get() > 0.25
+        note_gone = (pitch is None or pitch < -15)
+        ontop = note_gone and self.ontop_timer.get() > 0.25
         return timeout or ontop

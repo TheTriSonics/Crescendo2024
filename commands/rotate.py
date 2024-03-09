@@ -1,7 +1,10 @@
+# This file should be deleted.
+
 from commands2 import Command
 from wpilib import SmartDashboard
 from wpimath.controller import PIDController
 from subsystems.drivetrain import Drivetrain
+
 
 class Rotate(Command):
     def __init__(self, drive: Drivetrain, gyro, targetHeading):
@@ -13,9 +16,9 @@ class Rotate(Command):
         self.xPID = PIDController(p, i, d)
         self.yPID = PIDController(p, i, d)
         self.rotPID = PIDController(0.10, 0, 0)
-    
+
     def initialize(self):
-        SmartDashboard.putString("dtp" , "i AM the dtp")
+        pass
 
     def execute(self):
         pose = self.drive.getPose()
@@ -34,6 +37,4 @@ class Rotate(Command):
         # SmartDashboard.putNumber('dtp err', deltaRot)
         if deltaRot < 2:
             return True
-        return False
-
         return False

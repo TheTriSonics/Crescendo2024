@@ -6,8 +6,10 @@ from subsystems.amp import Amp
 from subsystems.photoeyes import Photoeyes
 from subsystems.leds import Leds
 
+
 class ReturnToHome(Command):
-    def __init__(self, intake:Intake, shooter:Shooter, amp:Amp, photoeyes:Photoeyes, leds:Leds):
+    def __init__(self, intake: Intake, shooter: Shooter, amp: Amp,
+                 photoeyes: Photoeyes, leds: Leds):
         super().__init__()
         self.intake = intake
         self.shooter = shooter
