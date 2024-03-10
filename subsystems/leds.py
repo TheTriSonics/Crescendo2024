@@ -23,7 +23,7 @@ CYAN = 210
 BLUE = 270
 MAGENTA = 330
 
-blink_loops = 0.5 / 0.02  # half a second / 20ms per loop
+blink_loops = 25  # 25 loops at 20ms per loop is 0.5 seconds
 
 
 class Leds(Subsystem):
@@ -65,6 +65,7 @@ class Leds(Subsystem):
     def set_color(self, color, blinking=False, brightness=255):
         self.rainbow_mode = False
         self.blinking = blinking
+        self.blink_counter = 0
         self.curr_color = color
         for i in range(self.led_length):
             self.led_data[i].setHSV(color, 255, brightness)
@@ -81,11 +82,14 @@ class Leds(Subsystem):
 
     # Pac man is sick
     def intake_ejecting(self):
-        self.set_color(RED, True)
+        self.set_color(0)
 
     # Pac man full
     def intake_loaded(self):
         self.set_color(GREEN)
+
+    def intake_front_blocked(self):
+        self.set_color(RED, True)
 
     def intake_empty(self):
         pass

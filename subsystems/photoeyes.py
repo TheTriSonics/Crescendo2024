@@ -24,7 +24,8 @@ class Photoeyes(Subsystem):
 
     def periodic(self) -> None:
         pb = SmartDashboard.putBoolean
-        pb("photoeyes/intake_front", self.get_intake_front())
+        intake_front = self.get_intake_front()
+        pb("photoeyes/intake_front", intake_front)
         pb("photoeyes/intake_full", self.get_intake_loaded())
         pb("photoeyes/shooter_loaded", self.get_shooter_loaded())
         pb("photoeyes/amp_loaded", self.get_amp_loaded())
