@@ -39,129 +39,6 @@ swerve_offset = 55 / 100  # cm converted to meters
 slow_mode_factor = 1/2
 
 
-class DrivetrainDefaultCommand(Command):
-    """
-    Default command for the drivetrain.
-    """
-    def __init__(self, drivetrain, controller: DriverController,
-                 photon: NoteTracker, leds: Leds, gyro: Gyro) -> None:
-        super().__init__()
-        self.drivetrain = drivetrain
-        self.controller = controller
-        self.photon = photon
-        self.leds = leds
-        self.gyro = gyro
-        self.note_pid = PIDController(*PIDC.note_tracking_pid)
-        self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
-        self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
-        # Slew rate limiters to make joystick inputs more gentle
-        self.xslew = SlewRateLimiter(1.0)
-        self.yslew = SlewRateLimiter(1.0)
-        self.rotslew = SlewRateLimiter(0.1)
-        self.idle_counter = 0
-        self.desired_heading = None
-        self.addRequirements(drivetrain)
-
-    def _curr_heading(self) -> float:
-        return self.drivetrain.get_heading_rotation_2d().degrees()
-
-    def lock_heading(self):
-        self.desired_heading = self._curr_heading()
-
-    def execute(self) -> None:
-        if self.desired_heading is None:
-            self.desired_heading = self._curr_heading()
-        curr = self.drivetrain.get_heading_rotation_2d().degrees()
-        xraw = self.controller.get_drive_x()
-        xSpeed = self.xslew.calculate(xraw)
-        if xraw == 0:
-            xSpeed /= 2
-        xSpeed *= kMaxSpeed
-
-        yraw = self.controller.get_drive_y()
-        ySpeed = self.yslew.calculate(yraw)
-        if yraw == 0:
-            ySpeed /= 2
-        ySpeed *= kMaxSpeed
-
-        rotraw = self.controller.get_drive_rot()
-        rot = self.rotslew.calculate(rotraw)
-        if rotraw == 0:
-            rot /= 2
-        rot *= kMaxAngularSpeed
-
-        master_throttle = self.controller.get_master_throttle()
-        xSpeed *= master_throttle
-        ySpeed *= master_throttle
-        rot *= master_throttle
-
-        # If the user is commanding rotation set the desired heading to the
-        # current heading so if they let off we can use PID to keep the robot
-        # driving straight
-        if rot != 0:
-            self.lock_heading()
-        else:
-            # Don't correct until we're X degrees off
-            if abs(self.desired_heading - curr) > 1:
-                # Use PID to keep us straight
-                rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
-            else:
-                # Rotation is still going to be 0, no power.
-                pass
-
-        if self.controller.get_yaw_reset():
-            forward = 180 if self.drivetrain.shouldFlipPath() else 0
-            self.gyro.set_yaw(forward)
-
-        # When in lockon mode, the robot will rotate to face the node
-        # that PhtonVision is detecting
-        if self.controller.get_note_lockon():
-            yaw = self.photon.getYawOffset()
-            if yaw is None:
-                self.leds.tracking_note_not_found()
-                pass
-            elif abs(yaw) < 1.7:
-                rot = 0
-                self.leds.tracking_note()
-            else:
-                rot = self.note_pid.calculate(yaw, 0)
-                self.leds.tracking_note()
-
-        if self.controller.get_slow_mode():
-            self.leds.drivetrain_slow()
-            xSpeed *= slow_mode_factor
-            ySpeed *= slow_mode_factor
-            rot *= slow_mode_factor
-
-        if self.controller.get_speaker_lockon():
-            fid = 4 if self.drivetrain.is_red_alliance() else 7
-            heading = self.drivetrain.get_fid_heading(fid)
-            if heading is not None:
-                self.leds.tracking_speaker()
-                if abs(heading) < 3.0:
-                    rot = 0
-                else:
-                    rot = self.speaker_pid.calculate(heading, 0)
-            else:  # Not found
-                self.leds.tracking_speaker_not_found()
-
-        """
-        SmartDashboard.putNumber('xspeed', xSpeed)
-        SmartDashboard.putNumber('yspeed', ySpeed)
-        SmartDashboard.putNumber('rot', rot)
-        # Code to lock the wheels if the robot is idle
-        if xSpeed > 0 or ySpeed > 0 or rot > 0:
-            self.idle_counter = 0
-            self.drivetrain.locked = False
-            self.drivetrain.lockable = False
-        else:
-            self.idle_counter += 1
-        if self.idle_counter > 50:
-            self.drivetrain.lockable = True
-        """
-        self.drivetrain.drive(xSpeed, ySpeed, rot)
-
-
 class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
@@ -336,6 +213,7 @@ class Drivetrain(Subsystem):
         xSpeed: float,
         ySpeed: float,
         rot: float,
+        robot_centric_force: bool = False,
         periodSeconds: float = 0.02,
     ) -> None:
         """
@@ -346,7 +224,8 @@ class Drivetrain(Subsystem):
         :param periodSeconds: Time
         """
 
-        if self.fieldRelative:
+        # Force the robot to be field relative if we're tracking a note
+        if self.fieldRelative and not robot_centric_force:
             flip = self.shouldFlipPath()
             if flip:
                 xSpeed = -xSpeed
@@ -411,3 +290,136 @@ class Drivetrain(Subsystem):
     def periodic(self) -> None:
         self.updateOdometry()
         SmartDashboard.putBoolean("drivetrain/field_relative", self.fieldRelative)
+
+
+class DrivetrainDefaultCommand(Command):
+    """
+    Default command for the drivetrain.
+    """
+    def __init__(self, drivetrain: Drivetrain, controller: DriverController,
+                 photon: NoteTracker, leds: Leds, gyro: Gyro) -> None:
+        super().__init__()
+        self.drivetrain = drivetrain
+        self.controller = controller
+        self.photon = photon
+        self.leds = leds
+        self.gyro = gyro
+        self.note_pid = PIDController(*PIDC.note_tracking_pid)
+        self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
+        self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
+        self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
+        # Slew rate limiters to make joystick inputs more gentle
+        self.xslew = SlewRateLimiter(1.0)
+        self.yslew = SlewRateLimiter(1.0)
+        self.rotslew = SlewRateLimiter(0.1)
+        self.idle_counter = 0
+        self.desired_heading = None
+        self.addRequirements(drivetrain)
+
+    def _curr_heading(self) -> float:
+        return self.drivetrain.get_heading_rotation_2d().degrees()
+
+    def lock_heading(self):
+        self.desired_heading = self._curr_heading()
+
+    def execute(self) -> None:
+        if self.desired_heading is None:
+            self.desired_heading = self._curr_heading()
+        curr = self.drivetrain.get_heading_rotation_2d().degrees()
+        xraw = self.controller.get_drive_x()
+        xSpeed = self.xslew.calculate(xraw)
+        if xraw == 0:
+            xSpeed /= 2
+        xSpeed *= kMaxSpeed
+
+        yraw = self.controller.get_drive_y()
+        ySpeed = self.yslew.calculate(yraw)
+        if yraw == 0:
+            ySpeed /= 2
+        ySpeed *= kMaxSpeed
+
+        rotraw = self.controller.get_drive_rot()
+        rot = self.rotslew.calculate(rotraw)
+        if rotraw == 0:
+            rot /= 2
+        rot *= kMaxAngularSpeed
+
+        master_throttle = self.controller.get_master_throttle()
+        xSpeed *= master_throttle
+        ySpeed *= master_throttle
+        rot *= master_throttle
+
+        # If the user is commanding rotation set the desired heading to the
+        # current heading so if they let off we can use PID to keep the robot
+        # driving straight
+        if rot != 0:
+            self.lock_heading()
+        else:
+            # Don't correct until we're X degrees off
+            if abs(self.desired_heading - curr) > 1:
+                # Use PID to keep us straight
+                rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
+            else:
+                # Rotation is still going to be 0, no power.
+                pass
+
+        if self.controller.get_yaw_reset():
+            forward = 180 if self.drivetrain.shouldFlipPath() else 0
+            self.gyro.set_yaw(forward)
+
+        # When in lockon mode, the robot will rotate to face the node
+        # that PhotonVision is detecting
+        robot_centric_force = False
+        if self.controller.get_note_lockon():
+            robot_centric_force = True
+            yaw = self.photon.getYawOffset()
+            pitch = self.photon.getPitchOffset()
+            if yaw is not None:
+                if abs(yaw) < 1.7:
+                    rot = 0
+                    self.leds.tracking_note()
+                else:
+                    if pitch is not None and pitch > 0:
+                        rot = self.note_pid.calculate(yaw, 0)
+                    else:
+                        rot = 0
+                        # Force a translation to center on the note when close
+                        xSpeed = self.note_translate_pid.calculate(yaw, 0)
+                    self.leds.tracking_note()
+            else:
+                self.leds.tracking_note_not_found()
+
+        if self.controller.get_slow_mode():
+            self.leds.drivetrain_slow()
+            xSpeed *= slow_mode_factor
+            ySpeed *= slow_mode_factor
+            rot *= slow_mode_factor
+
+        if self.controller.get_speaker_lockon():
+            fid = 4 if self.drivetrain.is_red_alliance() else 7
+            heading = self.drivetrain.get_fid_heading(fid)
+            if heading is not None:
+                self.leds.tracking_speaker()
+                if abs(heading) < 3.0:
+                    rot = 0
+                else:
+                    rot = self.speaker_pid.calculate(heading, 0)
+            else:  # Not found
+                self.leds.tracking_speaker_not_found()
+
+        """
+        SmartDashboard.putNumber('xspeed', xSpeed)
+        SmartDashboard.putNumber('yspeed', ySpeed)
+        SmartDashboard.putNumber('rot', rot)
+        # Code to lock the wheels if the robot is idle
+        if xSpeed > 0 or ySpeed > 0 or rot > 0:
+            self.idle_counter = 0
+            self.drivetrain.locked = False
+            self.drivetrain.lockable = False
+        else:
+            self.idle_counter += 1
+        if self.idle_counter > 50:
+            self.drivetrain.lockable = True
+        """
+        self.drivetrain.drive(xSpeed, ySpeed, rot,
+                              robot_centric_force=robot_centric_force)
