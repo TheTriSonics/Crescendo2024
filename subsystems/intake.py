@@ -9,7 +9,8 @@ from wpimath.controller import PIDController, SimpleMotorFeedforwardMeters
 from subsystems.photoeyes import Photoeyes
 from controllers.commander import CommanderController
 
-tilt_encoder_setpoint_down = 0.42
+# tilt_encoder_setpoint_down = 0.42
+tilt_encoder_setpoint_down = 0.43
 tilt_encoder_setpoint_up = 0.335
 tilt_encoder_error_margin = 0.005
 

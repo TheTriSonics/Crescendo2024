@@ -9,6 +9,7 @@ from commands2.button import JoystickButton
 from wpimath.geometry import Rotation2d, Pose2d
 from pathplannerlib.auto import PathPlannerAuto, NamedCommands
 from commands.amp_score import AmpScore
+from commands.delay import Delay
 from commands.auton_commands.auto_shooter_launch_note import (
     AutoShooterLaunchNote
 )
@@ -198,6 +199,7 @@ class MyRobot(TimedCommandRobot):
         self.swerve.resetOdometry()
         self.swerve.updateOdometry()
         self.gyro.set_yaw(-120)
+        delaycmd = Delay(1)
         cmd = PathPlannerAuto("LakeCityTwoNote")
         # cmd = Rotate(self.swerve, self.gyro, 0)
         # cmd = DriveToPoint(self.swerve, self.gyro, 3, 0, 0)
@@ -208,7 +210,7 @@ class MyRobot(TimedCommandRobot):
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, self.leds)
         shootcmd = AutoShooterLaunchNote(self.shooter,
                                          shooter.tilt_safe, 80)
-        scg = SequentialCommandGroup([cmd, intake_to_shooter, shootcmd])
+        scg = SequentialCommandGroup([delaycmd, cmd, intake_to_shooter, shootcmd])
         scg.schedule()
         pass
 

@@ -55,8 +55,8 @@ class DrivetrainDefaultCommand(Command):
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
         # Slew rate limiters to make joystick inputs more gentle
-        self.xslew = SlewRateLimiter(0.8)
-        self.yslew = SlewRateLimiter(0.8)
+        self.xslew = SlewRateLimiter(1.0)
+        self.yslew = SlewRateLimiter(1.0)
         self.rotslew = SlewRateLimiter(0.1)
         self.idle_counter = 0
         self.desired_heading = None
@@ -72,13 +72,22 @@ class DrivetrainDefaultCommand(Command):
         if self.desired_heading is None:
             self.desired_heading = self._curr_heading()
         curr = self.drivetrain.get_heading_rotation_2d().degrees()
-        xSpeed = self.xslew.calculate(self.controller.get_drive_x())
+        xraw = self.controller.get_drive_x()
+        xSpeed = self.xslew.calculate(xraw)
+        if xraw == 0:
+            xSpeed /= 2
         xSpeed *= kMaxSpeed
 
-        ySpeed = self.yslew.calculate(self.controller.get_drive_y())
+        yraw = self.controller.get_drive_y()
+        ySpeed = self.yslew.calculate(yraw)
+        if yraw == 0:
+            ySpeed /= 2
         ySpeed *= kMaxSpeed
 
-        rot = self.rotslew.calculate(self.controller.get_drive_rot())
+        rotraw = self.controller.get_drive_rot()
+        rot = self.rotslew.calculate(rotraw)
+        if rotraw == 0:
+            rot /= 2
         rot *= kMaxAngularSpeed
 
         master_throttle = self.controller.get_master_throttle()
@@ -100,9 +109,9 @@ class DrivetrainDefaultCommand(Command):
                 # Rotation is still going to be 0, no power.
                 pass
 
-
         if self.controller.get_yaw_reset():
-            self.gyro.set_yaw(0)
+            forward = 180 if self.drivetrain.shouldFlipPath() else 0
+            self.gyro.set_yaw(forward)
 
         # When in lockon mode, the robot will rotate to face the node
         # that PhtonVision is detecting

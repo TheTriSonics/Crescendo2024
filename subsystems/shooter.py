@@ -34,6 +34,8 @@ class Shooter(Subsystem):
         self.leds = leds
         self.alive_timer = Timer()
         self.alive_timer.start()
+        self.left_tilt_encoder_last = None
+        self.right_tilt_encoder_last = None
         # defcmd = ShooterDefaultCommand(self)
         # self.setDefaultCommand(defcmd)
 
@@ -220,7 +222,16 @@ class Shooter(Subsystem):
             curr_pos = tilt_upper_limit
         # Keep, want to use SparkMAX PID controller later
         # self.tilt_pid_controller.setReference(self.target_tilt, CANSparkMax.ControlType.kPosition)
-        tilt_power = self.tilt_pid.calculate(curr_pos, self.tilt_target)
+        if abs(curr_pos - self.tilt_target) > max_tilt_diff:
+            tilt_power = self.tilt_pid.calculate(curr_pos, self.tilt_target)
+            self.left_encoder_last = self.tilt_motor_left_encoder.getPosition()
+            self.right_encoder_last = self.tilt_motor_right_encoder.getPosition()
+        else:
+            self.tilt_dead_loop_count = 0
+            tilt_power = 0
+            self.left_encoder_last = None
+            self.right_encoder_last = None
+        # Check to see if BOTH motors are actually connected
         self.tilt_motor_left.set(tilt_power)
         self.tilt_motor_right.set(tilt_power)
         pn("shooter/tilt_power", tilt_power)

@@ -12,7 +12,7 @@ class Climber(Subsystem):
         super().__init__()
 
         self.controller = controller
-
+        
         defcmd = ClimberDefaultCommand(self, controller)
         self.setDefaultCommand(defcmd)
 
@@ -63,4 +63,7 @@ class ClimberDefaultCommand(Command):
         self.addRequirements(climber)
 
     def execute(self):
-        self.climber.set_speed(self.controller.get_climber_trigger())
+        power = self.controller.get_climber_trigger()
+        if power < 0:
+            power *= .50
+        self.climber.set_speed(power)
