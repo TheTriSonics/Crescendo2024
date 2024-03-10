@@ -64,7 +64,7 @@ class MyRobot(TimedCommandRobot):
         self.gyro = gyro.Gyro()
         self.leds = leds.Leds()
         self.photoeyes = photoeyes.Photoeyes()
-        
+
         self.amp = amp.Amp(self.commander, self.photoeyes)
         self.shooter = shooter.Shooter(self.leds)
         self.note_tracker = note_tracker.NoteTracker()
@@ -195,23 +195,49 @@ class MyRobot(TimedCommandRobot):
                 self.swerve.odometry.addVisionMeasurement(p)
         pass
 
+    def auto_station_1(self):
+        delaycmd = Delay(1)
+        cmd = PathPlannerAuto("LakeCityTwoNote")
+        intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
+                                        self.photoeyes, self.leds)
+        shootcmd = AutoShooterLaunchNote(self.shooter,
+                                         shooter.tilt_safe, 80)
+        cmds = [
+            delaycmd,
+            cmd,
+            intake_to_shooter,
+            shootcmd
+        ]
+        scg = SequentialCommandGroup(cmds)
+        return scg
+
+    def auto_station_2(self):
+        delaycmd = Delay(1)
+        cmd = PathPlannerAuto("LakeCityTwoNoteCenter")
+        intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
+                                        self.photoeyes, self.leds)
+        shootcmd = AutoShooterLaunchNote(self.shooter,
+                                         shooter.tilt_safe, 80)
+        cmds = [
+            delaycmd,
+            cmd,
+            intake_to_shooter,
+            shootcmd
+        ]
+        scg = SequentialCommandGroup(cmds)
+        return scg
+
     def autonomousInit(self):
         self.swerve.resetOdometry()
         self.swerve.updateOdometry()
-        self.gyro.set_yaw(-120)
-        delaycmd = Delay(1)
-        cmd = PathPlannerAuto("LakeCityTwoNote")
         # cmd = Rotate(self.swerve, self.gyro, 0)
         # cmd = DriveToPoint(self.swerve, self.gyro, 3, 0, 0)
         # seek = DriveOverNote(self.note_tracker, self.swerve)
         # followPath = AutoBuilder.followPath(self.testPathToFollow())
         # haltcmd = HaltDrive(self.swerve)
         # rotcmd = Rotate(self.swerve, self.gyro, -180)
-        intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, self.leds)
-        shootcmd = AutoShooterLaunchNote(self.shooter,
-                                         shooter.tilt_safe, 80)
-        scg = SequentialCommandGroup([delaycmd, cmd, intake_to_shooter, shootcmd])
-        scg.schedule()
+        auto = self.auto_station_2()
+        auto.schedule()
         pass
 
     def autonomousPeriodic(self) -> None:
