@@ -58,10 +58,14 @@ class Drivetrain(Subsystem):
         self.locked = False
         self.vision_stable = False
 
+        # Half the motors need to be inverted to run the right direction and
+        # half are in brake mode to slow the robot down faster but also not
+        # make it come to a complete stop too quickly.
         self.frontLeft = swervemodule.SwerveModule(
             RMM.front_left_drive,
             RMM.front_left_turn,
             RMM.front_left_turn_encoder,
+            True,
             True,
             'Front left')
         self.frontRight = swervemodule.SwerveModule(
@@ -69,17 +73,20 @@ class Drivetrain(Subsystem):
             RMM.front_right_turn,
             RMM.front_right_turn_encoder,
             False,
+            False,
             'Front right')
         self.backLeft = swervemodule.SwerveModule(
             RMM.back_left_drive,
             RMM.back_left_turn,
             RMM.back_left_turn_encoder,
             True,
+            True,
             'Back left')
         self.backRight = swervemodule.SwerveModule(
             RMM.back_right_drive,
             RMM.back_right_turn,
             RMM.back_right_turn_encoder,
+            False,
             False,
             'Back right')
 

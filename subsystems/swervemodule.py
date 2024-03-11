@@ -25,6 +25,10 @@ kWheelRadius = 0.0508  # m
 # encoder_to_mech_ratio = 2.50
 encoder_to_mech_ratio = 6.11
 
+BRAKE = signals.NeutralModeValue.BRAKE
+COAST = signals.NeutralModeValue.COAST
+CCW = signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+CW = signals.InvertedValue.CLOCKWISE_POSITIVE
 
 class SwerveModule(Subsystem):
     def __init__(
@@ -33,6 +37,7 @@ class SwerveModule(Subsystem):
         turningMotorChannel: int,
         canCoderChannel: int,
         inverted: bool,
+        brake: bool,
         name: str,
     ) -> None:
         self.name = name
@@ -49,10 +54,8 @@ class SwerveModule(Subsystem):
         driveConfigurator = self.driveMotor.configurator
 
         drive_Output = configs.MotorOutputConfigs()
-        if inverted:
-            drive_Output.inverted = signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
-        else:
-            drive_Output.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
+        drive_Output.neutral_mode = BRAKE if brake else COAST
+        drive_Output.inverted = CCW if inverted else CW
         driveConfigurator.apply(drive_Output)
         drive_feedback = configs.FeedbackConfigs()
         drive_feedback.with_sensor_to_mechanism_ratio(encoder_to_mech_ratio)
