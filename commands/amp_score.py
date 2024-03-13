@@ -16,9 +16,9 @@ class AmpScore(Command):
         self.timer = Timer()
         self.dump_timer = Timer()
         self.forceQuit = False
-        if not self.photoeyes.get_amp_loaded():
-            self.forceQuit = True
-            pass
+        # if not self.photoeyes.get_amp_loaded():
+        #     self.forceQuit = True
+        #     pass
         self.timer.start()
 
     def execute(self) -> None:

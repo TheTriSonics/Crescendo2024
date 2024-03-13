@@ -311,7 +311,7 @@ class DrivetrainDefaultCommand(Command):
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(1.0)
         self.yslew = SlewRateLimiter(1.0)
-        self.rotslew = SlewRateLimiter(0.1)
+        self.rotslew = SlewRateLimiter(0.2)
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
@@ -356,7 +356,7 @@ class DrivetrainDefaultCommand(Command):
             self.lock_heading()
         else:
             # Don't correct until we're X degrees off
-            if abs(self.desired_heading - curr) > 1:
+            if abs(self.desired_heading - curr) > 2:
                 # Use PID to keep us straight
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
             else:

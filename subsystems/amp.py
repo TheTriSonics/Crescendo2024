@@ -35,6 +35,7 @@ class Amp(Subsystem):
         self.feed_motor = CANSparkMax(RMM.amp_feed_motor,
                                       CANSparkMax.MotorType.kBrushed)
         self.lift_motor = TalonFX(RMM.amp_lift_motor, "canivore")
+        # self.lift_motor = TalonFX(RMM.amp_lift_motor)
 
         self.feed_motor.setInverted(True)
 

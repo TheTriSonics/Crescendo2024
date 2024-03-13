@@ -196,7 +196,7 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def auto_station_1(self):
-        delaycmd = Delay(1)
+        delaycmd = Delay(5)
         cmd = PathPlannerAuto("LakeCityTwoNote")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes, self.leds)
@@ -236,7 +236,7 @@ class MyRobot(TimedCommandRobot):
         # followPath = AutoBuilder.followPath(self.testPathToFollow())
         # haltcmd = HaltDrive(self.swerve)
         # rotcmd = Rotate(self.swerve, self.gyro, -180)
-        auto = self.auto_station_2()
+        auto = self.auto_station_1()
         auto.schedule()
         pass
 
