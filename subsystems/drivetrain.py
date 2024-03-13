@@ -58,30 +58,37 @@ class Drivetrain(Subsystem):
         self.locked = False
         self.vision_stable = False
 
+        # Half the motors need to be inverted to run the right direction and
+        # half are in brake mode to slow the robot down faster but also not
+        # make it come to a complete stop too quickly.
         self.frontLeft = swervemodule.SwerveModule(
             RMM.front_left_drive,
             RMM.front_left_turn,
             RMM.front_left_turn_encoder,
-            True,
-            'Front left')
+            inverted=True,
+            brake=True,
+            name='Front left')
         self.frontRight = swervemodule.SwerveModule(
             RMM.front_right_drive,
             RMM.front_right_turn,
             RMM.front_right_turn_encoder,
-            False,
-            'Front right')
+            inverted=False,
+            brake=True,
+            name='Front right')
         self.backLeft = swervemodule.SwerveModule(
             RMM.back_left_drive,
             RMM.back_left_turn,
             RMM.back_left_turn_encoder,
-            True,
-            'Back left')
+            inverted=True,
+            brake=True,
+            name='Back left')
         self.backRight = swervemodule.SwerveModule(
             RMM.back_right_drive,
             RMM.back_right_turn,
             RMM.back_right_turn_encoder,
-            False,
-            'Back right')
+            inverted=False,
+            brake=True,
+            name='Back right')
 
         self.modules = [
             self.frontLeft,
@@ -308,10 +315,12 @@ class DrivetrainDefaultCommand(Command):
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
+        self.straight_drive_pid.setTolerance(2.0)
+        self.zero_rotation_counter = 0
         # Slew rate limiters to make joystick inputs more gentle
-        self.xslew = SlewRateLimiter(1.0)
-        self.yslew = SlewRateLimiter(1.0)
-        self.rotslew = SlewRateLimiter(0.2)
+        self.xslew = SlewRateLimiter(5.0)
+        self.yslew = SlewRateLimiter(5.0)
+        self.rotslew = SlewRateLimiter(2)
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
@@ -352,16 +361,15 @@ class DrivetrainDefaultCommand(Command):
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
+        if rot == 0:
+            self.zero_rotation_counter += 1
         if rot != 0:
             self.lock_heading()
         else:
-            # Don't correct until we're X degrees off
-            if abs(self.desired_heading - curr) > 2:
-                # Use PID to keep us straight
+            if abs(curr - self.desired_heading) > 1.0:
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
             else:
-                # Rotation is still going to be 0, no power.
-                pass
+                rot = 0
 
         if self.controller.get_yaw_reset():
             forward = 180 if self.drivetrain.shouldFlipPath() else 0
