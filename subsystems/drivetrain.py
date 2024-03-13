@@ -215,6 +215,11 @@ class Drivetrain(Subsystem):
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
 
+    def flipHeading(self):
+        self.target_heading += 180
+        if self.target_heading > 360:
+            self.target_heading -= 360
+
     def drive(
         self,
         xSpeed: float,
@@ -296,7 +301,8 @@ class Drivetrain(Subsystem):
 
     def periodic(self) -> None:
         self.updateOdometry()
-        SmartDashboard.putBoolean("drivetrain/field_relative", self.fieldRelative)
+        pb = SmartDashboard.putBoolean
+        pb("drivetrain/field_relative", self.fieldRelative)
 
 
 class DrivetrainDefaultCommand(Command):
