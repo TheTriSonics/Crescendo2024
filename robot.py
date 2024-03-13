@@ -91,7 +91,9 @@ class MyRobot(TimedCommandRobot):
         fr_button = JoystickButton(self.driver_joystick,
                                    RBM.toggle_field_relative)
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
-        pass
+
+        flip_button = JoystickButton(self.driver_joystick, RBM.flip_heading)
+        flip_button.onTrue(InstantCommand(self.swerve.flipHeading))
 
     def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1,
@@ -214,6 +216,22 @@ class MyRobot(TimedCommandRobot):
     def auto_station_2(self):
         delaycmd = Delay(1)
         cmd = PathPlannerAuto("LakeCityTwoNoteCenter")
+        intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
+                                        self.photoeyes, self.leds)
+        shootcmd = AutoShooterLaunchNote(self.shooter,
+                                         shooter.tilt_safe, 80)
+        cmds = [
+            delaycmd,
+            cmd,
+            intake_to_shooter,
+            shootcmd
+        ]
+        scg = SequentialCommandGroup(cmds)
+        return scg
+
+    def auto_station_3(self):
+        delaycmd = Delay(1)
+        cmd = PathPlannerAuto("LakeCityTwoNote3")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes, self.leds)
         shootcmd = AutoShooterLaunchNote(self.shooter,
