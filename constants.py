@@ -108,6 +108,9 @@ class RobotButtonMap():
     toggle_field_relative = 3
     speaker_tracking = 4  # Y button on controller
     slow_drive_mode = 6  # Right bumper?
+    flip_heading = 1
+    swap_direction = 2
+
 
     RESET_YAW = 9
 

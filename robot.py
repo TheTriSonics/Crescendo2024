@@ -94,6 +94,10 @@ class MyRobot(TimedCommandRobot):
 
         flip_button = JoystickButton(self.driver_joystick, RBM.flip_heading)
         flip_button.onTrue(InstantCommand(self.swerve.flipHeading))
+        
+        swap_button = JoystickButton(self.driver_joystick, RBM.swap_direction)
+        swap_button.onTrue(InstantCommand(self.swerve.swapDirection))
+
 
     def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1,

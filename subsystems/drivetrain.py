@@ -156,8 +156,8 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        defcmd = DrivetrainDefaultCommand(self, self.controller, photon, leds, gyro)
-        self.setDefaultCommand(defcmd)
+        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, leds, gyro)
+        self.setDefaultCommand(self.defcmd)
 
     def lock_heading(self):
         self.desired_heading = self.get_heading_rotation_2d().degrees()
@@ -216,9 +216,10 @@ class Drivetrain(Subsystem):
         self.fieldRelative = not self.fieldRelative
 
     def flipHeading(self):
-        self.target_heading += 180
-        if self.target_heading > 360:
-            self.target_heading -= 360
+        self.defcmd.flipHeading()
+
+    def swapDirection(self):
+        self.defcmd.swapDirection()
 
     def drive(
         self,
@@ -330,9 +331,20 @@ class DrivetrainDefaultCommand(Command):
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
+    
+    def initialize(self):
+        self.swapped = False
 
     def _curr_heading(self) -> float:
         return self.drivetrain.get_heading_rotation_2d().degrees()
+    
+    def flipHeading(self):
+        self.desired_heading += 180
+        if self.desired_heading > 360:
+            self.desired_heading -= 360
+    
+    def swapDirection(self):
+        self.swapped = not self.swapped
 
     def lock_heading(self):
         self.desired_heading = self._curr_heading()
@@ -363,6 +375,10 @@ class DrivetrainDefaultCommand(Command):
         xSpeed *= master_throttle
         ySpeed *= master_throttle
         rot *= master_throttle
+
+        if self.swapped:
+            xSpeed = -xSpeed
+            ySpeed = -ySpeed
 
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
