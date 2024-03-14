@@ -75,6 +75,9 @@ class MyRobot(TimedCommandRobot):
                                             self.note_tracker, self.leds)
         self.note_tracker = note_tracker.NoteTracker()
         self.climber = climber.Climber(self.driver)
+        self.param_editor = param_editor.ParamEditor(
+            self.swerve.defcmd.straight_drive_pid
+        )
 
         sim = is_sim()
         if not sim:
