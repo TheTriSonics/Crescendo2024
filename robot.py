@@ -33,6 +33,7 @@ import subsystems.amp as amp
 import subsystems.climber as climber
 import subsystems.gyro as gyro
 import subsystems.intake as intake
+import subsystems.param_editor as param_editor
 import subsystems.shooter as shooter
 import subsystems.photoeyes as photoeyes
 import subsystems.drivetrain as drivetrain
@@ -61,6 +62,7 @@ class MyRobot(TimedCommandRobot):
         self.commander = CommanderController(self.commander_joystick1,
                                              self.commander_joystick2)
 
+        self.param_editor = param_editor.ParamEditor()
         self.gyro = gyro.Gyro()
         self.leds = leds.Leds()
         self.photoeyes = photoeyes.Photoeyes()
@@ -94,7 +96,7 @@ class MyRobot(TimedCommandRobot):
 
         flip_button = JoystickButton(self.driver_joystick, RBM.flip_heading)
         flip_button.onTrue(InstantCommand(self.swerve.flipHeading))
-        
+
         swap_button = JoystickButton(self.driver_joystick, RBM.swap_direction)
         swap_button.onTrue(InstantCommand(self.swerve.swapDirection))
 
