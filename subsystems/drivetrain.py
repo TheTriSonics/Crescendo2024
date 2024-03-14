@@ -12,7 +12,7 @@ import subsystems.gyro as gyro
 from commands2 import Subsystem, Command
 from wpilib import SmartDashboard, DriverStation
 from ntcore import NetworkTableInstance
-from wpimath.filter import SlewRateLimiter
+from wpimath.filter import SlewRateLimiter, LinearFilter
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
 from wpimath.controller import PIDController
@@ -328,6 +328,7 @@ class DrivetrainDefaultCommand(Command):
         self.xslew = SlewRateLimiter(5.0)
         self.yslew = SlewRateLimiter(5.0)
         self.rotslew = SlewRateLimiter(2)
+        self.yaw_filter = LinearFilter.highPass(0.1, 0.02)
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
@@ -402,19 +403,26 @@ class DrivetrainDefaultCommand(Command):
         robot_centric_force = False
         if self.controller.get_note_lockon():
             robot_centric_force = True
-            yaw = self.photon.getYawOffset()
+            pn = SmartDashboard.putNumber
+            yaw_raw = self.photon.getYawOffset()
+            if yaw_raw is not None:
+                self.current_yaw = self.yaw_filter.calculate(yaw_raw)
+                pn('drivetrain/note_tracker/yaw_raw', yaw_raw)
+            yaw = self.current_yaw
+            pn('drivetrain/note_tracker/yaw', yaw)
             pitch = self.photon.getPitchOffset()
             if yaw is not None:
                 if abs(yaw) < 1.7:
                     rot = 0
                     self.leds.tracking_note()
+                    xSpeed = 0.5
                 else:
                     if pitch is not None and pitch > 0:
                         rot = self.note_pid.calculate(yaw, 0)
                     else:
                         rot = 0
                         # Force a translation to center on the note when close
-                        xSpeed = self.note_translate_pid.calculate(yaw, 0)
+                        ySpeed = self.note_translate_pid.calculate(yaw, 0)
                     self.leds.tracking_note()
             else:
                 self.leds.tracking_note_not_found()

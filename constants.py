@@ -2,8 +2,8 @@ from misc import is_sim
 
 
 class RobotPIDConstants():
-    note_tracking_pid = (0.004, 0, 0)
-    note_translate_pid = (0.004, 0, 0)
+    note_tracking_pid = (0.004, 0, 0.001)
+    note_translate_pid = note_tracking_pid
     speaker_tracking_pid = (0.01, 0, 0)
     straight_drive_pid = (0.015, 0, 0)
 
