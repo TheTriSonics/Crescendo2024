@@ -1,4 +1,4 @@
-#
+
 # Copyright (c) FIRST and other WPILib contributors.
 # Open Source Software; you can modify and/or share it under the terms of
 # the WPILib BSD license file in the root directory of this project.
@@ -298,6 +298,8 @@ class Drivetrain(Subsystem):
             if f['fID'] != id:
                 continue
             tag_heading = f['tx']
+        pn = SmartDashboard.putNumber
+        pn(f'fids/{id}', tag_heading)
         return tag_heading
 
     def periodic(self) -> None:
@@ -328,22 +330,22 @@ class DrivetrainDefaultCommand(Command):
         self.xslew = SlewRateLimiter(5.0)
         self.yslew = SlewRateLimiter(5.0)
         self.rotslew = SlewRateLimiter(2)
-        self.yaw_filter = LinearFilter.highPass(0.1, 0.02)
+        self.note_yaw_filtered = LinearFilter.highPass(0.1, 0.02)
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
-    
+
     def initialize(self):
         self.swapped = False
 
     def _curr_heading(self) -> float:
         return self.drivetrain.get_heading_rotation_2d().degrees()
-    
+
     def flipHeading(self):
         self.desired_heading += 180
         if self.desired_heading > 360:
             self.desired_heading -= 360
-    
+
     def swapDirection(self):
         self.swapped = not self.swapped
 
@@ -406,7 +408,7 @@ class DrivetrainDefaultCommand(Command):
             pn = SmartDashboard.putNumber
             yaw_raw = self.photon.getYawOffset()
             if yaw_raw is not None:
-                self.current_yaw = self.yaw_filter.calculate(yaw_raw)
+                self.current_yaw = self.note_yaw_filtered.calculate(yaw_raw)
                 pn('drivetrain/note_tracker/yaw_raw', yaw_raw)
             yaw = self.current_yaw
             pn('drivetrain/note_tracker/yaw', yaw)
