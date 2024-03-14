@@ -1,4 +1,4 @@
-#
+
 # Copyright (c) FIRST and other WPILib contributors.
 # Open Source Software; you can modify and/or share it under the terms of
 # the WPILib BSD license file in the root directory of this project.
@@ -12,7 +12,7 @@ import subsystems.gyro as gyro
 from commands2 import Subsystem, Command
 from wpilib import SmartDashboard, DriverStation
 from ntcore import NetworkTableInstance
-from wpimath.filter import SlewRateLimiter
+from wpimath.filter import SlewRateLimiter, LinearFilter
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
 from wpimath.controller import PIDController
@@ -58,30 +58,37 @@ class Drivetrain(Subsystem):
         self.locked = False
         self.vision_stable = False
 
+        # Half the motors need to be inverted to run the right direction and
+        # half are in brake mode to slow the robot down faster but also not
+        # make it come to a complete stop too quickly.
         self.frontLeft = swervemodule.SwerveModule(
             RMM.front_left_drive,
             RMM.front_left_turn,
             RMM.front_left_turn_encoder,
-            True,
-            'Front left')
+            inverted=True,
+            brake=True,
+            name='Front left')
         self.frontRight = swervemodule.SwerveModule(
             RMM.front_right_drive,
             RMM.front_right_turn,
             RMM.front_right_turn_encoder,
-            False,
-            'Front right')
+            inverted=False,
+            brake=True,
+            name='Front right')
         self.backLeft = swervemodule.SwerveModule(
             RMM.back_left_drive,
             RMM.back_left_turn,
             RMM.back_left_turn_encoder,
-            True,
-            'Back left')
+            inverted=True,
+            brake=True,
+            name='Back left')
         self.backRight = swervemodule.SwerveModule(
             RMM.back_right_drive,
             RMM.back_right_turn,
             RMM.back_right_turn_encoder,
-            False,
-            'Back right')
+            inverted=False,
+            brake=True,
+            name='Back right')
 
         self.modules = [
             self.frontLeft,
@@ -149,8 +156,8 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        defcmd = DrivetrainDefaultCommand(self, self.controller, photon, leds, gyro)
-        self.setDefaultCommand(defcmd)
+        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, leds, gyro)
+        self.setDefaultCommand(self.defcmd)
 
     def lock_heading(self):
         self.desired_heading = self.get_heading_rotation_2d().degrees()
@@ -207,6 +214,12 @@ class Drivetrain(Subsystem):
 
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
+
+    def flipHeading(self):
+        self.defcmd.flipHeading()
+
+    def swapDirection(self):
+        self.defcmd.swapDirection()
 
     def drive(
         self,
@@ -285,11 +298,14 @@ class Drivetrain(Subsystem):
             if f['fID'] != id:
                 continue
             tag_heading = f['tx']
+        pn = SmartDashboard.putNumber
+        pn(f'fids/{id}', tag_heading)
         return tag_heading
 
     def periodic(self) -> None:
         self.updateOdometry()
-        SmartDashboard.putBoolean("drivetrain/field_relative", self.fieldRelative)
+        pb = SmartDashboard.putBoolean
+        pb("drivetrain/field_relative", self.fieldRelative)
 
 
 class DrivetrainDefaultCommand(Command):
@@ -308,16 +324,30 @@ class DrivetrainDefaultCommand(Command):
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
+        self.straight_drive_pid.setTolerance(2.0)
+        self.zero_rotation_counter = 0
         # Slew rate limiters to make joystick inputs more gentle
-        self.xslew = SlewRateLimiter(1.0)
-        self.yslew = SlewRateLimiter(1.0)
-        self.rotslew = SlewRateLimiter(0.1)
+        self.xslew = SlewRateLimiter(5.0)
+        self.yslew = SlewRateLimiter(5.0)
+        self.rotslew = SlewRateLimiter(2)
+        self.note_yaw_filtered = LinearFilter.highPass(0.1, 0.02)
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
 
+    def initialize(self):
+        self.swapped = False
+
     def _curr_heading(self) -> float:
         return self.drivetrain.get_heading_rotation_2d().degrees()
+
+    def flipHeading(self):
+        self.desired_heading += 180
+        if self.desired_heading > 360:
+            self.desired_heading -= 360
+
+    def swapDirection(self):
+        self.swapped = not self.swapped
 
     def lock_heading(self):
         self.desired_heading = self._curr_heading()
@@ -349,19 +379,22 @@ class DrivetrainDefaultCommand(Command):
         ySpeed *= master_throttle
         rot *= master_throttle
 
+        if self.swapped:
+            xSpeed = -xSpeed
+            ySpeed = -ySpeed
+
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
+        if rot == 0:
+            self.zero_rotation_counter += 1
         if rot != 0:
             self.lock_heading()
         else:
-            # Don't correct until we're X degrees off
-            if abs(self.desired_heading - curr) > 1:
-                # Use PID to keep us straight
+            if abs(curr - self.desired_heading) > 1.0:
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
             else:
-                # Rotation is still going to be 0, no power.
-                pass
+                rot = 0
 
         if self.controller.get_yaw_reset():
             forward = 180 if self.drivetrain.shouldFlipPath() else 0
@@ -372,19 +405,26 @@ class DrivetrainDefaultCommand(Command):
         robot_centric_force = False
         if self.controller.get_note_lockon():
             robot_centric_force = True
-            yaw = self.photon.getYawOffset()
+            pn = SmartDashboard.putNumber
+            yaw_raw = self.photon.getYawOffset()
+            if yaw_raw is not None:
+                self.current_yaw = self.note_yaw_filtered.calculate(yaw_raw)
+                pn('drivetrain/note_tracker/yaw_raw', yaw_raw)
+            yaw = self.current_yaw
+            pn('drivetrain/note_tracker/yaw', yaw)
             pitch = self.photon.getPitchOffset()
             if yaw is not None:
                 if abs(yaw) < 1.7:
                     rot = 0
                     self.leds.tracking_note()
+                    xSpeed = 0.5
                 else:
                     if pitch is not None and pitch > 0:
                         rot = self.note_pid.calculate(yaw, 0)
                     else:
                         rot = 0
                         # Force a translation to center on the note when close
-                        xSpeed = self.note_translate_pid.calculate(yaw, 0)
+                        ySpeed = self.note_translate_pid.calculate(yaw, 0)
                     self.leds.tracking_note()
             else:
                 self.leds.tracking_note_not_found()

@@ -37,7 +37,6 @@ class ParamEditor(Subsystem):
         self.read_from_sd()
 
 
-
 if __name__ == '__main__':
     pe = ParamEditor()
     pe.publish_to_sd()

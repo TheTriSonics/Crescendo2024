@@ -15,9 +15,9 @@ class SetAmpOverride(Command):
 
     def execute(self) -> None:
         if self.dir == 1:
-            self.amp.height += 0.05
+            self.amp.height += 0.1
         elif self.dir == -1:
-            self.amp.height -= 0.05
+            self.amp.height -= 0.1
         pass
 
     def end(self, isInterrupted) -> None:

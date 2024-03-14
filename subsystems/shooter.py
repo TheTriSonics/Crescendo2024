@@ -50,6 +50,8 @@ class Shooter(Subsystem):
         # Initialize the motor controllers
         self.shooter_motor_left = TalonFX(RMM.shooter_motor_left, "canivore")
         self.shooter_motor_right = TalonFX(RMM.shooter_motor_right, "canivore")
+        # self.shooter_motor_left = TalonFX(RMM.shooter_motor_left)
+        # self.shooter_motor_right = TalonFX(RMM.shooter_motor_right)
 
         # p, i, d = 0.1, 0.0, 0.0
         # self.left_shooter_pid = PIDController(p, i, d)
@@ -80,6 +82,7 @@ class Shooter(Subsystem):
 
         ### Shooter Feed Motor ###
         self.feed_motor = TalonFX(RMM.shooter_motor_feed, "canivore")
+        # self.feed_motor = TalonFX(RMM.shooter_motor_feed)
 
         ### Shooter Tilt Motors ###
         self.tilt_motor_left = CANSparkMax(RMM.shooter_motor_tilt_left,
@@ -189,8 +192,8 @@ class Shooter(Subsystem):
         # pn("shooter/left_actual_speed", left_velocity)
         # pn("shooter/right_actual_speed", right_velocity)
         # pn("Shooter Feed Speed", self.tilt_motor_left.get())
-        # pn("Shooter Tilt Encoder", self.tilt_encoder.getAbsolutePosition())
-        # pn("Shooter tilt motor Encoder", self.tilt_motor_left_encoder.getPosition())
+        pn("Shooter Tilt Encoder", self.tilt_encoder.getAbsolutePosition())
+        pn("Shooter tilt motor Encoder", self.tilt_motor_left_encoder.getPosition())
 
         # Control the shooter flywheels with a software PID Controller
         # self.left_shooter_pid.setSetpoint(self.speed_target)

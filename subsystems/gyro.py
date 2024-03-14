@@ -8,6 +8,7 @@ class Gyro(Subsystem):
     def __init__(self):
         super().__init__()
         self.gyro = Pigeon2(RSM.pigeon2_id, "canivore")
+        # self.gyro = Pigeon2(RSM.pigeon2_id)
 
     def get_yaw(self) -> float:
         return self.gyro.get_yaw().value

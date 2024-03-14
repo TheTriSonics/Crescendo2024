@@ -2,10 +2,10 @@ from misc import is_sim
 
 
 class RobotPIDConstants():
-    note_tracking_pid = (0.004, 0, 0)
-    note_translate_pid = (0.004, 0, 0)
+    note_tracking_pid = (0.004, 0, 0.002)
+    note_translate_pid = note_tracking_pid
     speaker_tracking_pid = (0.01, 0, 0)
-    straight_drive_pid = (0.015, 0, 0)
+    straight_drive_pid = (0.015, 0, 0.002)
 
 
 class RobotMotorMap():
@@ -106,8 +106,11 @@ class RobotButtonMap():
     # Driver button assignments
     note_tracking = 5  # Left bumper
     toggle_field_relative = 3
-    speaker_tracking = 4  # Y button on controller
-    slow_drive_mode = 6  # Right bumper?
+    speaker_tracking = 6  # Right bumper
+    slow_drive_mode = 4  # Y Button
+    flip_heading = 1
+    swap_direction = 2
+
 
     RESET_YAW = 9
 
