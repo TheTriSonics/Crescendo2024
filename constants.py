@@ -5,7 +5,9 @@ class RobotPIDConstants():
     note_tracking_pid = (0.004, 0, 0.002)
     note_translate_pid = note_tracking_pid
     speaker_tracking_pid = (0.01, 0, 0)
-    straight_drive_pid = [0.015, 0, 0.002]
+    # well, guess no, we don't want PID for that. 
+    # It makes it squishy
+    straight_drive_pid = [0, 0, 0]
 
 
 class RobotMotorMap():

@@ -62,7 +62,6 @@ class MyRobot(TimedCommandRobot):
         self.commander = CommanderController(self.commander_joystick1,
                                              self.commander_joystick2)
 
-        self.param_editor = param_editor.ParamEditor()
         self.gyro = gyro.Gyro()
         self.leds = leds.Leds()
         self.photoeyes = photoeyes.Photoeyes()
