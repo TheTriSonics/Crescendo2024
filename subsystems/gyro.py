@@ -15,3 +15,6 @@ class Gyro(Subsystem):
 
     def set_yaw(self, x):
         self.gyro.set_yaw(x)
+
+    def periodic(self):
+        raw_yaw = self.gyro.get_yaw()
