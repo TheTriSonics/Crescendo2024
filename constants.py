@@ -5,7 +5,7 @@ class RobotPIDConstants():
     note_tracking_pid = (0.004, 0, 0.001)
     note_translate_pid = note_tracking_pid
     speaker_tracking_pid = (0.01, 0, 0)
-    straight_drive_pid = (0.015, 0, 0)
+    straight_drive_pid = [0.015, 0, 0.002]
 
 
 class RobotMotorMap():
@@ -112,7 +112,7 @@ class RobotButtonMap():
     swap_direction = 2
 
 
-    RESET_YAW = 9
+    RESET_YAW = 8
 
     # Button Panel List
     # INTAKE: Intake Ready, Intake Eject
