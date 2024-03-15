@@ -101,7 +101,7 @@ class Leds(Subsystem):
         pass
 
     def shooter_running(self):
-        self.set_color(RED, True)
+        self.set_color(CYAN, True)
         pass
 
     def shooter_up_to_speed(self):

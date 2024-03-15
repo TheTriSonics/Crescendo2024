@@ -138,11 +138,11 @@ class MyRobot(TimedCommandRobot):
                                             RBM.amp_lift_trap_c2)
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.TRAP))
 
-        amp_override_up = JoystickButton(self.commander_joystick1,
+        amp_override_up = JoystickButton(self.commander_joystick2,
                                          RBM.amp_override_up_c2)
         amp_override_up.whileTrue(SetAmpOverride(self.amp, self.amp.dir_up))
 
-        amp_override_down = JoystickButton(self.commander_joystick1,
+        amp_override_down = JoystickButton(self.commander_joystick2,
                                            RBM.amp_override_down_c2)
         amp_override_down.whileTrue(SetAmpOverride(self.amp, self.amp.dir_down))
 
@@ -179,6 +179,7 @@ class MyRobot(TimedCommandRobot):
         shooter_spin.onFalse(InstantCommand(self.shooter.spin_down))
 
     def robotPeriodic(self) -> None:
+        SmartDashboard.putNumber("Amp Height", self.amp.get_height())
         if DriverStation.isDisabled():
             self.leds.set_connect_status()
 

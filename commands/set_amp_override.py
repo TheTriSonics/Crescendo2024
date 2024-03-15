@@ -13,7 +13,9 @@ class SetAmpOverride(Command):
     def initialize(self) -> None:
         pass
 
+
     def execute(self) -> None:
+        #Rate of change set to 0.25 from 0.1
         if self.dir == 1:
             self.amp.height += 0.25
         elif self.dir == -1:
