@@ -1,10 +1,11 @@
 # All units of length will be in meters unless otherwise noted
 
+from dataclasses import Field
 import json
 
 from time import time
 from math import radians
-from wpilib import SmartDashboard, Joystick, DriverStation, Timer
+from wpilib import SmartDashboard, Joystick, DriverStation, Timer, Field2d
 from commands2 import TimedCommandRobot, SequentialCommandGroup, InstantCommand
 from commands2.button import JoystickButton
 from wpimath.geometry import Rotation2d, Pose2d
@@ -53,6 +54,12 @@ class MyRobot(TimedCommandRobot):
 
     def robotInit(self) -> None:
         self.vision_timer = Timer()
+        self.field = Field2d()
+        SmartDashboard.putData(self.field)
+        pn = SmartDashboard.putNumber
+        pn('visiontest/fakeX', 3)
+        pn('visiontest/fakeY', 4)
+        pn('visiontest/fakeRot', 0)
         """Robot initialization function"""
         if True:
             # Disable the joystick warnings in simulator mode; they're annoying
@@ -187,8 +194,21 @@ class MyRobot(TimedCommandRobot):
 
         # Rough idea of how to incorporate vision into odometry
         if self.swerve.vision_stable is True:
+            from math import pi
             # Here's our method to pull data from LimeLight's network table
-            ll_poses, cameralag, computelag = self.get_poses_from_limelight()
+            if is_sim():
+                gn = SmartDashboard.getNumber
+                fakex = gn('visiontest/fakeX', 0)
+                fakey = gn('visiontest/fakeY', 0)
+                fakerot = gn('visiontest/fakeRot', 0)
+                ll_poses = [Pose2d(fakex, fakey, Rotation2d(radians(fakerot)))]
+                certain_within = [(10, 10, 1/pi)]
+                cameralag = 0
+                computelag = 0
+            else:
+                ll_poses, certain_within, cameralag, computelag = (
+                    self.get_poses_from_limelight()
+                )
             # Here we can make a determination to use the vision data or not
             # For example we might only want to accept posees that are already
             # within 1 meter of where we think we are.
@@ -198,16 +218,21 @@ class MyRobot(TimedCommandRobot):
             # to get things performing right. Nothing is set in stone.
             if len(ll_poses) > 0:
                 timelag = cameralag + computelag
-                for p in ll_poses:
+                for p, cw in zip(ll_poses, certain_within):
                     x = p.X()
                     y = p.Y()
                     rot = p.rotation().degrees()
-                    # print(f'vision heading: {x}, {y}, {rot}')
                     # self.swerve.odometry.addVisionMeasurement(p, 0, (0.1, 0.1, 0.1))
-                    self.swerve.odometry.addVisionMeasurement(p, self.vision_timer.getFPGATimestamp(), (100, 100, 100))
+                    ts = self.vision_timer.getFPGATimestamp() - timelag
+                    print(f'vision heading: {x}, {y}, {rot}, {ts}')
+                    xdev, ydev, rotdev = cw
+                    self.swerve.odometry.addVisionMeasurement(
+                        p, ts, (xdev, ydev, rotdev)
+                    )
             else:
                 # print('no vision data')
                 pass
+        self.field.setRobotPose(self.swerve.getPose())
         pass
 
     def auto_station_1(self):
@@ -285,30 +310,47 @@ class MyRobot(TimedCommandRobot):
     # https://docs.limelightvision.io/docs/docs-limelight/apis/json-dump-specification
     # We are going to be using 't6r_fs' aka "Robot Pose in field space as
     # computed by this fiducial (x,y,z,rx,ry,rz)"
-    def get_poses_from_limelight(self) -> tuple[list[Pose2d], float]:
+    def get_poses_from_limelight(self):
         t1 = time()
         data = self.swerve.ll_json_entry.get()
         obj = json.loads(data)
         poses = []
-        camera_lag = 0 
+        certain_within = []
+        camera_lag = 0
         # Short circuit any JSON processing if we got back an empty list, which
         # is the default value for the limelight network table entry
         if len(obj) == 0:
             t2 = time()
             diff = t2 - t1
-            return poses, camera_lag, diff
+            return poses, certain_within, camera_lag, diff
 
         result = obj['Results']
         # camera_lag = result['tl']
         for fid in result['Fiducial']:
+            target_area = fid['ta']
+            # Use this, the total area the target is in pixels on the camera
+            # picture, to determine how certain we are of the robot's position.
+
+            # start with a very uncertain value unless a condition is met to
+            # say otherwise. The format is undertainty in the x in meters,
+            # y in meters, and rotation in degrees
+            certainty = 10
+            if target_area > 200:
+                certainty = (3, 3, 10)
+            if target_area > 300:
+                certainty = (2, 2, 5)
+            if target_area > 400:
+                certainty = (1, 1, 3)
+
             robot_pose_raw = fid['t6r_fs']
             # TODO: Verify that the rotation is the right value
             pose = Pose2d(robot_pose_raw[0], robot_pose_raw[1],
-                        Rotation2d(radians(robot_pose_raw[3])))
+                          Rotation2d(radians(robot_pose_raw[3])))
             poses.append(pose)
+            certain_within.append(certainty)
         t2 = time()
         diff = t2 - t1
-        return poses, camera_lag, diff
+        return poses, certain_within, camera_lag, diff
 
     # TODO: Heading needs to be added to the return on this
     # and the overal processing could be a lot cleaner.

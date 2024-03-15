@@ -123,7 +123,7 @@ class Drivetrain(Subsystem):
                 self.backRight.getPosition(),
             ),
             Pose2d(),
-            (0, 0, 0),  # wheel std devs for Kalman filters
+            (1, 1, 1),  # wheel std devs for Kalman filters
             (0, 0, 0),  # vision std devs for Kalman filters
         )
 
