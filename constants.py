@@ -7,7 +7,7 @@ class RobotPIDConstants():
     speaker_tracking_pid = (0.01, 0, 0)
     # well, guess no, we don't want PID for that. 
     # It makes it squishy
-    straight_drive_pid = [0, 0, 0]
+    straight_drive_pid = [0.015, 0, 0.001]
 
 
 class RobotMotorMap():
@@ -153,5 +153,5 @@ class RobotButtonMap():
     shooter_shoot_c2 = 4
 
     shooter_spin_c2 = 3
-    intake_override_up_c2 = 5
-    intake_override_down_c2 = 1
+    climber_up_c2 = 5
+    climber_down_c2 = 1

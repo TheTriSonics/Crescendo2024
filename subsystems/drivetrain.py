@@ -34,7 +34,7 @@ from constants import RobotPIDConstants as PIDC
 kMaxSpeed = 4.5  # m/s
 kMaxAngularSpeed = math.pi * 5
 
-swerve_offset = 55 / 100  # cm converted to meters
+swerve_offset = 27 / 100  # cm converted to meters
 
 slow_mode_factor = 1/2
 
@@ -56,7 +56,7 @@ class Drivetrain(Subsystem):
 
         self.lockable = False
         self.locked = False
-        self.vision_stable = False
+        self.vision_stable = True
 
         # Half the motors need to be inverted to run the right direction and
         # half are in brake mode to slow the robot down faster but also not
@@ -305,7 +305,11 @@ class Drivetrain(Subsystem):
     def periodic(self) -> None:
         self.updateOdometry()
         pb = SmartDashboard.putBoolean
+        pn = SmartDashboard.putNumber
         pb("drivetrain/field_relative", self.fieldRelative)
+        pn('drivetrain/odometry/pose_x', self.getPose().X())
+        pn('drivetrain/odometry/pose_y', self.getPose().Y())
+        pn('drivetrain/odometry/pose_rotation', self.getPose().rotation().degrees())
 
 
 class DrivetrainDefaultCommand(Command):
@@ -392,7 +396,13 @@ class DrivetrainDefaultCommand(Command):
             self.lock_heading()
         else:
             if abs(curr - self.desired_heading) > 1.0:
+                # p, i, d = self.straight_drive_pid.getP(), self.straight_drive_pid.getI(), self.straight_drive_pid.getD()
+                # print(p, i ,d)
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
+                if  abs(rot) > 0.002:
+                    print('rotation lock on power', rot)
+                else:
+                    rot = 0
             else:
                 rot = 0
 
