@@ -1,4 +1,5 @@
 import wpilib
+from functools import wraps
 
 
 def is_sim() -> bool:
@@ -8,6 +9,7 @@ def is_sim() -> bool:
 def add_timing(func):
     # This function shows the execution time of
     # the function object passed
+    @wraps(func)
     def wrap_func(*args, **kwargs):
         from time import time
         t1 = time()
@@ -21,6 +23,7 @@ def add_timing(func):
 # Create a python decorator that squares a return value
 # (Copilot created this one based on the above comment)
 def square(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs) * abs(func(*args, **kwargs))
     return wrapper
@@ -30,6 +33,7 @@ def square(func):
 # (Copilot created this one based on the above comment)
 def deadband(deadband: float):
     def deadband_decorator(func):
+        @wraps(func)
         def wrapper(*args, **kwargs):
             value = func(*args, **kwargs)
             if abs(value) < deadband:
@@ -41,7 +45,31 @@ def deadband(deadband: float):
 
 # Create a python decorator that captures all exceptions and returns False
 # if one occurs
+def compsafe(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if wpilib.DriverStation.isFMSAttached():
+            try:
+                return func(*args, **kwargs)
+            except Exception:
+                return
+        else:
+            return func(*args, **kwargs)
+    return wrapper
+
+
+def safe(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            return
+    return wrapper
+
+
 def safe_bool(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -51,6 +79,7 @@ def safe_bool(func):
 
 
 def safe_float(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
