@@ -4,18 +4,16 @@ from subsystems.intake import Intake
 from subsystems.shooter import Shooter
 from subsystems.amp import Amp
 from subsystems.photoeyes import Photoeyes
-from subsystems.leds import Leds
 
 
 class IntakeNote(Command):
     def __init__(self, intake: Intake, shooter: Shooter, amp: Amp,
-                 photoeyes: Photoeyes, leds: Leds):
+                 photoeyes: Photoeyes):
         super().__init__()
         self.intake = intake
         self.shooter = shooter
         self.amp = amp
         self.photoeyes = photoeyes
-        self.leds = leds
         self.addRequirements(intake)
 
     def initialize(self):
@@ -31,12 +29,10 @@ class IntakeNote(Command):
     def execute(self):
         if self.forceQuit:
             return
-        self.leds.intake_running()
         self.intake.feed()
         if self.photoeyes.get_intake_loaded():
             self.intake.halt()
             self.intake.tilt_up()
-            self.leds.intake_loaded()
             self.forceQuit = True
         pass
 

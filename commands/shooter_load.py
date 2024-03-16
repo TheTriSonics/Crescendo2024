@@ -2,7 +2,6 @@ from commands2 import Command
 from wpilib import Timer
 
 from subsystems.intake import Intake
-from subsystems.leds import Leds
 from subsystems.photoeyes import Photoeyes
 from subsystems.amp import Amp
 from subsystems.shooter import Shooter
@@ -10,13 +9,12 @@ from subsystems.shooter import Shooter
 
 class ShooterLoad(Command):
     def __init__(self, amp: Amp, intake: Intake, shooter: Shooter,
-                 photoeyes: Photoeyes, leds: Leds) -> None:
+                 photoeyes: Photoeyes) -> None:
         super().__init__()
         self.amp = amp
         self.photoeyes = photoeyes
         self.intake = intake
         self.shooter = shooter
-        self.leds = leds
         self.addRequirements(amp)
         self.addRequirements(shooter)
         self.addRequirements(intake)
@@ -53,7 +51,6 @@ class ShooterLoad(Command):
         if self.timer.get() > 4.0:
             return True
         if self.photoeyes.get_shooter_loaded() is True:
-            self.leds.shooter_loaded()
             return True
         return False
 

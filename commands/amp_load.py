@@ -4,16 +4,14 @@ from wpilib import Timer
 from subsystems.intake import Intake
 from subsystems.photoeyes import Photoeyes
 from subsystems.amp import Amp
-from subsystems.leds import Leds
 
 
 class AmpLoad(Command):
-    def __init__(self, amp: Amp, intake: Intake, photoeyes: Photoeyes, leds: Leds) -> None:
+    def __init__(self, amp: Amp, intake: Intake, photoeyes: Photoeyes) -> None:
         super().__init__()
         self.amp = amp
         self.photoeyes = photoeyes
         self.intake = intake
-        self.leds = leds
         self.addRequirements(amp)
 
     def initialize(self) -> None:
@@ -42,7 +40,6 @@ class AmpLoad(Command):
         if self.timer.get() > 3.0:
             return True
         if self.photoeyes.get_amp_loaded() is True:
-            self.leds.amp_loaded()
             return True
         return False
 

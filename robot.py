@@ -72,17 +72,21 @@ class MyRobot(TimedCommandRobot):
                                              self.commander_joystick2)
 
         self.gyro = gyro.Gyro()
-        self.leds = leds.Leds()
         self.photoeyes = photoeyes.Photoeyes()
 
         self.amp = amp.Amp(self.commander, self.photoeyes)
-        self.shooter = shooter.Shooter(self.leds)
+        self.shooter = shooter.Shooter()
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
-                                            self.note_tracker, self.leds)
+                                            self.note_tracker)
         self.note_tracker = note_tracker.NoteTracker()
         self.climber = climber.Climber(self.driver)
+        self.leds = leds.Leds(
+            self.amp, self.intake, self.shooter,
+            self.swerve, self.note_tracker,
+            self.climber, self.photoeyes
+        )
         self.param_editor = param_editor.ParamEditor(
             self.swerve.defcmd.straight_drive_pid
         )
@@ -116,22 +120,20 @@ class MyRobot(TimedCommandRobot):
         intake_button = JoystickButton(self.commander_joystick1,
                                        RBM.intake_ready_c1)
         intake_button.whileTrue(IntakeNote(self.intake, self.shooter,
-                                           self.gyro, self.photoeyes,
-                                           self.leds))
+                                           self.gyro, self.photoeyes))
 
         eject_button = JoystickButton(self.commander_joystick1,
                                       RBM.intake_eject_c1)
-        eject_button.onTrue(EjectNote(self.intake, self.photoeyes, self.leds))
+        eject_button.onTrue(EjectNote(self.intake, self.photoeyes))
 
         amp_load_button = JoystickButton(self.commander_joystick2,
                                          RBM.load_note_amp_c2)
-        amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes, self.leds))
+        amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
 
         shooter_load_button = JoystickButton(self.commander_joystick1,
                                              RBM.load_note_shooter_c1)
         shooter_load_button.onTrue(ShooterLoad(self.amp, self.intake,
-                                               self.shooter, self.photoeyes,
-                                               self.leds))
+                                               self.shooter, self.photoeyes))
 
         amp_set_height_amp = JoystickButton(self.commander_joystick2,
                                             RBM.amp_lift_home_c2)
@@ -186,12 +188,6 @@ class MyRobot(TimedCommandRobot):
         shooter_spin.onFalse(InstantCommand(self.shooter.spin_down))
 
     def robotPeriodic(self) -> None:
-        SmartDashboard.putNumber("Amp Height", self.amp.get_height())
-        if DriverStation.isDisabled():
-            self.leds.set_connect_status()
-
-        # SmartDashboard.putNumber("Climber Speed", self.driver.get_climber_trigger())
-
         # Rough idea of how to incorporate vision into odometry
         if self.swerve.vision_stable is True:
             from math import pi
@@ -224,7 +220,7 @@ class MyRobot(TimedCommandRobot):
                     rot = p.rotation().degrees()
                     # self.swerve.odometry.addVisionMeasurement(p, 0, (0.1, 0.1, 0.1))
                     ts = self.vision_timer.getFPGATimestamp() - timelag
-                    print(f'vision heading: {x}, {y}, {rot}, {ts}')
+                    # print(f'vision heading: {x}, {y}, {rot}, {ts}')
                     xdev, ydev, rotdev = cw
                     self.swerve.odometry.addVisionMeasurement(
                         p, ts, (xdev, ydev, rotdev)
@@ -239,7 +235,7 @@ class MyRobot(TimedCommandRobot):
         delaycmd = Delay(5)
         cmd = PathPlannerAuto("LakeCityTwoNote")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
-                                        self.photoeyes, self.leds)
+                                        self.photoeyes)
         shootcmd = AutoShooterLaunchNote(self.shooter,
                                          shooter.tilt_safe, 80)
         cmds = [
@@ -255,7 +251,7 @@ class MyRobot(TimedCommandRobot):
         delaycmd = Delay(1)
         cmd = PathPlannerAuto("LakeCityTwoNoteCenter")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
-                                        self.photoeyes, self.leds)
+                                        self.photoeyes)
         shootcmd = AutoShooterLaunchNote(self.shooter,
                                          shooter.tilt_safe, 80)
         cmds = [
@@ -271,7 +267,7 @@ class MyRobot(TimedCommandRobot):
         delaycmd = Delay(1)
         cmd = PathPlannerAuto("LakeCityTwoNote3")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
-                                        self.photoeyes, self.leds)
+                                        self.photoeyes)
         shootcmd = AutoShooterLaunchNote(self.shooter,
                                          shooter.tilt_safe, 80)
         cmds = [

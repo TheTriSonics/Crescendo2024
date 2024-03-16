@@ -2,15 +2,13 @@ from wpilib import Timer
 from commands2 import Command
 from subsystems.intake import Intake
 from subsystems.photoeyes import Photoeyes
-from subsystems.leds import Leds
 
 
 class EjectNote(Command):
-    def __init__(self, intake: Intake, photoeyes: Photoeyes, leds: Leds):
+    def __init__(self, intake: Intake, photoeyes: Photoeyes):
         super().__init__()
         self.intake = intake
         self.photoeyes = photoeyes
-        self.leds = leds
         self.addRequirements(intake)
 
     def initialize(self):

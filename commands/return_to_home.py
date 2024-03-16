@@ -4,18 +4,16 @@ from subsystems.intake import Intake
 from subsystems.shooter import Shooter
 from subsystems.amp import Amp
 from subsystems.photoeyes import Photoeyes
-from subsystems.leds import Leds
 
 
 class ReturnToHome(Command):
     def __init__(self, intake: Intake, shooter: Shooter, amp: Amp,
-                 photoeyes: Photoeyes, leds: Leds):
+                 photoeyes: Photoeyes):
         super().__init__()
         self.intake = intake
         self.shooter = shooter
         self.amp = amp
         self.photoeyes = photoeyes
-        self.leds = leds
         self.addRequirements(intake)
 
     def initialize(self):

@@ -11,7 +11,6 @@ from rev import CANSparkMax, CANSparkLowLevel
 
 # Local application/library specific imports
 from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
-from .leds import Leds
 
 tilt_bottom_limit = 0.76
 tilt_load_limit = 0.77
@@ -29,9 +28,8 @@ class Shooter(Subsystem):
     dir_up = 1
     dir_down = -1
 
-    def __init__(self, leds: Leds):
+    def __init__(self):
         super().__init__()
-        self.leds = leds
         self.alive_timer = Timer()
         self.alive_timer.start()
         self.left_tilt_encoder_last = None
@@ -200,11 +198,6 @@ class Shooter(Subsystem):
         # self.right_shooter_pid.setSetpoint(self.speed_target)
         # left_power = self.left_shooter_pid.calculate(left_velocity)
         # right_power = self.right_shooter_pid.calculate(right_velocity)
-        if self.speed_target > 0:
-            if self.is_up_to_speed():
-                self.leds.shooter_up_to_speed()
-            else:
-                self.leds.off()
         self.shooter_motor_left.set_control(VelocityDutyCycle(self.speed_target))
         self.shooter_motor_right.set_control(VelocityDutyCycle(-self.speed_target))
         # Do NOTHING for 3 seconds after the robot starts up

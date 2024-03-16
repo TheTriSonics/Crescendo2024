@@ -1,6 +1,15 @@
 from commands2 import Subsystem
 from wpilib import AddressableLED, DriverStation
 from constants import RobotSensorMap as RSM
+from subsystems.amp import Amp
+from subsystems.shooter import Shooter
+from subsystems.drivetrain import Drivetrain
+from subsystems.note_tracker import NoteTracker
+from subsystems.climber import Climber
+from subsystems.photoeyes import Photoeyes
+from subsystems.intake import Intake
+
+
 
 """
 HSV values:
@@ -27,10 +36,18 @@ blink_loops = 25  # 25 loops at 20ms per loop is 0.5 seconds
 
 
 class Leds(Subsystem):
-    def __init__(self):
+    def __init__(self, amp: Amp, intake: Intake, shooter: Shooter,
+                 drive: Drivetrain, note_tracker: NoteTracker,
+                 climber: Climber, photoeyes: Photoeyes):
         super().__init__()
-
         self.leds = AddressableLED(RSM.addressable_leds)
+        self.amp = amp
+        self.intake = intake
+        self.shooter = shooter
+        self.drive = drive
+        self.note_tracker = note_tracker
+        self.climber = climber
+        self.photoeyes = photoeyes
 
         self.led_length = 135
         self.blinking = False
@@ -42,9 +59,27 @@ class Leds(Subsystem):
         self.led_data = [AddressableLED.LEDData() for _ in range(self.led_length)]
 
         self.rainbowFirstPixelHue = 0
+        self.intake_loaded()
 
         self.leds.setData(self.led_data)
         self.leds.start()
+
+    def periodic(self) -> None:
+        if False:
+            if self.rainbow_mode:
+                self.rainbow()
+            elif self.blinking:
+                if self.blink_counter < blink_loops:
+                    self.blink_counter += 1
+                else:
+                    self.blink_counter = 0
+                    if self.blink_on:
+                        self.set_color(0)
+                        self.blink_on = False
+                    else:
+                        self.set_color(self.curr_color)
+                        self.blink_on = True
+        self.leds.setData(self.led_data)
 
     def rainbow(self):
         # For every pixel
@@ -144,19 +179,3 @@ class Leds(Subsystem):
     def drivetrain_slow(self):
         # self.set_color(RED)
         pass
-
-    def periodic(self) -> None:
-        if self.rainbow_mode:
-            self.rainbow()
-        elif self.blinking:
-            if self.blink_counter < blink_loops:
-                self.blink_counter += 1
-            else:
-                self.blink_counter = 0
-                if self.blink_on:
-                    self.set_color(0)
-                    self.blink_on = False
-                else:
-                    self.set_color(self.curr_color)
-                    self.blink_on = True
-        self.leds.setData(self.led_data)

@@ -6,7 +6,6 @@
 
 import json
 import math
-from subsystems.leds import Leds
 import subsystems.swervemodule as swervemodule
 import subsystems.gyro as gyro
 from commands2 import Subsystem, Command
@@ -43,8 +42,8 @@ class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
-    def __init__(self, gyro: gyro.Gyro, driver_controller, photon: NoteTracker,
-                 leds: Leds) -> None:
+    def __init__(self, gyro: gyro.Gyro, driver_controller,
+                 photon: NoteTracker) -> None:
         super().__init__()
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
@@ -52,7 +51,6 @@ class Drivetrain(Subsystem):
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
         self.photon = photon
-        self.leds = leds
 
         self.lockable = False
         self.locked = False
@@ -156,7 +154,7 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, leds, gyro)
+        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro)
         self.setDefaultCommand(self.defcmd)
 
     def lock_heading(self):
@@ -317,12 +315,11 @@ class DrivetrainDefaultCommand(Command):
     Default command for the drivetrain.
     """
     def __init__(self, drivetrain: Drivetrain, controller: DriverController,
-                 photon: NoteTracker, leds: Leds, gyro: Gyro) -> None:
+                 photon: NoteTracker, gyro: Gyro) -> None:
         super().__init__()
         self.drivetrain = drivetrain
         self.controller = controller
         self.photon = photon
-        self.leds = leds
         self.gyro = gyro
         self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
@@ -426,7 +423,6 @@ class DrivetrainDefaultCommand(Command):
             if yaw is not None:
                 if abs(yaw) < 1.7:
                     rot = 0
-                    self.leds.tracking_note()
                     xSpeed = 0.5
                 else:
                     if pitch is not None and pitch > 0:
@@ -435,9 +431,6 @@ class DrivetrainDefaultCommand(Command):
                         rot = 0
                         # Force a translation to center on the note when close
                         ySpeed = self.note_translate_pid.calculate(yaw, 0)
-                    self.leds.tracking_note()
-            else:
-                self.leds.tracking_note_not_found()
 
         if self.controller.get_slow_mode():
             self.leds.drivetrain_slow()
