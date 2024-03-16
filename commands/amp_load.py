@@ -17,9 +17,12 @@ class AmpLoad(Command):
     def initialize(self) -> None:
         self.timer = Timer()
         self.forceQuit = False
-        if not self.intake.is_loaded():
+        if self.amp.height != self.amp.Height.HOME:
+            self.amp.height = self.amp.Height.HOME
+        if not self.amp.is_at_position():
             self.forceQuit = True
         self.timer.start()
+
 
     def execute(self) -> None:
         if self.forceQuit is True:

@@ -59,3 +59,11 @@ class CommanderController():
 
     def get_override_intake_roller_out(self) -> bool:
         return self.joystick2.getRawButton(RM.intake_roller_out)
+
+    def get_climber_up(self) -> bool:
+        reading = self.joystick1.getRawAxis(0)
+        return reading > 0.5
+    
+    def get_climber_down(self) -> bool:
+        reading = self.joystick1.getRawAxis(0)
+        return reading < -0.5

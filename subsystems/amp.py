@@ -69,6 +69,9 @@ class Amp(Subsystem):
     def get_height(self):
         return self.height
 
+    def is_at_position(self):
+        return abs(self.height - self.lift_motor.get_position()) < 0.5
+
     def feed(self):
         self.feed_motor.set(1.0)
 

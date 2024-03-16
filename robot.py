@@ -81,7 +81,7 @@ class MyRobot(TimedCommandRobot):
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
                                             self.note_tracker)
         self.note_tracker = note_tracker.NoteTracker()
-        self.climber = climber.Climber(self.driver)
+        self.climber = climber.Climber(self.driver, self.commander)
         self.leds = leds.Leds(
             self.amp, self.intake, self.shooter,
             self.swerve, self.note_tracker,
@@ -332,11 +332,11 @@ class MyRobot(TimedCommandRobot):
             # y in meters, and rotation in degrees
             certainty = (10, 10, 5)
             if target_area > 200:
-                certainty = (3, 3, 10)
+                certainty = (3, 3, 3)
             if target_area > 300:
-                certainty = (2, 2, 5)
+                certainty = (2, 2, 2)
             if target_area > 400:
-                certainty = (1, 1, 3)
+                certainty = (1, 1, 1)
 
             robot_pose_raw = fid['t6r_fs']
             # TODO: Verify that the rotation is the right value

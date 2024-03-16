@@ -143,8 +143,8 @@ class Drivetrain(Subsystem):
                 self.backRight.getPosition(),
             ),
             Pose2d(),
-            (1, 1, 1),  # wheel std devs for Kalman filters
-            (0, 0, 0),  # vision std devs for Kalman filters
+            (0.1, 0.1, 0.1),  # wheel std devs for Kalman filters
+            (0.9, 0.9, 0.9),  # vision std devs for Kalman filters
         )
 
         self.resetOdometry()

@@ -179,8 +179,8 @@ class Shooter(Subsystem):
 
     def halt(self):
         # Stop the shooter motor
-        self.shooter_motor_left.set(0)
-        self.shooter_motor_right.set(0)
+        self.shooter_motor_left.set_control(DutyCycleOut(0), override_brake_dur_neutral=False)
+        self.shooter_motor_right.set_control(DutyCycleOut(0), override_brake_dur_neutral=False)
 
     def safe_shot(self):
         self.tilt_target = tilt_safe

@@ -72,8 +72,8 @@ class RobotMotorMap():
     shooter_motor_left = 41
     shooter_motor_right = 42
 
-    shooter_motor_feed_right = 47
-    shooter_motor_feed_left = 46
+    shooter_motor_feed_right = 46
+    shooter_motor_feed_left = 47
 
     shooter_motor_tilt_left = 44
     shooter_motor_tilt_right = 45
@@ -156,5 +156,8 @@ class RobotButtonMap():
     shooter_shoot_c2 = 4
 
     shooter_spin_c2 = 3
+    
+
+    # Not used?
     climber_up_c2 = 5
     climber_down_c2 = 1

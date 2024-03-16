@@ -4,16 +4,18 @@ from rev import CANSparkLowLevel, CANSparkMax
 
 from constants import RobotMotorMap as RMM
 from constants import RobotSensorMap as RSM
+from controllers.commander import CommanderController
 from controllers.driver import DriverController
 
 
 class Climber(Subsystem):
-    def __init__(self, controller: DriverController):
+    def __init__(self, controller: DriverController, op_controller: CommanderController):
         super().__init__()
 
         self.controller = controller
+        self.op_controller = op_controller
         
-        defcmd = ClimberDefaultCommand(self, controller)
+        defcmd = ClimberDefaultCommand(self, controller, op_controller)
         self.setDefaultCommand(defcmd)
 
         # Initialize the motor controller
@@ -57,13 +59,19 @@ class Climber(Subsystem):
 
 
 class ClimberDefaultCommand(Command):
-    def __init__(self, climber: Climber, controller: DriverController):
+    def __init__(self, climber: Climber, controller: DriverController, op_controller: CommanderController):
         self.climber = climber
         self.controller = controller
+        self.op_controller = op_controller
         self.addRequirements(climber)
 
     def execute(self):
         power = self.controller.get_climber_trigger()
         if power < 0:
             power *= .50
+        if self.op_controller.get_climber_up():
+            power = 0.4
+        elif self.op_controller.get_climber_down():
+            power = -1
         self.climber.set_speed(power)
+
