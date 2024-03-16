@@ -42,6 +42,18 @@
           },
           "open": true
         },
+        "fakesensors": {
+          "drivetrain": {
+            "open": true
+          },
+          "open": true,
+          "photoeye": {
+            "open": true
+          },
+          "shooter": {
+            "open": true
+          }
+        },
         "open": true,
         "visiontest": {
           "open": true

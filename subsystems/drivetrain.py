@@ -37,6 +37,13 @@ swerve_offset = 27 / 100  # cm converted to meters
 
 slow_mode_factor = 1/2
 
+pn = SmartDashboard.putNumber
+gn = SmartDashboard.getNumber
+pb = SmartDashboard.putBoolean
+gb = SmartDashboard.getBoolean
+
+sdbase = 'fakesensors/drivetrain'
+
 
 class Drivetrain(Subsystem):
     """
@@ -51,7 +58,12 @@ class Drivetrain(Subsystem):
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
         self.photon = photon
+        
+        pb(f'{sdbase}/note_tracking', False)
+        pb(f'{sdbase}/note_visible', False)
 
+        self.note_tracking = False
+        self.note_visible = False
         self.lockable = False
         self.locked = False
         self.vision_stable = True
@@ -156,6 +168,12 @@ class Drivetrain(Subsystem):
 
         self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro)
         self.setDefaultCommand(self.defcmd)
+
+    def is_note_tracking(self):
+        return self.defcmd.is_note_tracking()
+
+    def is_note_visible(self):
+        return self.defcmd.is_note_visible()
 
     def lock_heading(self):
         self.desired_heading = self.get_heading_rotation_2d().degrees()
@@ -352,6 +370,14 @@ class DrivetrainDefaultCommand(Command):
 
     def lock_heading(self):
         self.desired_heading = self._curr_heading()
+    
+    def is_note_tracking(self):
+        fake = gb(f'{sdbase}/note_tracking', False)
+        return self.drivetrain.note_tracking or fake
+
+    def is_note_visible(self):
+        fake = gb(f'{sdbase}/note_visible', False)
+        return self.drivetrain.note_visible or fake
 
     def execute(self) -> None:
         if self.desired_heading is None:
@@ -410,11 +436,15 @@ class DrivetrainDefaultCommand(Command):
         # When in lockon mode, the robot will rotate to face the node
         # that PhotonVision is detecting
         robot_centric_force = False
+        self.note_tracking = False
+        self.note_visible = False
         if self.controller.get_note_lockon():
+            self.note_tracking = True
             robot_centric_force = True
             pn = SmartDashboard.putNumber
             yaw_raw = self.photon.getYawOffset()
             if yaw_raw is not None:
+                self.note_visible = True
                 self.current_yaw = self.note_yaw_filtered.calculate(yaw_raw)
                 pn('drivetrain/note_tracker/yaw_raw', yaw_raw)
             yaw = self.current_yaw

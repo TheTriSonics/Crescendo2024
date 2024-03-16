@@ -20,6 +20,13 @@ max_tilt_diff = 0.0015
 tilt_sub = 0.84
 tilt_safe = 0.79
 
+pn = SmartDashboard.putNumber
+gn = SmartDashboard.getNumber
+pb = SmartDashboard.putBoolean
+gb = SmartDashboard.getBoolean
+
+sdbase = 'fakesensors/shooter'
+
 
 class Shooter(Subsystem):
     # The SparkMax doesn't do any internal PID so for that it's software PID
@@ -34,6 +41,7 @@ class Shooter(Subsystem):
         self.alive_timer.start()
         self.left_tilt_encoder_last = None
         self.right_tilt_encoder_last = None
+        pb(f'{sdbase}/is_up_to_speed', False)
         # defcmd = ShooterDefaultCommand(self)
         # self.setDefaultCommand(defcmd)
 
@@ -138,7 +146,10 @@ class Shooter(Subsystem):
         self.tilt_target = tilt
 
     def is_up_to_speed(self):
-        return abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1
+        fake = gb(f'{sdbase}/is_up_to_speed', False)
+        if self.speed_target == 0:
+            return False or fake
+        return fake or (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1)
 
     def is_tilt_aimed(self):
         return abs(self.tilt_encoder.getAbsolutePosition() - self.tilt_target) < max_tilt_diff
