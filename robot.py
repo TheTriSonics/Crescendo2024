@@ -147,6 +147,8 @@ class MyRobot(TimedCommandRobot):
                                             RBM.amp_lift_trap_c2)
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.TRAP))
 
+
+        # TODO: These can be made to do something else; intake doesn't move
         amp_override_up = JoystickButton(self.commander_joystick2,
                                          RBM.amp_override_up_c2)
         amp_override_up.whileTrue(SetAmpOverride(self.amp, self.amp.dir_up))
@@ -155,6 +157,7 @@ class MyRobot(TimedCommandRobot):
                                            RBM.amp_override_down_c2)
         amp_override_down.whileTrue(SetAmpOverride(self.amp, self.amp.dir_down))
 
+        
         shooter_tilt_up = JoystickButton(self.commander_joystick1,
                                          RBM.shooter_override_up_c1)
         shooter_tilt_up.whileTrue(ShooterMove(self.shooter,
@@ -340,8 +343,13 @@ class MyRobot(TimedCommandRobot):
 
             robot_pose_raw = fid['t6r_fs']
             # TODO: Verify that the rotation is the right value
-            pose = Pose2d(robot_pose_raw[0], robot_pose_raw[1],
-                          Rotation2d(radians(robot_pose_raw[3])))
+            offset_x = 8.2296
+            offset_y = offset_x / 2
+
+            realx = robot_pose_raw[0] + offset_x
+            realy = robot_pose_raw[1] + offset_y
+            rot = robot_pose_raw[3]
+            pose = Pose2d(realx, realy, Rotation2d(radians(rot)))
             poses.append(pose)
             certain_within.append(certainty)
         t2 = time()

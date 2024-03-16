@@ -148,6 +148,7 @@ class RobotButtonMap():
     amp_lift_amp_c2 = 11
     amp_lift_trap_c2 = 10
 
+    # Unused
     amp_override_up_c2 = 9
     amp_override_down_c2 = 7
 
@@ -156,6 +157,7 @@ class RobotButtonMap():
     shooter_shoot_c2 = 4
 
     shooter_spin_c2 = 3
+    
     
 
     # Not used?

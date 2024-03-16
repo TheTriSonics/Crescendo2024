@@ -91,6 +91,7 @@ class Shooter(Subsystem):
         self.feed_motor_right = CANSparkMax(RMM.shooter_motor_feed_right, CANSparkLowLevel.MotorType.kBrushless)
         self.feed_motor_left.setIdleMode(CANSparkMax.IdleMode.kCoast)
         self.feed_motor_right.setIdleMode(CANSparkMax.IdleMode.kCoast)
+        self.feed_motor_right.setInverted(True)
         # self.feed_motor = TalonFX(RMM.shooter_motor_feed)
 
         ### Shooter Tilt Motors ###
