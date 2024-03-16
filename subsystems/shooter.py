@@ -87,7 +87,10 @@ class Shooter(Subsystem):
         # self.shooter_motor_right.set_control(Follower(RMM.shooter_motor_left, True))
 
         ### Shooter Feed Motor ###
-        self.feed_motor = TalonFX(RMM.shooter_motor_feed, "canivore")
+        self.feed_motor_left = CANSparkMax(RMM.shooter_motor_feed_left, CANSparkLowLevel.MotorType.kBrushless)
+        self.feed_motor_right = CANSparkMax(RMM.shooter_motor_feed_right, CANSparkLowLevel.MotorType.kBrushless)
+        self.feed_motor_left.setIdleMode(CANSparkMax.IdleMode.kCoast)
+        self.feed_motor_right.setIdleMode(CANSparkMax.IdleMode.kCoast)
         # self.feed_motor = TalonFX(RMM.shooter_motor_feed)
 
         ### Shooter Tilt Motors ###
@@ -155,13 +158,16 @@ class Shooter(Subsystem):
         return abs(self.tilt_encoder.getAbsolutePosition() - self.tilt_target) < max_tilt_diff
 
     def feed_note(self):
-        self.feed_motor.set_control(DutyCycleOut(0.25))
+        self.feed_motor_left.set(0.25)
+        self.feed_motor_right.set(0.25)
 
     def feed_reverse(self):
-        self.feed_motor.set_control(DutyCycleOut(-0.25))
+        self.feed_motor_left.set(-0.25)
+        self.feed_motor_right.set(-0.25)
 
     def feed_off(self):
-        self.feed_motor.set_control(DutyCycleOut(0.0, override_brake_dur_neutral=True))
+        self.feed_motor_left.set(0.0)
+        self.feed_motor_left.right(0.0)
 
     def tilt_up(self):
         self.tilt_motor_left.set(0.2)

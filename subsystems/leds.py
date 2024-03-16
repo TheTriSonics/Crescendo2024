@@ -87,20 +87,37 @@ class Leds(Subsystem):
         self.leds.start()
 
     def periodic(self) -> None:
+        # Blinking red if the front intake photoeye is blocked
+        # That means we're in some kind of error state
         if self.photoeyes.get_intake_front():
             self.set_colorRGB(RED, True)
+        
+        # Next show various tracking modes
         elif self.drive.is_note_tracking():
             self.set_colorRGB(ORANGE)
             if not self.drive.is_note_visible():
                 self.set_colorRGB(ORANGE, True)
+        elif self.drive.is_speaker_tracking():
+            self.set_colorRGB(ORANGE)
+            if not self.drive.is_speaker_visible():
+                self.set_colorRGB(ORANGE, True)
+        elif self.drive.is_amp_tracking():
+            self.set_colorRGB(ORANGE)
+            if not self.drive.is_amp_visible():
+                self.set_colorRGB(ORANGE, True)
+
         elif self.photoeyes.get_intake_loaded():
             self.set_colorRGB(MAGENTA)
+        
         elif self.photoeyes.get_amp_loaded():
             self.set_colorRGB(YELLOW)
+       
         elif self.shooter.is_up_to_speed():
             self.set_colorRGB(WHITE)
+      
         elif self.photoeyes.get_shooter_loaded():
             self.set_colorRGB(BLUE)
+     
         else:
             self.set_colorRGB(BLACK)
 

@@ -61,9 +61,19 @@ class Drivetrain(Subsystem):
         
         pb(f'{sdbase}/note_tracking', False)
         pb(f'{sdbase}/note_visible', False)
+        
+        pb(f'{sdbase}/speaker_tracking', False)
+        pb(f'{sdbase}/speaker_visible', False)
+        
+        pb(f'{sdbase}/amp_tracking', False)
+        pb(f'{sdbase}/amp_visible', False)
 
         self.note_tracking = False
         self.note_visible = False
+        self.speaker_tracking = False
+        self.speaker_visible = False
+        self.amp_tracking = False
+        self.amp_visible = False
         self.lockable = False
         self.locked = False
         self.vision_stable = True
@@ -170,10 +180,28 @@ class Drivetrain(Subsystem):
         self.setDefaultCommand(self.defcmd)
 
     def is_note_tracking(self):
-        return self.defcmd.is_note_tracking()
+        fake = gb(f'{sdbase}/note_tracking', False)
+        return self.defcmd.is_note_tracking() or fake
 
     def is_note_visible(self):
-        return self.defcmd.is_note_visible()
+        fake = gb(f'{sdbase}/note_visible', False)
+        return self.defcmd.is_note_visible() or fake
+    
+    def is_speaker_tracking(self):
+        fake = gb(f'{sdbase}/speaker_tracking', False)
+        return self.defcmd.is_speaker_tracking() or fake
+
+    def is_speaker_visible(self):
+        fake = gb(f'{sdbase}/speaker_visible', False)
+        return self.defcmd.is_speaker_visible() or fake
+    
+    def is_amp_tracking(self):
+        fake = gb(f'{sdbase}/amp_tracking', False)
+        return self.defcmd.is_amp_tracking() or fake
+
+    def is_amp_visible(self):
+        fake = gb(f'{sdbase}/amp_visible', False)
+        return self.defcmd.is_amp_visible() or fake
 
     def lock_heading(self):
         self.desired_heading = self.get_heading_rotation_2d().degrees()
@@ -378,6 +406,22 @@ class DrivetrainDefaultCommand(Command):
     def is_note_visible(self):
         fake = gb(f'{sdbase}/note_visible', False)
         return self.drivetrain.note_visible or fake
+    
+    def is_speaker_tracking(self):
+        fake = gb(f'{sdbase}/speaker_tracking', False)
+        return self.drivetrain.speaker_tracking or fake
+
+    def is_speaker_visible(self):
+        fake = gb(f'{sdbase}/speaker_visible', False)
+        return self.drivetrain.speaker_visible or fake
+    
+    def is_amp_tracking(self):
+        fake = gb(f'{sdbase}/amp_tracking', False)
+        return self.drivetrain.amp_tracking or fake
+
+    def is_amp_visible(self):
+        fake = gb(f'{sdbase}/amp_visible', False)
+        return self.drivetrain.amp_visible or fake
 
     def execute(self) -> None:
         if self.desired_heading is None:
@@ -436,8 +480,9 @@ class DrivetrainDefaultCommand(Command):
         # When in lockon mode, the robot will rotate to face the node
         # that PhotonVision is detecting
         robot_centric_force = False
-        self.note_tracking = False
-        self.note_visible = False
+        
+        self.drivetrain.note_tracking = False
+        self.drivetrain.note_visible = False
         if self.controller.get_note_lockon():
             self.note_tracking = True
             robot_centric_force = True
@@ -463,22 +508,22 @@ class DrivetrainDefaultCommand(Command):
                         ySpeed = self.note_translate_pid.calculate(yaw, 0)
 
         if self.controller.get_slow_mode():
-            self.leds.drivetrain_slow()
             xSpeed *= slow_mode_factor
             ySpeed *= slow_mode_factor
             rot *= slow_mode_factor
 
+        self.drivetrain.speaker_tracking = False
+        self.drivetrain.speaker_visible = False
         if self.controller.get_speaker_lockon():
+            self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
             heading = self.drivetrain.get_fid_heading(fid)
             if heading is not None:
-                self.leds.tracking_speaker()
+                self.drivetrain.speaker_visible = True
                 if abs(heading) < 3.0:
                     rot = 0
                 else:
                     rot = self.speaker_pid.calculate(heading, 0)
-            else:  # Not found
-                self.leds.tracking_speaker_not_found()
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
