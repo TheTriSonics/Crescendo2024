@@ -348,7 +348,8 @@ class MyRobot(TimedCommandRobot):
 
             realx = robot_pose_raw[0] + offset_x
             realy = robot_pose_raw[1] + offset_y
-            rot = robot_pose_raw[3]
+            # Jim Change - the LL t6r_fs gives us "Robot Pose in field space as computed by solvepnp (x,y,z,rx,ry,rz)".  We want rotation around the z axis (yaw).
+            rot = robot_pose_raw[5]
             pose = Pose2d(realx, realy, Rotation2d(radians(rot)))
             poses.append(pose)
             certain_within.append(certainty)
