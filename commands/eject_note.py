@@ -23,7 +23,7 @@ class EjectNote(Command):
         self.timer.start()
 
     def execute(self):
-        print("Ejecting Note")
+        # print("Ejecting Note")
         if self.forceQuit:
             return
         if self.intake.is_down():

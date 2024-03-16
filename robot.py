@@ -220,7 +220,7 @@ class MyRobot(TimedCommandRobot):
                     rot = p.rotation().degrees()
                     # self.swerve.odometry.addVisionMeasurement(p, 0, (0.1, 0.1, 0.1))
                     ts = self.vision_timer.getFPGATimestamp() - timelag
-                    # print(f'vision heading: {x}, {y}, {rot}, {ts}')
+                    print(f'vision heading: {x}, {y}, {rot}, {ts}')
                     xdev, ydev, rotdev = cw
                     self.swerve.odometry.addVisionMeasurement(
                         p, ts, (xdev, ydev, rotdev)
@@ -330,7 +330,7 @@ class MyRobot(TimedCommandRobot):
             # start with a very uncertain value unless a condition is met to
             # say otherwise. The format is undertainty in the x in meters,
             # y in meters, and rotation in degrees
-            certainty = 10
+            certainty = (10, 10, 5)
             if target_area > 200:
                 certainty = (3, 3, 10)
             if target_area > 300:

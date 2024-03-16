@@ -467,7 +467,8 @@ class DrivetrainDefaultCommand(Command):
                 # print(p, i ,d)
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
                 if  abs(rot) > 0.002:
-                    print('rotation lock on power', rot)
+                    # print('rotation lock on power', rot)
+                    pass
                 else:
                     rot = 0
             else:

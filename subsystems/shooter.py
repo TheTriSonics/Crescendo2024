@@ -54,10 +54,10 @@ class Shooter(Subsystem):
         self.tilt_target = tilt_load_limit
 
         # Initialize the motor controllers
-        self.shooter_motor_left = TalonFX(RMM.shooter_motor_left, "canivore")
-        self.shooter_motor_right = TalonFX(RMM.shooter_motor_right, "canivore")
-        # self.shooter_motor_left = TalonFX(RMM.shooter_motor_left)
-        # self.shooter_motor_right = TalonFX(RMM.shooter_motor_right)
+        # self.shooter_motor_left = TalonFX(RMM.shooter_motor_left, "canivore")
+        # self.shooter_motor_right = TalonFX(RMM.shooter_motor_right, "canivore")
+        self.shooter_motor_left = TalonFX(RMM.shooter_motor_left)
+        self.shooter_motor_right = TalonFX(RMM.shooter_motor_right)
 
         # p, i, d = 0.1, 0.0, 0.0
         # self.left_shooter_pid = PIDController(p, i, d)
@@ -167,7 +167,7 @@ class Shooter(Subsystem):
 
     def feed_off(self):
         self.feed_motor_left.set(0.0)
-        self.feed_motor_left.right(0.0)
+        self.feed_motor_right.set(0.0)
 
     def tilt_up(self):
         self.tilt_motor_left.set(0.2)
@@ -179,7 +179,8 @@ class Shooter(Subsystem):
 
     def halt(self):
         # Stop the shooter motor
-        self.shooter_motor_left.set_control(DutyCycleOut(0, override_brake_dur_neutral=False))
+        self.shooter_motor_left.set(0)
+        self.shooter_motor_right.set(0)
 
     def safe_shot(self):
         self.tilt_target = tilt_safe

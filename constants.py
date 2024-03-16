@@ -72,8 +72,8 @@ class RobotMotorMap():
     shooter_motor_left = 41
     shooter_motor_right = 42
 
-    shooter_motor_feed_right = 46
-    shooter_motor_feed_left = 47
+    shooter_motor_feed_right = 47
+    shooter_motor_feed_left = 46
 
     shooter_motor_tilt_left = 44
     shooter_motor_tilt_right = 45
