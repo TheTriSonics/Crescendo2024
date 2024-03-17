@@ -80,6 +80,7 @@ class MyRobot(TimedCommandRobot):
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
                                             self.note_tracker)
+        # Why do we have two of these?
         self.note_tracker = note_tracker.NoteTracker()
         self.climber = climber.Climber(self.driver, self.commander)
         self.leds = leds.Leds(

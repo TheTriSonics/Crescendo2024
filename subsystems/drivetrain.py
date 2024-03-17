@@ -518,13 +518,14 @@ class DrivetrainDefaultCommand(Command):
         if self.controller.get_speaker_lockon():
             self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
-            heading = self.drivetrain.get_fid_heading(fid)
-            if heading is not None:
+            speakerheading = self.drivetrain.get_fid_heading(fid)
+            print('Speaker heading', speakerheading)
+            if speakerheading is not None:
                 self.drivetrain.speaker_visible = True
-                if abs(heading) < 3.0:
+                if abs(speakerheading) < 3.0:
                     rot = 0
                 else:
-                    rot = self.speaker_pid.calculate(heading, 0)
+                    rot = self.speaker_pid.calculate(speakerheading, 0)
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
