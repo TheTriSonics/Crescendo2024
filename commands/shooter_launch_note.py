@@ -26,8 +26,8 @@ class ShooterLaunchNote(Command):
     def end(self, interrupted: bool) -> None:
         self.shooter.feed_off()
         self.shooter.prepare_to_load()
-        self.shooter.shooter_motor_left.set_control(DutyCycleOut(0.0), override_brake_dur_neutral=True)
-        self.shooter.shooter_motor_right.set_control(DutyCycleOut(0.0), override_brake_dur_neutral=True)
+        self.shooter.shooter_motor_left.set_control(DutyCycleOut(0.0))
+        self.shooter.shooter_motor_right.set_control(DutyCycleOut(0.0))
 
     def isFinished(self) -> bool:
         return self.shot_fired and self.shot_timer.hasElapsed(1.0)
