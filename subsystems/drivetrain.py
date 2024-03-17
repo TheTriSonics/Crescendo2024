@@ -342,8 +342,8 @@ class Drivetrain(Subsystem):
             if f['fID'] != id:
                 continue
             tag_heading = f['tx']
-        pn = SmartDashboard.putNumber
-        pn(f'fids/{id}', tag_heading)
+        # pn = SmartDashboard.putNumber
+        # pn(f'fids/{id}', tag_heading)
         return tag_heading
 
     def periodic(self) -> None:
@@ -518,14 +518,13 @@ class DrivetrainDefaultCommand(Command):
         if self.controller.get_speaker_lockon():
             self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
-            speakerheading = self.drivetrain.get_fid_heading(fid)
-            if speakerheading is not None:
-                print('Speaker heading', speakerheading)
+            speaker_heading = self.drivetrain.get_fid_heading(fid)
+            if speaker_heading is not None:
                 self.drivetrain.speaker_visible = True
-                if abs(speakerheading) < 3.0:
+                if abs(speaker_heading) < 3.0:
                     rot = 0
                 else:
-                    rot = self.speaker_pid.calculate(speakerheading, 0)
+                    rot = self.speaker_pid.calculate(speaker_heading, 0)
 
         """
         SmartDashboard.putNumber('xspeed', xSpeed)
