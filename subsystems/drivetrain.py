@@ -78,6 +78,7 @@ class Drivetrain(Subsystem):
         self.locked = False
         self.vision_stable = True
 
+
         # Half the motors need to be inverted to run the right direction and
         # half are in brake mode to slow the robot down faster but also not
         # make it come to a complete stop too quickly.
@@ -381,6 +382,7 @@ class DrivetrainDefaultCommand(Command):
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
+        self.saved_yaw = None
 
     def initialize(self):
         self.swapped = False
@@ -496,8 +498,10 @@ class DrivetrainDefaultCommand(Command):
                 yaw = self.current_yaw
                 pn('drivetrain/note_tracker/yaw', yaw)
             pitch = self.photon.getPitchOffset()
-            if yaw_raw is not None:
-                rot = self.note_pid.calculate(yaw_raw, 0)
+            if yaw_raw is not None and self.saved_yaw is not None:
+                self.saved_yaw = yaw_raw
+            if self.saved_yaw is not None:
+                rot = self.note_pid.calculate(self.saved_yaw, self.gyro.get_yaw())
                 # if abs(yaw_raw) < 1.7:
                 #     rot = 0
                 # else:
