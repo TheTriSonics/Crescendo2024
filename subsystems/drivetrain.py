@@ -519,8 +519,8 @@ class DrivetrainDefaultCommand(Command):
             self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
             speakerheading = self.drivetrain.get_fid_heading(fid)
-            print('Speaker heading', speakerheading)
             if speakerheading is not None:
+                print('Speaker heading', speakerheading)
                 self.drivetrain.speaker_visible = True
                 if abs(speakerheading) < 3.0:
                     rot = 0
