@@ -493,20 +493,23 @@ class DrivetrainDefaultCommand(Command):
                 self.note_visible = True
                 self.current_yaw = self.note_yaw_filtered.calculate(yaw_raw)
                 pn('drivetrain/note_tracker/yaw_raw', yaw_raw)
-            yaw = self.current_yaw
-            pn('drivetrain/note_tracker/yaw', yaw)
+                yaw = self.current_yaw
+                pn('drivetrain/note_tracker/yaw', yaw)
             pitch = self.photon.getPitchOffset()
-            if yaw is not None:
-                if abs(yaw) < 1.7:
-                    rot = 0
-                    xSpeed = 0.5
-                else:
-                    if pitch is not None and pitch > 0:
-                        rot = self.note_pid.calculate(yaw, 0)
-                    else:
-                        rot = 0
-                        # Force a translation to center on the note when close
-                        ySpeed = self.note_translate_pid.calculate(yaw, 0)
+            if yaw_raw is not None:
+                rot = self.note_pid.calculate(yaw_raw, 0)
+                # if abs(yaw_raw) < 1.7:
+                #     rot = 0
+                # else:
+                #     rot = self.note_pid.calculate(yaw_raw, 0)
+                #     xSpeed = 0.5
+                # else:
+                #     if pitch is not None and pitch > 0:
+                #         rot = self.note_pid.calculate(yaw, 0)
+                #     else:
+                #         rot = 0
+                #         # Force a translation to center on the note when close
+                #         ySpeed = self.note_translate_pid.calculate(yaw, 0)
 
         if self.controller.get_slow_mode():
             xSpeed *= slow_mode_factor

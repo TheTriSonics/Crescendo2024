@@ -20,7 +20,7 @@ tilt_upper_limit = 0.856
 max_tilt_diff = 0.0015
 
 tilt_sub = 0.84
-tilt_safe = 0.79
+tilt_safe = 0.778
 
 pn = SmartDashboard.putNumber
 gn = SmartDashboard.getNumber
