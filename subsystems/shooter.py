@@ -7,7 +7,9 @@ from wpimath.controller import PIDController
 from phoenix6.configs import TalonFXConfiguration
 from phoenix6.controls import DutyCycleOut, VelocityDutyCycle
 from phoenix6.hardware import TalonFX
+from phoenix6.controls import CoastOut
 from rev import CANSparkMax, CANSparkLowLevel
+
 
 # Local application/library specific imports
 from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
@@ -194,9 +196,11 @@ class Shooter(Subsystem):
     def spin_up(self):
         self.speed_target = self.waiting_speed_target
 
-    # Remove in favor of "halt" and using neutral
     def spin_down(self):
-        self.speed_target = 0
+        # Set the motor to coast
+        self.shooter_motor_left.set_control(CoastOut())
+        self.shooter_motor_right.set_control(CoastOut())
+        # self.speed_target = 0
 
     def prepare_to_load(self):
         self.tilt_target = tilt_load_limit
