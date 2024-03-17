@@ -188,7 +188,7 @@ class MyRobot(TimedCommandRobot):
         shooter_spin = JoystickButton(self.commander_joystick2,
                                       RBM.shooter_spin_c2)
         shooter_spin.onTrue(InstantCommand(self.shooter.spin_up))
-        shooter_spin.onFalse(InstantCommand(self.shooter.spin_down))
+        shooter_spin.onFalse(InstantCommand(self.shooter.halt))
 
     def robotPeriodic(self) -> None:
         # Rough idea of how to incorporate vision into odometry

@@ -180,8 +180,8 @@ class Shooter(Subsystem):
 
     def halt(self):
         # Stop the shooter motor
-        self.shooter_motor_left.set_control(DutyCycleOut(0), override_brake_dur_neutral=False)
-        self.shooter_motor_right.set_control(DutyCycleOut(0), override_brake_dur_neutral=False)
+        self.shooter_motor_left.set_control(DutyCycleOut(0), override_brake_dur_neutral=True)
+        self.shooter_motor_right.set_control(DutyCycleOut(0), override_brake_dur_neutral=True)
 
     def safe_shot(self):
         self.tilt_target = tilt_safe
@@ -194,8 +194,9 @@ class Shooter(Subsystem):
     def spin_up(self):
         self.speed_target = self.waiting_speed_target
 
-    def spin_down(self):
-        self.speed_target = 0
+    # Remove in favor of "halt" and using neutral
+    # def spin_down(self):
+    #     self.speed_target = 0
 
     def prepare_to_load(self):
         self.tilt_target = tilt_load_limit
