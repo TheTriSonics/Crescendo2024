@@ -17,7 +17,7 @@ class Photoeyes(Subsystem):
         self.amp_hold_photoeye = DigitalInput(RSM.amp_hold_photoeye)
         self.shooter_hold_photoeye = DigitalInput(RSM.shooter_hold_photoeye)
         pb(f'{sdbase}/intake_front', False)
-        pb(f'{sdbase}/intake_loaded', False)
+        pb(f'{sdbase}/intake_loaded', True)
         pb(f'{sdbase}/shooter_loaded', False)
         pb(f'{sdbase}/amp_loaded', False)
 

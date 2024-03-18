@@ -36,7 +36,6 @@ kMaxAngularSpeed = math.pi * 5
 
 swerve_offset = 27 / 100  # cm converted to meters
 
-slow_mode_factor = 1/2
 
 pn = SmartDashboard.putNumber
 gn = SmartDashboard.getNumber
@@ -59,13 +58,13 @@ class Drivetrain(Subsystem):
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
         self.photon = photon
-        
+
         pb(f'{sdbase}/note_tracking', False)
         pb(f'{sdbase}/note_visible', False)
-        
+
         pb(f'{sdbase}/speaker_tracking', False)
         pb(f'{sdbase}/speaker_visible', False)
-        
+
         pb(f'{sdbase}/amp_tracking', False)
         pb(f'{sdbase}/amp_visible', False)
 
@@ -188,7 +187,7 @@ class Drivetrain(Subsystem):
     def is_note_visible(self):
         fake = gb(f'{sdbase}/note_visible', False)
         return self.defcmd.is_note_visible() or fake
-    
+
     def is_speaker_tracking(self):
         fake = gb(f'{sdbase}/speaker_tracking', False)
         return self.defcmd.is_speaker_tracking() or fake
@@ -196,7 +195,7 @@ class Drivetrain(Subsystem):
     def is_speaker_visible(self):
         fake = gb(f'{sdbase}/speaker_visible', False)
         return self.defcmd.is_speaker_visible() or fake
-    
+
     def is_amp_tracking(self):
         fake = gb(f'{sdbase}/amp_tracking', False)
         return self.defcmd.is_amp_tracking() or fake
@@ -374,7 +373,6 @@ class DrivetrainDefaultCommand(Command):
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
         self.straight_drive_pid.setTolerance(2.0)
-        self.zero_rotation_counter = 0
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(5.0)
         self.yslew = SlewRateLimiter(5.0)
@@ -400,7 +398,7 @@ class DrivetrainDefaultCommand(Command):
 
     def lock_heading(self):
         self.desired_heading = self._curr_heading()
-    
+
     def is_note_tracking(self):
         fake = gb(f'{sdbase}/note_tracking', False)
         return self.drivetrain.note_tracking or fake
@@ -408,7 +406,7 @@ class DrivetrainDefaultCommand(Command):
     def is_note_visible(self):
         fake = gb(f'{sdbase}/note_visible', False)
         return self.drivetrain.note_visible or fake
-    
+
     def is_speaker_tracking(self):
         fake = gb(f'{sdbase}/speaker_tracking', False)
         return self.drivetrain.speaker_tracking or fake
@@ -416,7 +414,7 @@ class DrivetrainDefaultCommand(Command):
     def is_speaker_visible(self):
         fake = gb(f'{sdbase}/speaker_visible', False)
         return self.drivetrain.speaker_visible or fake
-    
+
     def is_amp_tracking(self):
         fake = gb(f'{sdbase}/amp_tracking', False)
         return self.drivetrain.amp_tracking or fake
@@ -426,6 +424,7 @@ class DrivetrainDefaultCommand(Command):
         return self.drivetrain.amp_visible or fake
 
     def execute(self) -> None:
+        # Heading is in degrees here
         if self.desired_heading is None:
             self.desired_heading = self._curr_heading()
         curr = self.drivetrain.get_heading_rotation_2d().degrees()
@@ -459,20 +458,18 @@ class DrivetrainDefaultCommand(Command):
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
-        if rot == 0:
-            self.zero_rotation_counter += 1
         if rot != 0:
             self.lock_heading()
         else:
-            if abs(curr - self.desired_heading) > 1.0:
-                # p, i, d = self.straight_drive_pid.getP(), self.straight_drive_pid.getI(), self.straight_drive_pid.getD()
-                # print(p, i ,d)
+            error = curr - self.desired_heading
+            if abs(error) > 1.0:
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
-                if  abs(rot) > 0.002:
-                    # print('rotation lock on power', rot)
-                    pass
-                else:
-                    rot = 0
+                # If we're more than 15 degrees off, force the robot to rotate
+                # at max power; this means a fast start to rotation and we
+                # can tune the PID without worrying about the acceleration here
+                # as the underlying drivetrain will handle that.
+                if abs(error) > 15:
+                    rot = 1 if rot > 0 else -1
             else:
                 rot = 0
 
@@ -483,7 +480,7 @@ class DrivetrainDefaultCommand(Command):
         # When in lockon mode, the robot will rotate to face the node
         # that PhotonVision is detecting
         robot_centric_force = False
-        
+
         self.drivetrain.note_tracking = False
         self.drivetrain.note_visible = False
         if self.controller.get_note_lockon():
@@ -517,7 +514,10 @@ class DrivetrainDefaultCommand(Command):
                 #         # Force a translation to center on the note when close
                 #         ySpeed = self.note_translate_pid.calculate(yaw, 0)
 
+        self.slow_mode = False
         if self.controller.get_slow_mode():
+            self.slow_mode = True
+            slow_mode_factor = 1/2
             xSpeed *= slow_mode_factor
             ySpeed *= slow_mode_factor
             rot *= slow_mode_factor
@@ -537,19 +537,5 @@ class DrivetrainDefaultCommand(Command):
                 else:
                     rot = self.speaker_pid.calculate(speaker_heading, 0)
 
-        """
-        SmartDashboard.putNumber('xspeed', xSpeed)
-        SmartDashboard.putNumber('yspeed', ySpeed)
-        SmartDashboard.putNumber('rot', rot)
-        # Code to lock the wheels if the robot is idle
-        if xSpeed > 0 or ySpeed > 0 or rot > 0:
-            self.idle_counter = 0
-            self.drivetrain.locked = False
-            self.drivetrain.lockable = False
-        else:
-            self.idle_counter += 1
-        if self.idle_counter > 50:
-            self.drivetrain.lockable = True
-        """
         self.drivetrain.drive(xSpeed, ySpeed, rot,
                               robot_centric_force=robot_centric_force)

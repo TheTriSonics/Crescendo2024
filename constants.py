@@ -5,7 +5,7 @@ class RobotPIDConstants():
     note_tracking_pid = (0.07, 0, 0.004)
     note_translate_pid = note_tracking_pid
     speaker_tracking_pid = (0.06, 0, 0)
-    # well, guess no, we don't want PID for that. 
+    # well, guess no, we don't want PID for that.
     # It makes it squishy
     straight_drive_pid = [0.04, 0, 0.001] # JRD Was 0.015, 0, 0.001
 
@@ -157,8 +157,10 @@ class RobotButtonMap():
     shooter_shoot_c2 = 4
 
     shooter_spin_c2 = 3
-    
-    
+
+    # Reset odometry to whatever vision thinks we're at.
+    reset_odometry_c2 = 5
+    override_shooter_speed_c2 = 6
 
     # Not used?
     climber_up_c2 = 5

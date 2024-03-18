@@ -86,3 +86,11 @@ def safe_float(func):
         except Exception:
             return 0.00
     return wrapper
+
+
+def iterable(obj):
+    try:
+        iter(obj)
+    except:  # noqa: E722
+        return False
+    return True
