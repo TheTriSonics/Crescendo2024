@@ -116,12 +116,11 @@ class MyRobot(TimedCommandRobot):
         swap_button = JoystickButton(self.driver_joystick, RBM.swap_direction)
         swap_button.onTrue(InstantCommand(self.swerve.swapDirection))
 
-
     def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1,
                                        RBM.intake_ready_c1)
         intake_button.onTrue(IntakeNote(self.intake, self.shooter,
-                                           self.gyro, self.photoeyes))
+                                        self.gyro, self.photoeyes))
 
         eject_button = JoystickButton(self.commander_joystick1,
                                       RBM.intake_eject_c1)
@@ -148,7 +147,6 @@ class MyRobot(TimedCommandRobot):
                                             RBM.amp_lift_trap_c2)
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.TRAP))
 
-        # TODO: These can be made to do something else; intake doesn't move
         amp_override_up = JoystickButton(self.commander_joystick2,
                                          RBM.amp_override_up_c2)
         amp_override_up.whileTrue(SetAmpOverride(self.amp, self.amp.dir_up))
@@ -188,6 +186,14 @@ class MyRobot(TimedCommandRobot):
                                       RBM.shooter_spin_c2)
         shooter_spin.onTrue(InstantCommand(self.shooter.spin_up))
         shooter_spin.onFalse(InstantCommand(self.shooter.spin_down))
+
+        reset_odo = JoystickButton(self.commander_joystick2,
+                                   RBM.reset_odometry_c2)
+        reset_odo.onTrue(InstantCommand(self.resetOdometryToCurrentPose))
+
+    def resetOdometryToCurrentPose(self):
+        curr_pose = self.swerve.getPose()
+        self.swerve.resetOdometry(curr_pose)
 
     def robotPeriodic(self) -> None:
         # Rough idea of how to incorporate vision into odometry

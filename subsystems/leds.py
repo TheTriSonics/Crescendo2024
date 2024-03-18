@@ -66,7 +66,7 @@ class Leds(Subsystem):
         self.rainbow_mode = False
         self.leds.setLength(self.led_length)
 
-        led = AddressableLED.LEDData()
+        led = AddressableLED.LEDData
         self.led_data = [led() for _ in range(self.led_length)]
 
         self.rainbowFirstPixelHue = 0
