@@ -15,10 +15,10 @@ class IntakeNote(Command):
         self.amp = amp
         self.photoeyes = photoeyes
         self.addRequirements(intake)
+        self.timer = Timer()
         self.timer.start()
 
     def initialize(self):
-        self.timer = Timer()
         self.forceQuit = False
         shooter_loaded = self.photoeyes.get_shooter_loaded()
         amp_loaded = self.photoeyes.get_amp_loaded()

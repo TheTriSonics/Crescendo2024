@@ -120,7 +120,7 @@ class MyRobot(TimedCommandRobot):
     def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1,
                                        RBM.intake_ready_c1)
-        intake_button.whileTrue(IntakeNote(self.intake, self.shooter,
+        intake_button.onTrue(IntakeNote(self.intake, self.shooter,
                                            self.gyro, self.photoeyes))
 
         eject_button = JoystickButton(self.commander_joystick1,

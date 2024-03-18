@@ -498,10 +498,11 @@ class DrivetrainDefaultCommand(Command):
                 yaw = self.current_yaw
                 pn('drivetrain/note_tracker/yaw', yaw)
             pitch = self.photon.getPitchOffset()
-            if yaw_raw is not None and self.saved_yaw is not None:
+            if yaw_raw is not None and self.saved_yaw is None:
                 self.saved_yaw = yaw_raw
             if self.saved_yaw is not None:
-                rot = self.note_pid.calculate(self.saved_yaw, self.gyro.get_yaw())
+                print("yaw", self.gyro.get_yaw())
+                rot = -self.note_pid.calculate(self.gyro.get_yaw(), self.saved_yaw)
                 # if abs(yaw_raw) < 1.7:
                 #     rot = 0
                 # else:
