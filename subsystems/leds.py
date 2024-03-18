@@ -66,7 +66,8 @@ class Leds(Subsystem):
         self.rainbow_mode = False
         self.leds.setLength(self.led_length)
 
-        self.led_data = [AddressableLED.LEDData() for _ in range(self.led_length)]
+        led = AddressableLED.LEDData()
+        self.led_data = [led() for _ in range(self.led_length)]
 
         self.rainbowFirstPixelHue = 0
         self.set_colorRGB((0, 255, 0))
@@ -133,14 +134,11 @@ class Leds(Subsystem):
         for i in range(self.led_length):
             # Calculate the hue - hue is easier for rainbows because the color
             # shape is a circle so only one value needs to precess
-            hue = (self.rainbowFirstPixelHue + (i * 180 / self.led_length)) % 180
-
+            hue = (self.rainbowFirstPixelHue + (i*180/self.led_length)) % 180
             # Set the value
             self.led_data[i].setHSV(int(hue), 255, 128)
-
         # Increase by to make the rainbow "move"
         self.rainbowFirstPixelHue += 3
-
         # Check bounds
         self.rainbowFirstPixelHue %= 180
 
