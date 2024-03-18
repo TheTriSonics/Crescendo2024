@@ -41,6 +41,8 @@ class Shooter(Subsystem):
         super().__init__()
         self.alive_timer = Timer()
         self.alive_timer.start()
+        self.speed_timer = Timer()
+        self.speed_timer.start()
         self.left_tilt_encoder_last = None
         self.right_tilt_encoder_last = None
         pb(f'{sdbase}/is_up_to_speed', False)
@@ -152,10 +154,19 @@ class Shooter(Subsystem):
         self.tilt_target = tilt
 
     def is_up_to_speed(self):
+        # If somebody asks for this value, and we return a true we want to keep
+        # returning true for at least this time delay. It prevents flashing
+        # of the LEDs when coing up to speed
+        if not self.speed_timer.hasElapsed(1.0):
+            return True
+
         fake = gb(f'{sdbase}/is_up_to_speed', False)
         if self.speed_target == 0:
-            return False or fake
-        return fake or (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1)
+            ret = False or fake
+        ret = fake or (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1)
+        if ret is True:
+            self.speed_timer.restart()
+        return ret
 
     def is_tilt_aimed(self):
         return abs(self.tilt_encoder.getAbsolutePosition() - self.tilt_target) < max_tilt_diff
