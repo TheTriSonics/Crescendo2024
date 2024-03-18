@@ -2,12 +2,12 @@ from misc import is_sim
 
 
 class RobotPIDConstants():
-    note_tracking_pid = (0.006, 0, 0)
+    note_tracking_pid = (0.07, 0, 0.004)
     note_translate_pid = note_tracking_pid
-    speaker_tracking_pid = (0.006, 0, 0)
+    speaker_tracking_pid = (0.06, 0, 0)
     # well, guess no, we don't want PID for that. 
     # It makes it squishy
-    straight_drive_pid = [0.015, 0, 0.001]
+    straight_drive_pid = [0.04, 0, 0.001] # JRD Was 0.015, 0, 0.001
 
 
 class RobotMotorMap():

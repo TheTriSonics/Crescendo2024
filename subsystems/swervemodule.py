@@ -74,7 +74,7 @@ class SwerveModule(Subsystem):
         drive_PID = configs.Slot0Configs()
         drive_PID.k_p = 0.00  # Was 0.16
         drive_PID.k_d = 0.00
-        drive_PID.k_s = 0.045  # Was 0.045 but we got dithering / jitter
+        drive_PID.k_s = 0.01  # Was 0.045 but we got dithering / jitter
         drive_PID.k_v = 0.09  # Was 0.09
         driveConfigurator.apply(drive_PID)
 

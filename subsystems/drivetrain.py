@@ -382,7 +382,6 @@ class DrivetrainDefaultCommand(Command):
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
-        self.saved_yaw = None
 
     def initialize(self):
         self.swapped = False
@@ -498,11 +497,9 @@ class DrivetrainDefaultCommand(Command):
                 yaw = self.current_yaw
                 pn('drivetrain/note_tracker/yaw', yaw)
             pitch = self.photon.getPitchOffset()
-            if yaw_raw is not None and self.saved_yaw is None:
-                self.saved_yaw = yaw_raw
-            if self.saved_yaw is not None:
-                print("yaw", self.gyro.get_yaw())
-                rot = -self.note_pid.calculate(self.gyro.get_yaw(), self.saved_yaw)
+            if yaw_raw is not None:
+                rot = self.note_pid.calculate(yaw_raw, 0)
+                xSpeed = 2
                 # if abs(yaw_raw) < 1.7:
                 #     rot = 0
                 # else:
