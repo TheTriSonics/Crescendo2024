@@ -15,10 +15,10 @@ class IntakeNote(Command):
         self.amp = amp
         self.photoeyes = photoeyes
         self.addRequirements(intake)
+        self.timer = Timer()
+        self.timer.start()
 
     def initialize(self):
-        self.intake.tilt_down()
-        self.timer = Timer()
         self.forceQuit = False
         shooter_loaded = self.photoeyes.get_shooter_loaded()
         amp_loaded = self.photoeyes.get_amp_loaded()
@@ -32,16 +32,17 @@ class IntakeNote(Command):
         self.intake.feed()
         if self.photoeyes.get_intake_loaded():
             self.intake.halt()
-            self.intake.tilt_up()
             self.forceQuit = True
         pass
 
     def end(self, interrupted: bool):
         self.intake.halt()
-        self.intake.tilt_up()
         pass
 
+    # added a timer to the isFinished method @ Ethan #1
     def isFinished(self):
         if self.forceQuit:
+            return True
+        if self.timer.get() > 3.0:
             return True
         return False

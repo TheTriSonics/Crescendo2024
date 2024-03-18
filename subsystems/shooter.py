@@ -20,7 +20,7 @@ tilt_upper_limit = 0.856
 max_tilt_diff = 0.0015
 
 tilt_sub = 0.84
-tilt_safe = 0.79
+tilt_safe = 0.778
 
 pn = SmartDashboard.putNumber
 gn = SmartDashboard.getNumber
@@ -200,7 +200,7 @@ class Shooter(Subsystem):
         # Set the motor to coast
         self.shooter_motor_left.set_control(CoastOut())
         self.shooter_motor_right.set_control(CoastOut())
-        # self.speed_target = 0
+        self.speed_target = 0
 
     def prepare_to_load(self):
         self.tilt_target = tilt_load_limit

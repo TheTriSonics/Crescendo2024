@@ -77,6 +77,7 @@ class Drivetrain(Subsystem):
         self.locked = False
         self.vision_stable = True
 
+
         # Half the motors need to be inverted to run the right direction and
         # half are in brake mode to slow the robot down faster but also not
         # make it come to a complete stop too quickly.
@@ -341,8 +342,8 @@ class Drivetrain(Subsystem):
             if f['fID'] != id:
                 continue
             tag_heading = f['tx']
-        pn = SmartDashboard.putNumber
-        pn(f'fids/{id}', tag_heading)
+        # pn = SmartDashboard.putNumber
+        # pn(f'fids/{id}', tag_heading)
         return tag_heading
 
     def periodic(self) -> None:
@@ -490,20 +491,24 @@ class DrivetrainDefaultCommand(Command):
                 self.note_visible = True
                 self.current_yaw = self.note_yaw_filtered.calculate(yaw_raw)
                 pn('drivetrain/note_tracker/yaw_raw', yaw_raw)
-            yaw = self.current_yaw
-            pn('drivetrain/note_tracker/yaw', yaw)
+                yaw = self.current_yaw
+                pn('drivetrain/note_tracker/yaw', yaw)
             pitch = self.photon.getPitchOffset()
-            if yaw is not None:
-                if abs(yaw) < 1.7:
-                    rot = 0
-                    xSpeed = 0.5
-                else:
-                    if pitch is not None and pitch > 0:
-                        rot = self.note_pid.calculate(yaw, 0)
-                    else:
-                        rot = 0
-                        # Force a translation to center on the note when close
-                        ySpeed = self.note_translate_pid.calculate(yaw, 0)
+            if yaw_raw is not None:
+                rot = self.note_pid.calculate(yaw_raw, 0)
+                xSpeed = 2
+                # if abs(yaw_raw) < 1.7:
+                #     rot = 0
+                # else:
+                #     rot = self.note_pid.calculate(yaw_raw, 0)
+                #     xSpeed = 0.5
+                # else:
+                #     if pitch is not None and pitch > 0:
+                #         rot = self.note_pid.calculate(yaw, 0)
+                #     else:
+                #         rot = 0
+                #         # Force a translation to center on the note when close
+                #         ySpeed = self.note_translate_pid.calculate(yaw, 0)
 
         self.slow_mode = False
         if self.controller.get_slow_mode():
@@ -518,13 +523,13 @@ class DrivetrainDefaultCommand(Command):
         if self.controller.get_speaker_lockon():
             self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
-            heading = self.drivetrain.get_fid_heading(fid)
-            if heading is not None:
+            speaker_heading = self.drivetrain.get_fid_heading(fid)
+            if speaker_heading is not None:
                 self.drivetrain.speaker_visible = True
-                if abs(heading) < 3.0:
+                if abs(speaker_heading) < 3.0:
                     rot = 0
                 else:
-                    rot = self.speaker_pid.calculate(heading, 0)
+                    rot = self.speaker_pid.calculate(speaker_heading, 0)
 
         self.drivetrain.drive(xSpeed, ySpeed, rot,
                               robot_centric_force=robot_centric_force)

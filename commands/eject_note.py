@@ -26,13 +26,11 @@ class EjectNote(Command):
         # print("Ejecting Note")
         if self.forceQuit:
             return
-        if self.intake.is_down():
-            self.intake.reverse()
+        self.intake.reverse()
 
     def end(self, interrupted: bool):
         print("Eject done")
         self.intake.halt()
-        self.intake.tilt_up()
 
     def isFinished(self):
         if self.forceQuit:
