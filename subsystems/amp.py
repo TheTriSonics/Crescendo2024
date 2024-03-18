@@ -89,4 +89,4 @@ class Amp(Subsystem):
             limit_reverse_motion=True
         ).with_limit_reverse_motion(not self.limit_switch.get())
         self.lift_motor.set_control(self.request.with_position(self.height))
-        
+

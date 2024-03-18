@@ -157,7 +157,7 @@ class MyRobot(TimedCommandRobot):
                                            RBM.amp_override_down_c2)
         amp_override_down.whileTrue(SetAmpOverride(self.amp, self.amp.dir_down))
 
-        
+
         shooter_tilt_up = JoystickButton(self.commander_joystick1,
                                          RBM.shooter_override_up_c1)
         shooter_tilt_up.whileTrue(ShooterMove(self.shooter,
@@ -223,7 +223,7 @@ class MyRobot(TimedCommandRobot):
                     rot = p.rotation().degrees()
                     # self.swerve.odometry.addVisionMeasurement(p, 0, (0.1, 0.1, 0.1))
                     ts = self.vision_timer.getFPGATimestamp() - timelag
-                    print(f'vision heading: {x}, {y}, {rot}, {ts}')
+                    # print(f'vision heading: {x}, {y}, {rot}, {ts}')
                     xdev, ydev, rotdev = cw
                     self.swerve.odometry.addVisionMeasurement(
                         p, ts, (xdev, ydev, rotdev)

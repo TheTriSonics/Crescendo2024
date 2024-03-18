@@ -1,3 +1,4 @@
+from misc import iterable
 from commands2 import Subsystem
 from wpilib import AddressableLED, DriverStation
 from constants import RobotSensorMap as RSM
@@ -10,24 +11,11 @@ from subsystems.photoeyes import Photoeyes
 from subsystems.intake import Intake
 
 
-
-"""
-HSV values:
-https://hyperskill.org/learn/step/13179
-
-Red falls between 0 and 60 degrees.
-Yellow falls between 61 and 120 degrees.
-Green falls between 121 and 180 degrees.
-Cyan falls between 181 and 240 degrees.
-Blue falls between 241 and 300 degrees.
-Magenta falls between 301 and 360 degrees.
-"""
-
 blink_loops = 25  # 25 loops at 20ms per loop is 0.5 seconds
 
 
 RED = (255, 0, 0)
-BLUE = (0, 0, 255) 
+BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
@@ -89,35 +77,40 @@ class Leds(Subsystem):
     def periodic(self) -> None:
         # Blinking red if the front intake photoeye is blocked
         # That means we're in some kind of error state
-        if self.photoeyes.get_intake_front():
-            self.set_colorRGB(RED, True)
-        
         # Next show various tracking modes
-        elif self.drive.is_note_tracking():
-            self.set_colorRGB(ORANGE)
-            if not self.drive.is_note_visible():
-                self.set_colorRGB(ORANGE, True)
-        elif self.drive.is_speaker_tracking():
-            self.set_colorRGB(ORANGE)
-            if not self.drive.is_speaker_visible():
-                self.set_colorRGB(ORANGE, True)
-        elif self.drive.is_amp_tracking():
-            self.set_colorRGB(ORANGE)
-            if not self.drive.is_amp_visible():
-                self.set_colorRGB(ORANGE, True)
+        tracking = (
+            self.drive.is_note_tracking()
+            or
+            self.drive.is_speaker_tracking()
+            or
+            self.drive.is_amp_tracking()
+        )
+        visible = (
+            self.drive.is_note_visible()
+            or
+            self.drive.is_speaker_visible()
+            or
+            self.drive.is_amp_visible()
+        )
 
+        if self.photoeyes.get_intake_front():
+            self.set_colorRGB([ORANGE, RED, ORANGE], True)
+        elif tracking:
+            self.set_colorRGB([ORANGE, GREEN])
+            if not visible:
+                self.set_colorRGB([ORANGE, RED])
         elif self.photoeyes.get_intake_loaded():
             self.set_colorRGB(MAGENTA)
-        
+
         elif self.photoeyes.get_amp_loaded():
             self.set_colorRGB(YELLOW)
-       
+
         elif self.shooter.is_up_to_speed():
             self.set_colorRGB(WHITE)
-      
+
         elif self.photoeyes.get_shooter_loaded():
             self.set_colorRGB(BLUE)
-     
+
         else:
             self.set_colorRGB(BLACK)
 
@@ -150,13 +143,22 @@ class Leds(Subsystem):
 
         # Check bounds
         self.rainbowFirstPixelHue %= 180
-    
+
     def set_colorRGB(self, color, blinking=False):
         self.rainbow_mode = False
         self.blinking = blinking
+
         self.curr_color = color
-        for i in range(self.led_length):
-            self.led_data[i].setRGB(*color)
+        if iterable(color[0]):
+            n = len(color)
+            chunk_size = self.led_length / n
+            for i in range(self.led_length):
+                idx = int(i // chunk_size)
+                c = color[idx]
+                self.led_data[i].setRGB(*c)
+        else:
+            for i in range(self.led_length):
+                self.led_data[i].setRGB(*color)
 
     def set_colorHSV(self, color, blinking=False, brightness=255):
         self.rainbow_mode = False
