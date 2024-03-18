@@ -179,7 +179,7 @@ class MyRobot(TimedCommandRobot):
 
         shoot_button = JoystickButton(self.commander_joystick2,
                                       RBM.shooter_shoot_c2)
-        shoot_button.onTrue(ShooterLaunchNote(self.shooter))
+        shoot_button.onTrue(ShooterLaunchNote(self.shooter, self.commander))
         # shoot_button.onTrue(AutoShooterLaunchNote(self.shooter))
 
         shooter_spin = JoystickButton(self.commander_joystick2,
