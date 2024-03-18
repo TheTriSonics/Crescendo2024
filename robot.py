@@ -79,7 +79,7 @@ class MyRobot(TimedCommandRobot):
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
-                                            self.note_tracker)
+                                            self.note_tracker, self.intake)
         # Why do we have two of these?
         self.note_tracker = note_tracker.NoteTracker()
         self.climber = climber.Climber(self.driver, self.commander)
@@ -119,8 +119,8 @@ class MyRobot(TimedCommandRobot):
     def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1,
                                        RBM.intake_ready_c1)
-        intake_button.onTrue(IntakeNote(self.intake, self.shooter,
-                                        self.gyro, self.photoeyes))
+        intake_button.whileTrue(IntakeNote(self.intake, self.shooter,
+                                           self.gyro, self.photoeyes))
 
         eject_button = JoystickButton(self.commander_joystick1,
                                       RBM.intake_eject_c1)
