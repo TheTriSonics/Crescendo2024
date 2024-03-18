@@ -148,7 +148,6 @@ class MyRobot(TimedCommandRobot):
                                             RBM.amp_lift_trap_c2)
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.TRAP))
 
-
         # TODO: These can be made to do something else; intake doesn't move
         amp_override_up = JoystickButton(self.commander_joystick2,
                                          RBM.amp_override_up_c2)
@@ -157,7 +156,6 @@ class MyRobot(TimedCommandRobot):
         amp_override_down = JoystickButton(self.commander_joystick2,
                                            RBM.amp_override_down_c2)
         amp_override_down.whileTrue(SetAmpOverride(self.amp, self.amp.dir_down))
-
 
         shooter_tilt_up = JoystickButton(self.commander_joystick1,
                                          RBM.shooter_override_up_c1)
@@ -343,7 +341,12 @@ class MyRobot(TimedCommandRobot):
                 certainty = (1, 1, 1)
 
             robot_pose_raw = fid['t6r_fs']
-            # TODO: Verify that the rotation is the right value
+            # It seems like we get a None value from the network table
+            # here sometimes and the code crashes if we continue processing it
+            # so we'll just skip to the next target if we get a None value.
+            if robot_pose_raw is None:
+                continue
+
             offset_x = 8.2296
             offset_y = offset_x / 2
 
