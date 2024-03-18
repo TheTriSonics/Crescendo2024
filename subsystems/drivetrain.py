@@ -28,6 +28,7 @@ from controllers.driver import DriverController
 from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
 from subsystems.gyro import Gyro
+from subsystems.intake import Intake
 from constants import RobotPIDConstants as PIDC
 
 kMaxSpeed = 4.5  # m/s
@@ -50,7 +51,7 @@ class Drivetrain(Subsystem):
     Represents a swerve drive style drivetrain.
     """
     def __init__(self, gyro: gyro.Gyro, driver_controller,
-                 photon: NoteTracker) -> None:
+                 photon: NoteTracker, intake: Intake) -> None:
         super().__init__()
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
@@ -177,7 +178,7 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro)
+        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro, intake)
         self.setDefaultCommand(self.defcmd)
 
     def is_note_tracking(self):
@@ -362,7 +363,7 @@ class DrivetrainDefaultCommand(Command):
     Default command for the drivetrain.
     """
     def __init__(self, drivetrain: Drivetrain, controller: DriverController,
-                 photon: NoteTracker, gyro: Gyro) -> None:
+                 photon: NoteTracker, gyro: Gyro, intake: Intake) -> None:
         super().__init__()
         self.drivetrain = drivetrain
         self.controller = controller
@@ -486,6 +487,9 @@ class DrivetrainDefaultCommand(Command):
         self.drivetrain.note_tracking = False
         self.drivetrain.note_visible = False
         if self.controller.get_note_lockon():
+            # TODO: Make sure the note intake command is running when this is happening
+            # The trick will be kicking the command on but not letting it go away immediately
+            # but also don't start a brand new one if it is already running
             self.note_tracking = True
             robot_centric_force = True
             pn = SmartDashboard.putNumber
@@ -521,6 +525,8 @@ class DrivetrainDefaultCommand(Command):
         self.drivetrain.speaker_tracking = False
         self.drivetrain.speaker_visible = False
         if self.controller.get_speaker_lockon():
+            # TODO: Possible! Check with Nathan -- slow down the drivetrain by setting
+            # master_throttle to something like 0.8 or 0.6... 
             self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
             speaker_heading = self.drivetrain.get_fid_heading(fid)

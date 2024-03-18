@@ -181,9 +181,7 @@ class Shooter(Subsystem):
         self.tilt_motor_right.set(-0.2)
 
     def halt(self):
-        # Stop the shooter motor
-        self.shooter_motor_left.set_control(DutyCycleOut(0))
-        self.shooter_motor_right.set_control(DutyCycleOut(0))
+        self.speed_target = 0
 
     def safe_shot(self):
         self.tilt_target = tilt_safe
@@ -222,8 +220,13 @@ class Shooter(Subsystem):
         # self.right_shooter_pid.setSetpoint(self.speed_target)
         # left_power = self.left_shooter_pid.calculate(left_velocity)
         # right_power = self.right_shooter_pid.calculate(right_velocity)
-        self.shooter_motor_left.set_control(VelocityDutyCycle(self.speed_target))
-        self.shooter_motor_right.set_control(VelocityDutyCycle(-self.speed_target))
+        # Stop the shooter motor
+        if self.speed_target == 0:
+            self.shooter_motor_left.set_control(DutyCycleOut(0))
+            self.shooter_motor_right.set_control(DutyCycleOut(0))
+        else:
+            self.shooter_motor_left.set_control(VelocityDutyCycle(self.speed_target))
+            self.shooter_motor_right.set_control(VelocityDutyCycle(-self.speed_target))
         # Do NOTHING for 3 seconds after the robot starts up
         if not self.alive_timer.hasElapsed(2.0):
             return
