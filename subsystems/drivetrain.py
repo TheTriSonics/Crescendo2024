@@ -384,7 +384,14 @@ class DrivetrainDefaultCommand(Command):
         self.addRequirements(drivetrain)
 
     def initialize(self):
+        self.note_lockon = False
         self.swapped = False
+
+    def note_tracking_on(self):
+        self.note_lockon = True
+
+    def note_tracking_off(self):
+        self.note_lockon = False
 
     def _curr_heading(self) -> float:
         return self.drivetrain.get_heading_rotation_2d().degrees()
@@ -484,7 +491,7 @@ class DrivetrainDefaultCommand(Command):
 
         self.drivetrain.note_tracking = False
         self.drivetrain.note_visible = False
-        if self.controller.get_note_lockon():
+        if self.note_lockon:
             # TODO: Make sure the note intake command is running when this is happening
             # The trick will be kicking the command on but not letting it go away immediately
             # but also don't start a brand new one if it is already running
