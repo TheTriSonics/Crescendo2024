@@ -491,7 +491,8 @@ class DrivetrainDefaultCommand(Command):
             if intake_note.running is False:
                 sched = CommandScheduler.getInstance()
                 sched.schedule(
-                    intake_note.IntakeNote(self.drivetrain, self.photon)
+                    intake_note.IntakeNote(self.intake, self.shooter, self.amp,
+                                           self.photoeyes)
                 )
             self.note_tracking = True
             robot_centric_force = True
