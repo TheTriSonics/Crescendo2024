@@ -6,9 +6,10 @@
 
 import json
 import math
+import commands.intake_note as intake_note
 import subsystems.swervemodule as swervemodule
 import subsystems.gyro as gyro
-from commands2 import Subsystem, Command
+from commands2 import CommandScheduler, Subsystem, Command
 from wpilib import SmartDashboard, DriverStation
 from ntcore import NetworkTableInstance
 from wpimath.filter import SlewRateLimiter, LinearFilter
@@ -388,7 +389,14 @@ class DrivetrainDefaultCommand(Command):
         self.addRequirements(drivetrain)
 
     def initialize(self):
+        self.note_lockon = False
         self.swapped = False
+
+    def note_tracking_on(self):
+        self.note_lockon = True
+
+    def note_tracking_off(self):
+        self.note_lockon = False
 
     def _curr_heading(self) -> float:
         return self.drivetrain.get_heading_rotation_2d().degrees()
@@ -488,10 +496,16 @@ class DrivetrainDefaultCommand(Command):
 
         self.drivetrain.note_tracking = False
         self.drivetrain.note_visible = False
-        if self.controller.get_note_lockon():
+        if self.note_lockon:
             # TODO: Make sure the note intake command is running when this is happening
             # The trick will be kicking the command on but not letting it go away immediately
             # but also don't start a brand new one if it is already running
+            if intake_note.running is False:
+                sched = CommandScheduler.getInstance()
+                sched.schedule(
+                    intake_note.IntakeNote(self.intake, self.shooter, self.amp,
+                                           self.photoeyes)
+                )
             self.note_tracking = True
             robot_centric_force = True
             pn = SmartDashboard.putNumber
@@ -531,7 +545,7 @@ class DrivetrainDefaultCommand(Command):
         self.drivetrain.speaker_visible = False
         if self.controller.get_speaker_lockon() or self.drivetrain.speaker_aim:
             # TODO: Possible! Check with Nathan -- slow down the drivetrain by setting
-            # master_throttle to something like 0.8 or 0.6... 
+            # master_throttle to something like 0.8 or 0.6...
             self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
             speaker_heading = self.drivetrain.get_fid_heading(fid)

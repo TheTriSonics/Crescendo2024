@@ -6,7 +6,9 @@ import json
 from time import time
 from math import radians
 from wpilib import SmartDashboard, Joystick, DriverStation, Timer, Field2d
-from commands2 import TimedCommandRobot, SequentialCommandGroup, InstantCommand
+from commands2 import ( TimedCommandRobot, SequentialCommandGroup,
+                        InstantCommand, CommandScheduler
+)
 from commands2.button import JoystickButton
 from wpimath.geometry import Rotation2d, Pose2d
 from pathplannerlib.auto import PathPlannerAuto, NamedCommands
@@ -115,6 +117,15 @@ class MyRobot(TimedCommandRobot):
 
         swap_button = JoystickButton(self.driver_joystick, RBM.swap_direction)
         swap_button.onTrue(InstantCommand(self.swerve.swapDirection))
+
+        note_track_button = JoystickButton(self.driver_joystick,
+                                           RBM.note_tracking)
+        note_track_button.onTrue(
+            InstantCommand(self.swerve.defcmd.note_tracking_on)
+        )
+        note_track_button.onFalse(
+            InstantCommand(self.swerve.defcmd.note_tracking_off)
+        )
 
     def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1,

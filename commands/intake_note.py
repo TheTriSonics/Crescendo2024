@@ -6,7 +6,15 @@ from subsystems.amp import Amp
 from subsystems.photoeyes import Photoeyes
 
 
+running = False
+
+
 class IntakeNote(Command):
+    # JJB: We could make an optional param for the drivetrain here
+    # and if passed in force the drivetrain into note lockon mode
+    # But we do end up with a circular import if we try importing
+    # Drivetrain here. That means an InstantCommand right before this one
+    # that sets the drivetrain to the proper mode is probably the best way
     def __init__(self, intake: Intake, shooter: Shooter, amp: Amp,
                  photoeyes: Photoeyes):
         super().__init__()
@@ -19,6 +27,7 @@ class IntakeNote(Command):
         self.timer.start()
 
     def initialize(self):
+        running = True
         self.forceQuit = False
         shooter_loaded = self.photoeyes.get_shooter_loaded()
         amp_loaded = self.photoeyes.get_amp_loaded()
@@ -36,6 +45,7 @@ class IntakeNote(Command):
         pass
 
     def end(self, interrupted: bool):
+        running = False
         self.intake.halt()
         pass
 
