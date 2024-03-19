@@ -6,6 +6,9 @@ from subsystems.amp import Amp
 from subsystems.photoeyes import Photoeyes
 
 
+running = False
+
+
 class IntakeNote(Command):
     def __init__(self, intake: Intake, shooter: Shooter, amp: Amp,
                  photoeyes: Photoeyes):
@@ -19,6 +22,7 @@ class IntakeNote(Command):
         self.timer.start()
 
     def initialize(self):
+        running = True
         self.forceQuit = False
         shooter_loaded = self.photoeyes.get_shooter_loaded()
         amp_loaded = self.photoeyes.get_amp_loaded()
@@ -36,6 +40,7 @@ class IntakeNote(Command):
         pass
 
     def end(self, interrupted: bool):
+        running = False
         self.intake.halt()
         pass
 
