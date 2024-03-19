@@ -280,7 +280,7 @@ class MyRobot(TimedCommandRobot):
         cmd = PathPlannerAuto("LakeCityTwoNoteCenter")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes)
-        shootcmd = AutoShooterLaunchNote(self.shooter,
+        shootcmd = AutoShooterLaunchNote(self.shooter, self.swerve,
                                          shooter.tilt_safe, 80)
         cmds = [
             delaycmd,
@@ -296,7 +296,7 @@ class MyRobot(TimedCommandRobot):
         cmd = PathPlannerAuto("LakeCityTwoNote3")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes)
-        shootcmd = AutoShooterLaunchNote(self.shooter,
+        shootcmd = AutoShooterLaunchNote(self.shooter, self.swerve,
                                          shooter.tilt_safe, 80)
         cmds = [
             delaycmd,
