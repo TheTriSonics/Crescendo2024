@@ -163,7 +163,8 @@ class Shooter(Subsystem):
         fake = gb(f'{sdbase}/is_up_to_speed', False)
         if self.speed_target == 0:
             ret = False or fake
-        ret = fake or (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1)
+        else:
+            ret = fake or (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1)
         if ret is True:
             self.speed_timer.restart()
         return ret

@@ -99,7 +99,7 @@ class MyRobot(TimedCommandRobot):
                                              self.note_tracker)
             )
             NamedCommands.registerCommand(
-                "AutoShoot", AutoShooterLaunchNote(self.shooter)
+                "AutoShoot", AutoShooterLaunchNote(self.shooter, rpm=80)
             )
 
         self.configure_driver_controls()
@@ -240,12 +240,12 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def auto_station_1(self):
-        delaycmd = Delay(5)
+        delaycmd = Delay(1)
         cmd = PathPlannerAuto("LakeCityTwoNote")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes)
         shootcmd = AutoShooterLaunchNote(self.shooter,
-                                         shooter.tilt_safe, 80)
+                                         .787, 85)
         cmds = [
             delaycmd,
             cmd,
