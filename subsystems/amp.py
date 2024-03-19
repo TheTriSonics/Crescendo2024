@@ -57,6 +57,8 @@ class Amp(Subsystem):
 
         self.lift_configurator.apply(self.lift_configs)
 
+        # TODO: We get some squeel out of this system so we might want to init it
+        # to the value of the encoder at boot, not a fixed value.
         self.height = self.Height.HOME
 
     def set_height(self, height):

@@ -160,7 +160,7 @@ class RobotButtonMap():
 
     # Reset odometry to whatever vision thinks we're at.
     reset_odometry_c2 = 5
-    override_shooter_speed_c2 = 6
+    override_shooter_speed_c2 = 1
 
     # Not used?
     climber_up_c2 = 5
