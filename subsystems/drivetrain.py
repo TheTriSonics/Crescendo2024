@@ -69,8 +69,6 @@ class Drivetrain(Subsystem):
         pb(f'{sdbase}/amp_tracking', False)
         pb(f'{sdbase}/amp_visible', False)
 
-        self.speaker_aim = False
-
         self.note_tracking = False
         self.note_visible = False
         self.speaker_tracking = False
@@ -350,9 +348,6 @@ class Drivetrain(Subsystem):
         # pn(f'fids/{id}', tag_heading)
         return tag_heading
 
-    def toggleSpeakerTracking(self) -> None:
-        self.speaker_aim = not self.speaker_aim
-
     def periodic(self) -> None:
         self.updateOdometry()
         pb = SmartDashboard.putBoolean
@@ -390,6 +385,7 @@ class DrivetrainDefaultCommand(Command):
 
     def initialize(self):
         self.note_lockon = False
+        self.speaker_lockon = False
         self.swapped = False
 
     def note_tracking_on(self):
@@ -397,6 +393,12 @@ class DrivetrainDefaultCommand(Command):
 
     def note_tracking_off(self):
         self.note_lockon = False
+
+    def speaker_tracking_on(self):
+        self.speaker_lockon = True
+
+    def speaker_tracking_off(self):
+        self.speaker_lockon = False
 
     def _curr_heading(self) -> float:
         return self.drivetrain.get_heading_rotation_2d().degrees()
@@ -543,7 +545,7 @@ class DrivetrainDefaultCommand(Command):
 
         self.drivetrain.speaker_tracking = False
         self.drivetrain.speaker_visible = False
-        if self.controller.get_speaker_lockon() or self.drivetrain.speaker_aim:
+        if self.speaker_lockon:
             # TODO: Possible! Check with Nathan -- slow down the drivetrain by setting
             # master_throttle to something like 0.8 or 0.6...
             self.drivetrain.speaker_tracking = True

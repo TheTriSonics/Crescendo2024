@@ -17,7 +17,7 @@ class AutoPickupNote(Command):
         self.photon = photon
         self.timer = Timer()
         self.ontop_timer = Timer()
-        self.pid = PIDController(*PIDC.note_tracking_pid)
+        self.drive.defcmd.note_tracking_on()
         self.addRequirements(drive, intake)
 
     def initialize(self):
@@ -27,15 +27,9 @@ class AutoPickupNote(Command):
         pass
 
     def execute(self):
-        yaw = self.photon.getYawOffset()
         pitch = self.photon.getPitchOffset()
-        if yaw is None or abs(yaw) < 1.0:
-            rot = 0
-        else:
-            rot = self.pid.calculate(yaw, 0)
         if pitch is not None and pitch < -15:
             self.ontop_timer.restart()
-        self.drive.drive(0.5, 0, rot)
 
     def end(self, isInterrupted):
         self.drive.drive(0, 0, 0)

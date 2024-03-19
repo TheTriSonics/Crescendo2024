@@ -126,6 +126,15 @@ class MyRobot(TimedCommandRobot):
         note_track_button.onFalse(
             InstantCommand(self.swerve.defcmd.note_tracking_off)
         )
+        
+        speaker_track_button = JoystickButton(self.driver_joystick,
+                                              RBM.speaker_tracking)
+        speaker_track_button.onTrue(
+            InstantCommand(self.swerve.defcmd.speaker_tracking_on)
+        )
+        speaker_track_button.onFalse(
+            InstantCommand(self.swerve.defcmd.speaker_tracking_off)
+        )
 
     def configure_commander_controls(self):
         intake_button = JoystickButton(self.commander_joystick1,
@@ -255,7 +264,7 @@ class MyRobot(TimedCommandRobot):
         cmd = PathPlannerAuto("LakeCityTwoNote")
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes)
-        shootcmd = AutoShooterLaunchNote(self.shooter,
+        shootcmd = AutoShooterLaunchNote(self.shooter, self.swerve,
                                          .787, 85)
         cmds = [
             delaycmd,
