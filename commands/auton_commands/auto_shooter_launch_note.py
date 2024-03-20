@@ -34,7 +34,8 @@ class AutoShooterLaunchNote(Command):
         # Add in check for vision targets here?
         up_to_speed = self.shooter.is_up_to_speed()
         aimed = self.shooter.is_tilt_aimed()
-        if not self.shot_fired and up_to_speed and aimed:
+        drive_aimed = self.drivetrain.is_speaker_aimed()
+        if not self.shot_fired and up_to_speed and aimed and drive_aimed:
             self.shooter.feed_note()
             self.shot_fired = True
             self.shot_timer.restart()

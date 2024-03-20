@@ -32,6 +32,7 @@ class AutoPickupNote(Command):
             self.ontop_timer.restart()
 
     def end(self, isInterrupted):
+        self.drive.defcmd.note_tracking_off()
         self.drive.drive(0, 0, 0)
         self.intake.tilt_up()
         self.intake.halt()

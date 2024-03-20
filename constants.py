@@ -12,6 +12,7 @@ class RobotPIDConstants():
 
 class RobotMotorMap():
     # REAL CAN ASSIGNMENTS
+
     # Swerve Motors
     front_left_drive = 11
     front_right_drive = 12
@@ -60,8 +61,6 @@ class RobotMotorMap():
         intake_motor_feed = 51
         intake_motor_tilt = 52
 
-    # Amp Motors
-    amp_lift_motor = 54
     amp_feed_motor = 55
 
     # Climber Motors

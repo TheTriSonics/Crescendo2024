@@ -66,6 +66,7 @@ class Drivetrain(Subsystem):
 
         pb(f'{sdbase}/speaker_tracking', False)
         pb(f'{sdbase}/speaker_visible', False)
+        pb(f'{sdbase}/speaker_aimed', False)
 
         pb(f'{sdbase}/amp_tracking', False)
         pb(f'{sdbase}/amp_visible', False)
@@ -74,6 +75,7 @@ class Drivetrain(Subsystem):
         self.note_visible = False
         self.speaker_tracking = False
         self.speaker_visible = False
+        self.speaker_aimed = False
         self.amp_tracking = False
         self.amp_visible = False
         self.lockable = False
@@ -197,6 +199,10 @@ class Drivetrain(Subsystem):
     def is_speaker_visible(self):
         fake = gb(f'{sdbase}/speaker_visible', False)
         return self.defcmd.is_speaker_visible() or fake
+
+    def is_speaker_aimed(self):
+        fake = gb(f'{sdbase}/speaker_aimed', False)
+        return self.defcmd.is_speaker_aimed() or fake
 
     def is_amp_tracking(self):
         fake = gb(f'{sdbase}/amp_tracking', False)
@@ -432,6 +438,11 @@ class DrivetrainDefaultCommand(Command):
         fake = gb(f'{sdbase}/speaker_visible', False)
         return self.drivetrain.speaker_visible or fake
 
+    def is_speaker_aimed(self):
+        fake = gb(f'{sdbase}/speaker_aimed', False)
+        return self.drivetrain.speaker_aimed or fake
+
+
     def is_amp_tracking(self):
         fake = gb(f'{sdbase}/amp_tracking', False)
         return self.drivetrain.amp_tracking or fake
@@ -551,6 +562,7 @@ class DrivetrainDefaultCommand(Command):
 
         self.drivetrain.speaker_tracking = False
         self.drivetrain.speaker_visible = False
+        self.drivetrain.speaker_aimed = False
         if self.speaker_lockon:
             # TODO: Possible! Check with Nathan -- slow down the drivetrain by setting
             # master_throttle to something like 0.8 or 0.6...
@@ -561,6 +573,7 @@ class DrivetrainDefaultCommand(Command):
                 self.drivetrain.speaker_visible = True
                 if abs(speaker_heading) < 3.0:
                     rot = 0
+                    self.drivetrain.speaker_aimed = True
                 else:
                     rot = self.speaker_pid.calculate(speaker_heading, 0)
 

@@ -53,17 +53,6 @@ class Intake(Subsystem):
 
         self.feed_motors = CANSparkMax(RMM.intake_motor_feed,
                                        CANSparkLowLevel.MotorType.kBrushed)
-        self.tilt_motor = CANSparkMax(RMM.intake_motor_tilt,
-                                      CANSparkLowLevel.MotorType.kBrushed)
-
-        # Set the tilt_motor to brake mode
-        # TODO: Tuning needed
-        self.tilt_pid = PIDController(9.0, 0, 0)
-        self.tilt_ff = SimpleMotorFeedforwardMeters(0.2, 0.0, 0.0)
-        self.tilt_motor.setIdleMode(CANSparkMax.IdleMode.kBrake)
-        self.tilt_encoder = DutyCycleEncoder(RSM.intake_tilt_encoder)
-
-        self.tilt_motor.setInverted(True)
 
         # Wherever the lift is on boot is good enough for us right now.
         self.tilt_setpoint = tilt_encoder_setpoint_up
@@ -111,26 +100,7 @@ class Intake(Subsystem):
     # lift to the desired position using our PID controller
     def periodic(self) -> None:
         # Get the encoder reading, a number value.
-        current_pos = self.tilt_encoder.getAbsolutePosition()
-
-        # Set default output to no power, so unless we change this
-        # the tilt motor won't be run.
-        output = 0
-
-        # Determie if we're too far away from the setpoint to stop
-        if abs(current_pos - self.tilt_setpoint) > tilt_encoder_error_margin:
-            output = self.tilt_pid.calculate(current_pos, self.tilt_setpoint)
-            # output += self.tilt_ff.calculate(self.tilt_setpoint)
-
-        # Now give whatever value we decided on to the tilt motors.
-        self.tilt_motor.set(output)
-
-        # Display the subsystem status on a dashboard
-        # SmartDashboard.putNumber('intake/tilt_setpoint', self.tilt_setpoint)
-        # SmartDashboard.putNumber('intake/tilt_current',
-        #                          self.tilt_encoder.getAbsolutePosition())
-        # SmartDashboard.putNumber('intake/tilt_output', output)
-        # SmartDashboard.putNumber('intake/tilt_feedF', self.tilt_ff.calculate(self.tilt_setpoint))
+        pass
 
     # def getSimulatedPosition(self):
     #     return self.simulated_position

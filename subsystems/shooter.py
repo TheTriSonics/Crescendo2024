@@ -58,10 +58,10 @@ class Shooter(Subsystem):
         self.tilt_target = tilt_load_limit
 
         # Initialize the motor controllers
-        # self.shooter_motor_left = TalonFX(RMM.shooter_motor_left, "canivore")
-        # self.shooter_motor_right = TalonFX(RMM.shooter_motor_right, "canivore")
-        self.shooter_motor_left = TalonFX(RMM.shooter_motor_left)
-        self.shooter_motor_right = TalonFX(RMM.shooter_motor_right)
+        self.shooter_motor_left = TalonFX(RMM.shooter_motor_left, "canivore")
+        self.shooter_motor_right = TalonFX(RMM.shooter_motor_right, "canivore")
+        # self.shooter_motor_left = TalonFX(RMM.shooter_motor_left)
+        # self.shooter_motor_right = TalonFX(RMM.shooter_motor_right)
 
         # p, i, d = 0.1, 0.0, 0.0
         # self.left_shooter_pid = PIDController(p, i, d)
