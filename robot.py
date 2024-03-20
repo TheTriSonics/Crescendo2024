@@ -101,7 +101,7 @@ class MyRobot(TimedCommandRobot):
                                              self.note_tracker)
             )
             NamedCommands.registerCommand(
-                "AutoShoot", AutoShooterLaunchNote(self.shooter, rpm=80)
+                "AutoShoot", AutoShooterLaunchNote(self.shooter, self.swerve, rpm=80)
             )
 
         self.configure_driver_controls()
@@ -144,7 +144,7 @@ class MyRobot(TimedCommandRobot):
 
         eject_button = JoystickButton(self.commander_joystick1,
                                       RBM.intake_eject_c1)
-        eject_button.onTrue(EjectNote(self.intake, self.photoeyes))
+        eject_button.whileTrue(EjectNote(self.intake, self.photoeyes))
 
         amp_load_button = JoystickButton(self.commander_joystick2,
                                          RBM.load_note_amp_c2)
@@ -370,7 +370,7 @@ class MyRobot(TimedCommandRobot):
             # It seems like we get a None value from the network table
             # here sometimes and the code crashes if we continue processing it
             # so we'll just skip to the next target if we get a None value.
-            if robot_pose_raw is None:
+            if robot_pose_raw is None or len(robot_pose_raw) == 0:
                 continue
 
             offset_x = 8.2296

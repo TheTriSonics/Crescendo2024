@@ -59,6 +59,7 @@ class Drivetrain(Subsystem):
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
         self.photon = photon
+        self.intake = intake
 
         pb(f'{sdbase}/note_tracking', False)
         pb(f'{sdbase}/note_visible', False)
@@ -369,6 +370,7 @@ class DrivetrainDefaultCommand(Command):
         self.controller = controller
         self.photon = photon
         self.gyro = gyro
+        self.intake = intake
         self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
@@ -502,12 +504,14 @@ class DrivetrainDefaultCommand(Command):
             # TODO: Make sure the note intake command is running when this is happening
             # The trick will be kicking the command on but not letting it go away immediately
             # but also don't start a brand new one if it is already running
+            """
             if intake_note.running is False:
                 sched = CommandScheduler.getInstance()
                 sched.schedule(
                     intake_note.IntakeNote(self.intake, self.shooter, self.amp,
                                            self.photoeyes)
                 )
+            """
             self.note_tracking = True
             robot_centric_force = True
             pn = SmartDashboard.putNumber
@@ -520,7 +524,9 @@ class DrivetrainDefaultCommand(Command):
                 pn('drivetrain/note_tracker/yaw', yaw)
             pitch = self.photon.getPitchOffset()
             if yaw_raw is not None:
-                rot = self.note_pid.calculate(yaw_raw, 0)
+                # Setpoint was 0 but moved to 2 to try and get the
+                # robot from going left of the note
+                rot = self.note_pid.calculate(yaw_raw, -2)
                 xSpeed = 2
                 # if abs(yaw_raw) < 1.7:
                 #     rot = 0
