@@ -61,6 +61,7 @@ class RobotMotorMap():
         intake_motor_feed = 51
         intake_motor_tilt = 52
 
+    amp_lift_motor = 54
     amp_feed_motor = 55
 
     # Climber Motors
