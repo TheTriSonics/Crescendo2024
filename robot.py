@@ -365,9 +365,11 @@ class MyRobot(TimedCommandRobot):
         )
 
         lock_speaker2 = InstantCommand(self.swerve.defcmd.speaker_tracking_on)
-        unlock_speaker2 = InstantCommand(self.swerve.defcmd.speaker_tracking_off)
         shoot_safe_pos2 = AutoShooterLaunchNote(self.shooter, self.swerve,
                                                 shooter.tilt_safe, 80)
+        unlock_speaker2 = InstantCommand(
+            self.swerve.defcmd.speaker_tracking_off
+        )
 
         rotate2 = Rotate(self.swerve, self.gyro, 80)
         cmds = [
@@ -422,7 +424,7 @@ class MyRobot(TimedCommandRobot):
         rotate_shot2 = Rotate(self.swerve, self.gyro, 180)
         load_rotate2 = ParallelCommandGroup([rotate_shot2, load_shooter2])
         shoot2 = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                       shooter.tilt_safe, 80)
+                                       shooter.tilt_safe, 80, do_rotation=True)
         rotate_note3 = Rotate(self.swerve, self.gyro, 90)
         lock_note3 = InstantCommand(self.swerve.defcmd.note_tracking_on)
         pickup_note3 = IntakeNote(
@@ -431,7 +433,7 @@ class MyRobot(TimedCommandRobot):
         release_note3 = InstantCommand(self.swerve.defcmd.note_tracking_off)
         rotate_shot3 = Rotate(self.swerve, self.gyro, -150)
         shoot3 = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                       shooter.tilt_safe, 80)
+                                       shooter.tilt_safe, 80, do_rotation=True)
         last_note = (2.0, 3.75, 1)
         slide_last_note = DriveToPoint(
             self.swerve, self.gyro, *last_note
@@ -448,7 +450,7 @@ class MyRobot(TimedCommandRobot):
         rotate_shot4 = Rotate(self.swerve, self.gyro, 150)
         load_rotate4 = ParallelCommandGroup([rotate_shot4, load_shooter4])
         shoot4 = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                       shooter.tilt_safe, 80)
+                                       shooter.tilt_safe, 80, do_rotation=True)
 
         cmds = [
             reset_swerve,
