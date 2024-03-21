@@ -343,12 +343,6 @@ class MyRobot(TimedCommandRobot):
         back_target = (2.0, 3.75, 90) 
         slide_back = DriveToPoint(self.swerve, self.gyro, *back_target).asProxy()
         load_shooter1 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes).asProxy()
-
-        lock_note2 = InstantCommand(self.swerve.defcmd.note_tracking_on)
-        pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
-        release_note2 = InstantCommand(self.swerve.defcmd.note_tracking_off)
- 
-        load_shooter2 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes).asProxy()
         load_slide1 = ParallelCommandGroup(
             [slide_back, load_shooter1]
         )
@@ -358,6 +352,12 @@ class MyRobot(TimedCommandRobot):
         unlock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_off)
         shoot_safe = AutoShooterLaunchNote(self.shooter, self.swerve,
                                          shooter.tilt_safe, 80)
+
+        lock_note2 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        release_note2 = InstantCommand(self.swerve.defcmd.note_tracking_off)
+        load_shooter2 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes).asProxy()
+        
         verify_rotate_speaker2 = Rotate(self.swerve, self.gyro, 180)
 
         rotate_slide2 = ParallelCommandGroup(
@@ -380,7 +380,7 @@ class MyRobot(TimedCommandRobot):
             pickup_note1,
             release_note1,
             fast_note1,
-            reset_pole,
+            # reset_pole,
             load_slide1,
             verify_rotate_speaker,
             lock_speaker1,
@@ -419,6 +419,7 @@ class MyRobot(TimedCommandRobot):
 
     def teleopInit(self) -> None:
         self.swerve.lock_heading()
+        self.swerve.fieldRelative = True
         pass
 
     def teleopPeriodic(self) -> None:
