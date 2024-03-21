@@ -12,12 +12,14 @@ class AutoShooterLaunchNote(Command):
     def __init__(self, shooter: Shooter, drivetrain: Drivetrain, tilt=sm.tilt_sub, rpm=75, do_rotation = False) -> None:
         super().__init__()
         self.shooter = shooter
-        self.drivetrain = drivetrain
+        self.drive = drivetrain
         self.timer = Timer()
         self.shot_timer = Timer()
         self.tilt = tilt
         self.rpm = rpm
         self.do_rotation = do_rotation
+        if self.do_rotation:
+            self.drive.defcmd.speaker_tracking_on()
         self.addRequirements(shooter)
         self.addRequirements(drivetrain)
 
@@ -27,14 +29,16 @@ class AutoShooterLaunchNote(Command):
         self.shooter.spin_up()
         self.shot_fired = False
         self.timer.restart()
-        self.drivetrain.defcmd.speaker_tracking_on()
 
     def execute(self) -> None:
         # TODO:
         # Add in check for vision targets here?
         up_to_speed = self.shooter.is_up_to_speed()
         aimed = self.shooter.is_tilt_aimed()
-        drive_aimed = self.drivetrain.is_speaker_aimed()
+        if self.do_rotation:
+            drive_aimed = self.drive.is_speaker_aimed()
+        else:
+            drive_aimed = True
         if not self.shot_fired and up_to_speed and aimed and drive_aimed:
             self.shooter.feed_note()
             self.shot_fired = True
@@ -46,7 +50,7 @@ class AutoShooterLaunchNote(Command):
         self.shooter.halt()
         self.shooter.shooter_motor_left.set_control(DutyCycleOut(0.0))
         self.shooter.shooter_motor_right.set_control(DutyCycleOut(0.0))
-        self.drivetrain.defcmd.speaker_tracking_off()
+        self.drive.defcmd.speaker_tracking_off()
 
     def isFinished(self) -> bool:
         return self.shot_fired and self.shot_timer.hasElapsed(0.5)

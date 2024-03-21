@@ -27,8 +27,10 @@ class Climber(Subsystem):
         self.encoder_r = DutyCycleEncoder(RSM.climber_right_encoder)
         self.encoder_l.setDistancePerRotation(1)
         self.encoder_r.setDistancePerRotation(1)
-        self.encoder_l.reset()
-        self.encoder_r.reset()
+        self.encoder_l_zero = 2.3
+        self.encoder_r_zero = -0.53
+        # self.encoder_l.reset()
+        # self.encoder_r.reset()
         # self.encoder_l.setPositionOffset(.548)
         # self.encoder_r.setPositionOffset(.227)
         # self.loffset = self.encoder_l.getDistance()
@@ -57,6 +59,10 @@ class Climber(Subsystem):
         pn('climber/left/encoder', self.encoder_l.get())
         pn('climber/right/encoder', self.encoder_r.get())
 
+    def encoder_reset(self):
+        self.encoder_l.reset()
+        self.encoder_r.reset()
+
 
 class ClimberDefaultCommand(Command):
     def __init__(self, climber: Climber, controller: DriverController, op_controller: CommanderController):
@@ -73,5 +79,8 @@ class ClimberDefaultCommand(Command):
             power = 0.4
         elif self.op_controller.get_climber_down():
             power = -1
+        # if self.climber.encoder_l.get() > self.climber.encoder_l_zero or self.climber.encoder_r.get() < self.climber.encoder_r_zero:
+        #     self.climber.set_speed(0)
+        # else:
         self.climber.set_speed(power)
 

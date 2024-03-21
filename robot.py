@@ -7,9 +7,9 @@ from time import time
 from math import radians
 from wpilib import SmartDashboard, Joystick, DriverStation, Timer, Field2d
 from commands2 import ( TimedCommandRobot, SequentialCommandGroup,
-                        InstantCommand, CommandScheduler
+                        InstantCommand, CommandScheduler,
 )
-from commands2.button import JoystickButton
+from commands2.button import JoystickButton, CommandGenericHID
 from wpimath.geometry import Rotation2d, Pose2d
 from pathplannerlib.auto import PathPlannerAuto, NamedCommands
 from commands.amp_score import AmpScore
@@ -52,6 +52,14 @@ from controllers.commander import CommanderController
 from misc import is_sim, add_timing
 
 
+class AxisButton(JoystickButton):
+
+    def __init__(self, joystick: CommandGenericHID, axis):
+        # In 2022 it seems we have to override the isPressed in init
+        super().__init__(isPressed=lambda: joystick.getRawAxis(axis) > 0.05)
+
+
+
 class MyRobot(TimedCommandRobot):
 
     def robotInit(self) -> None:
@@ -82,7 +90,10 @@ class MyRobot(TimedCommandRobot):
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
                                             self.note_tracker, self.intake)
+        
         self.climber = climber.Climber(self.driver, self.commander)
+        self.climber.encoder_reset()
+
         self.leds = leds.Leds(
             self.amp, self.intake, self.shooter,
             self.swerve, self.note_tracker,
@@ -91,6 +102,7 @@ class MyRobot(TimedCommandRobot):
         self.param_editor = param_editor.ParamEditor(
             self.swerve.defcmd.straight_drive_pid
         )
+        
 
         sim = is_sim()
         if not sim:
@@ -99,7 +111,7 @@ class MyRobot(TimedCommandRobot):
                                              self.note_tracker)
             )
             NamedCommands.registerCommand(
-                "AutoShoot", AutoShooterLaunchNote(self.shooter, self.swerve, rpm=80)
+                "AutoShoot", AutoShooterLaunchNote(self.shooter, self.swerve, rpm=80, do_rotation=False)
             )
 
         self.configure_driver_controls()
@@ -118,6 +130,7 @@ class MyRobot(TimedCommandRobot):
 
         note_track_button = JoystickButton(self.driver_joystick,
                                            RBM.note_tracking)
+        # note_track_button = AxisButton(self.driver_joystick, 3)
         note_track_button.onTrue(
             InstantCommand(self.swerve.defcmd.note_tracking_on)
         )
@@ -263,7 +276,7 @@ class MyRobot(TimedCommandRobot):
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes)
         shootcmd = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                         .787, 85)
+                                         .787, 85, do_rotation = True)
         cmds = [
             delaycmd,
             cmd,

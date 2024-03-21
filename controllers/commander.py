@@ -65,8 +65,8 @@ class CommanderController():
 
     def get_climber_up(self) -> bool:
         reading = self.joystick1.getRawAxis(0)
-        return reading > 0.5
+        return reading < -0.5
 
     def get_climber_down(self) -> bool:
         reading = self.joystick1.getRawAxis(0)
-        return reading < -0.5
+        return reading > 0.5

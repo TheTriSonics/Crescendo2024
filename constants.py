@@ -56,10 +56,8 @@ class RobotMotorMap():
 
     if is_sim():
         intake_motor_feed = 5
-        intake_motor_tilt = 6
     else:
         intake_motor_feed = 51
-        intake_motor_tilt = 52
 
     amp_lift_motor = 54
     amp_feed_motor = 55
@@ -93,7 +91,6 @@ class RobotSensorMap():
     shooter_hold_photoeye = 3
 
     # Encoders DIO
-    intake_tilt_encoder = 6
     shooter_tilt_encoder = 7
     climber_left_encoder = 4
     climber_right_encoder = 5

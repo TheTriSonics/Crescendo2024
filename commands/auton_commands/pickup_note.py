@@ -22,7 +22,6 @@ class AutoPickupNote(Command):
 
     def initialize(self):
         self.timer.restart()
-        self.intake.tilt_down()
         self.intake.feed()
         pass
 
@@ -32,9 +31,8 @@ class AutoPickupNote(Command):
             self.ontop_timer.restart()
 
     def end(self, isInterrupted):
-        self.drive.defcmd.note_tracking_off()
+        # self.drive.defcmd.note_tracking_off()
         self.drive.drive(0, 0, 0)
-        self.intake.tilt_up()
         self.intake.halt()
 
     def isFinished(self):

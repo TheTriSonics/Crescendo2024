@@ -5,11 +5,11 @@
   "MainWindow": {
     "GLOBAL": {
       "fps": "120",
-      "height": "1319",
+      "height": "1054",
       "maximized": "0",
       "style": "0",
       "userScale": "4",
-      "width": "2132",
+      "width": "1704",
       "xpos": "3132",
       "ypos": "195"
     }
@@ -30,7 +30,7 @@
     "###Addressable LEDs": {
       "Collapsed": "0",
       "Pos": "41,509",
-      "Size": "199,436"
+      "Size": "191,60"
     },
     "###FMS": {
       "Collapsed": "0",
@@ -40,7 +40,7 @@
     "###Joysticks": {
       "Collapsed": "1",
       "Pos": "877,51",
-      "Size": "1156,91"
+      "Size": "1156,316"
     },
     "###NetworkTables": {
       "Collapsed": "0",
