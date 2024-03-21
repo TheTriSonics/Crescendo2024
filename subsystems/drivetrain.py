@@ -492,12 +492,6 @@ class DrivetrainDefaultCommand(Command):
             error = curr - self.desired_heading
             if abs(error) > 1.0:
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
-                # If we're more than 15 degrees off, force the robot to rotate
-                # at max power; this means a fast start to rotation and we
-                # can tune the PID without worrying about the acceleration here
-                # as the underlying drivetrain will handle that.
-                if abs(error) > 15:
-                    rot = 1 if rot > 0 else -1
             else:
                 rot = 0
 
