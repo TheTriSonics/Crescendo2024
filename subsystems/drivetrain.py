@@ -45,6 +45,9 @@ gb = SmartDashboard.getBoolean
 
 sdbase = 'fakesensors/drivetrain'
 
+curr_note_intake_speed = 2
+default_note_intake_speed = 2
+
 
 class Drivetrain(Subsystem):
     """
@@ -183,6 +186,9 @@ class Drivetrain(Subsystem):
 
         self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro, intake)
         self.setDefaultCommand(self.defcmd)
+
+    def set_note_intake_speed(self, x):
+        curr_note_intake_speed = x
 
     def is_note_tracking(self):
         fake = gb(f'{sdbase}/note_tracking', False)
@@ -532,7 +538,7 @@ class DrivetrainDefaultCommand(Command):
                 # Setpoint was 0 but moved to 2 to try and get the
                 # robot from going left of the note
                 rot = self.note_pid.calculate(yaw_raw, -2)
-                xSpeed = 2
+                xSpeed = curr_note_intake_speed
                 # if abs(yaw_raw) < 1.7:
                 #     rot = 0
                 # else:

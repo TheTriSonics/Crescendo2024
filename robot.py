@@ -6,7 +6,7 @@ import json
 from time import time
 from math import radians
 from wpilib import SmartDashboard, Joystick, DriverStation, Timer, Field2d
-from commands2 import ( TimedCommandRobot, SequentialCommandGroup,
+from commands2 import ( ParallelCommandGroup, TimedCommandRobot, SequentialCommandGroup,
                         InstantCommand, CommandScheduler,
 )
 from commands2.button import JoystickButton, CommandGenericHID
@@ -25,6 +25,7 @@ from commands.set_amp_height import SetAmpHeight
 from commands.set_amp_override import SetAmpOverride
 from commands.shooter_launch_note import ShooterLaunchNote
 from commands.intake_note import IntakeNote
+from commands.drivetopoint import DriveToPoint
 
 from commands.field_relative_toggle import FieldRelativeToggle
 
@@ -228,6 +229,7 @@ class MyRobot(TimedCommandRobot):
 
     def robotPeriodic(self) -> None:
         # Rough idea of how to incorporate vision into odometry
+        SmartDashboard.putData("Swerve Drivetrain", self.swerve)
         if self.swerve.vision_stable is True:
             from math import pi
             # Here's our method to pull data from LimeLight's network table
@@ -272,11 +274,11 @@ class MyRobot(TimedCommandRobot):
 
     def auto_station_1(self):
         delaycmd = Delay(1)
-        cmd = PathPlannerAuto("LakeCityTwoNote")
+        cmd = PathPlannerAuto("LakeCityTwoNote").asProxy()
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
-                                        self.photoeyes)
+                                        self.photoeyes).asProxy()
         shootcmd = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                         .787, 85, do_rotation = True)
+                                         .787, 85, do_rotation = True).asProxy()
         cmds = [
             delaycmd,
             cmd,
@@ -317,6 +319,87 @@ class MyRobot(TimedCommandRobot):
         ]
         scg = SequentialCommandGroup(cmds)
         return scg
+    
+    def auto_blue_station_2_4note(self):
+        self.swerve.fieldRelative = True
+        starting_pose = Pose2d(1.5, 5.5, radians(180))
+        reset_swerve = self.swerve.resetOdometry(starting_pose)
+        delaycmd = Delay(0.25)
+        shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve,
+                                         shooter.tilt_sub, 80)
+        sideways_target = (2.0, 3.75, 1) 
+        slide_sideways = DriveToPoint(self.swerve, self.gyro, *sideways_target).asProxy()
+
+        # verify_rotate = Rotate(self.swerve, self.gyro, 0)
+        lock_note1 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        slow_note1 = InstantCommand(lambda: self.swerve.set_note_intake_speed(1.0))
+        pickup_note1 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        release_note1 = InstantCommand(self.swerve.defcmd.note_tracking_off)
+        defspeed = drivetrain.default_note_intake_speed
+        fast_note1 = InstantCommand(lambda: self.swerve.set_note_intake_speed(defspeed))
+        
+        smashed_into_pole_pose = Pose2d(2.7, 3.75, radians(30))
+        reset_pole = InstantCommand(lambda: self.swerve.resetOdometry(smashed_into_pole_pose))
+        back_target = (2.0, 3.75, 90) 
+        slide_back = DriveToPoint(self.swerve, self.gyro, *back_target).asProxy()
+        load_shooter1 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes).asProxy()
+
+        lock_note2 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        release_note2 = InstantCommand(self.swerve.defcmd.note_tracking_off)
+ 
+        load_shooter2 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes).asProxy()
+        load_slide1 = ParallelCommandGroup(
+            [slide_back, load_shooter1]
+        )
+        
+        verify_rotate_speaker = Rotate(self.swerve, self.gyro, 150)
+        lock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_on)
+        unlock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_off)
+        shoot_safe = AutoShooterLaunchNote(self.shooter, self.swerve,
+                                         shooter.tilt_safe, 80)
+        verify_rotate_speaker2 = Rotate(self.swerve, self.gyro, 180)
+
+        rotate_slide2 = ParallelCommandGroup(
+            [verify_rotate_speaker2, load_shooter2]
+        )
+        
+        lock_speaker2 = InstantCommand(self.swerve.defcmd.speaker_tracking_on)
+        unlock_speaker2 = InstantCommand(self.swerve.defcmd.speaker_tracking_off)
+        shoot_safe_pos2 = AutoShooterLaunchNote(self.shooter, self.swerve,
+                                                shooter.tilt_safe, 80)
+
+        rotate2 = Rotate(self.swerve, self.gyro, 80)
+        cmds = [
+            reset_swerve,
+            delaycmd,
+            shoot_sub,
+            slide_sideways,
+            lock_note1,
+            slow_note1,
+            pickup_note1,
+            release_note1,
+            fast_note1,
+            reset_pole,
+            load_slide1,
+            verify_rotate_speaker,
+            lock_speaker1,
+            shoot_safe,
+            unlock_speaker1,
+            rotate2,
+            lock_note2,
+            pickup_note2,
+            release_note2,
+            rotate_slide2,
+            lock_speaker2,
+            shoot_safe_pos2,
+            unlock_speaker2,
+        ]
+        scg = SequentialCommandGroup(cmds)
+        return scg
+
+    def lock_heading(self, newheading):
+        self.swerve.defcmd.desired_heading = newheading
 
     def autonomousInit(self):
         self.swerve.resetOdometry()
@@ -327,7 +410,7 @@ class MyRobot(TimedCommandRobot):
         # followPath = AutoBuilder.followPath(self.testPathToFollow())
         # haltcmd = HaltDrive(self.swerve)
         # rotcmd = Rotate(self.swerve, self.gyro, -180)
-        auto = self.auto_station_1()
+        auto = self.auto_blue_station_2_4note()
         auto.schedule()
         pass
 

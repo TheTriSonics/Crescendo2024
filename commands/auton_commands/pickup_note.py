@@ -18,7 +18,8 @@ class AutoPickupNote(Command):
         self.timer = Timer()
         self.ontop_timer = Timer()
         self.drive.defcmd.note_tracking_on()
-        self.addRequirements(drive, intake)
+        # self.addRequirements(drive, intake)
+        self.addRequirements(intake)
 
     def initialize(self):
         self.timer.restart()

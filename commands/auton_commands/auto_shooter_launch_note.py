@@ -21,7 +21,7 @@ class AutoShooterLaunchNote(Command):
         if self.do_rotation:
             self.drive.defcmd.speaker_tracking_on()
         self.addRequirements(shooter)
-        self.addRequirements(drivetrain)
+        # self.addRequirements(drivetrain)
 
     def initialize(self) -> None:
         self.shooter.set_tilt(self.tilt)

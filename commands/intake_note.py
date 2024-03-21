@@ -53,6 +53,6 @@ class IntakeNote(Command):
     def isFinished(self):
         if self.forceQuit:
             return True
-        # if self.timer.get() > 3.0:
-        #     return True
+        if self.timer.get() > 4.0:
+            return True
         return False

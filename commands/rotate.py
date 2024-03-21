@@ -1,40 +1,39 @@
 # This file should be deleted.
 
 from commands2 import Command
-from wpilib import SmartDashboard
+from wpilib import SmartDashboard, Timer
 from wpimath.controller import PIDController
 from subsystems.drivetrain import Drivetrain
+from subsystems.gyro import Gyro
 
 
 class Rotate(Command):
-    def __init__(self, drive: Drivetrain, gyro, targetHeading):
+    def __init__(self, drive: Drivetrain, gyro: Gyro, targetHeading):
         super().__init__()
         self.drive = drive
         self.gyro = gyro
         self.targetHeading = targetHeading
-        p, i, d = 3, 0.45, 0
-        self.xPID = PIDController(p, i, d)
-        self.yPID = PIDController(p, i, d)
-        self.rotPID = PIDController(0.10, 0, 0)
+        self.timer = Timer()
 
     def initialize(self):
+        self.drive.defcmd.desired_heading = self.targetHeading
+        self.timer.restart()
         pass
 
     def execute(self):
-        pose = self.drive.getPose()
-        curr_yaw = self.gyro.get_yaw()
-        rotPower = self.rotPID.calculate(curr_yaw, self.targetHeading)
-        self.drive.drive(0, 0, rotPower)
+        pass
 
     def end(self, i):
+        print('rotate done')
         pass
 
     def isFinished(self):
-        from math import sqrt
         pose = self.drive.getPose()
         currRot = pose.rotation().degrees()
-        deltaRot = currRot - self.targetHeading
+        deltaRot = abs(currRot - self.targetHeading)
         # SmartDashboard.putNumber('dtp err', deltaRot)
-        if deltaRot < 2:
+        if deltaRot < 4:
+            return True
+        if self.timer.hasElapsed(3.0):
             return True
         return False

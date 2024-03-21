@@ -59,7 +59,7 @@ class Leds(Subsystem):
         self.climber = climber
         self.photoeyes = photoeyes
 
-        self.led_length = 135
+        self.led_length = 134
         self.blinking = False
         self.blink_counter = 0
         self.blink_on = True
