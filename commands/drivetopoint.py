@@ -1,4 +1,4 @@
-from wpilib import SmartDashboard
+from wpilib import SmartDashboard, Timer
 from commands2 import Command
 from wpimath.controller import PIDController
 from subsystems.drivetrain import Drivetrain
@@ -7,6 +7,7 @@ from subsystems.gyro import Gyro
 class DriveToPoint(Command):
     def __init__(self, drive: Drivetrain, gyro: Gyro, x, y, targetHeading):
         super().__init__()
+        self.timer = Timer()
         self.drive = drive
         self.gyro = gyro
         self.x = x
@@ -19,6 +20,7 @@ class DriveToPoint(Command):
         self.addRequirements(self.drive)
 
     def initialize(self):
+        self.timer.restart()
         pass
 
     def execute(self):
@@ -40,6 +42,8 @@ class DriveToPoint(Command):
         pass
 
     def isFinished(self):
+        if self.timer.hasElapsed(3.0):
+            return True
         from math import sqrt
         pose = self.drive.getPose()
         currx = pose.X()

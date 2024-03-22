@@ -358,7 +358,7 @@ class MyRobot(TimedCommandRobot):
         back_target = (
             borx(2.0, flip),
             bory(3.75, flip),
-            bor_rot(90, flip)
+            bor_rot(0, flip)
         )
         slide_back = DriveToPoint(self.swerve, self.gyro, *back_target).asProxy()
         load_shooter1 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes).asProxy()

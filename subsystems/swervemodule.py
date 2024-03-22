@@ -64,11 +64,11 @@ class SwerveModule(Subsystem):
         driveConfigurator.apply(drive_feedback)
         limit_config = configs.CurrentLimitsConfigs()
         limit_config.supply_current_limit_enable = True
-        limit_config.supply_current_threshold = 35
+        limit_config.supply_current_threshold = 30
         limit_config.supply_time_threshold = 0.5
         # Raised from 25 after Lake City practice events and Driver Station
         # logs were inspected for brownouts.  Upping to 30 seems safe.
-        limit_config.supply_current_limit = 30
+        limit_config.supply_current_limit = 25
         driveConfigurator.apply(limit_config)
 
         drive_PID = configs.Slot0Configs()
