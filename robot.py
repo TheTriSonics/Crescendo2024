@@ -63,11 +63,10 @@ class AxisButton(JoystickButton):
 
 
 class MyRobot(TimedCommandRobot):
-    auton_method = None
-
     def robotInit(self) -> None:
         self.vision_timer = Timer()
         self.field = Field2d()
+        self.auton_method = self.auto_station_2_4note
         SmartDashboard.putData(self.field)
         pn = SmartDashboard.putNumber
         pn('visiontest/fakeX', 3)
@@ -307,7 +306,7 @@ class MyRobot(TimedCommandRobot):
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes)
         shootcmd = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                         shooter.tilt_safe, 80)
+                                         shooter.tilt_safe, 80).asProxy()
         cmds = [
             delaycmd,
             cmd,
@@ -323,7 +322,7 @@ class MyRobot(TimedCommandRobot):
         intake_to_shooter = ShooterLoad(self.amp, self.intake, self.shooter,
                                         self.photoeyes)
         shootcmd = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                         shooter.tilt_safe, 80)
+                                         shooter.tilt_safe, 80).asProxy()
         cmds = [
             delaycmd,
             cmd,
@@ -344,7 +343,7 @@ class MyRobot(TimedCommandRobot):
         reset_swerve = self.swerve.resetOdometry(starting_pose)
         delaycmd = Delay(0.25)
         shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                          shooter.tilt_sub, 80)
+                                          shooter.tilt_sub, 80).asProxy()
         sideways_target = (
             borx(2.0, flip),
             bory(3.75, flip),
@@ -381,9 +380,9 @@ class MyRobot(TimedCommandRobot):
 
         verify_rotate_speaker = Rotate(self.swerve, self.gyro, bor_rot(150, flip))
         lock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_on)
-        unlock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_off)
         shoot_safe = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                         shooter.tilt_safe, 80)
+                                         shooter.tilt_safe, 80).asProxy()
+        unlock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_off)
 
         lock_note2 = InstantCommand(self.swerve.defcmd.note_tracking_on)
         pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
@@ -398,7 +397,7 @@ class MyRobot(TimedCommandRobot):
 
         lock_speaker2 = InstantCommand(self.swerve.defcmd.speaker_tracking_on)
         shoot_safe_pos2 = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                                shooter.tilt_safe, 80)
+                                                shooter.tilt_safe, 80).asProxy()
         unlock_speaker2 = InstantCommand(
             self.swerve.defcmd.speaker_tracking_off
         )
@@ -443,7 +442,7 @@ class MyRobot(TimedCommandRobot):
         reset_swerve = self.swerve.resetOdometry(starting_pose)
         delaycmd = Delay(0.25)
         shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                          shooter.tilt_sub, 80)
+                                          shooter.tilt_sub, 80).asProxy()
         back_target = (
             borx(2.0, flip),
             bory(5.5, flip),
@@ -465,7 +464,7 @@ class MyRobot(TimedCommandRobot):
         rotate_shot2 = Rotate(self.swerve, self.gyro, bor_rot(180, flip))
         load_rotate2 = ParallelCommandGroup([rotate_shot2, load_shooter2])
         shoot2 = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                       shooter.tilt_safe, 80, do_rotation=True)
+                                       shooter.tilt_safe, 80, do_rotation=True).asProxy()
         rotate_note3 = Rotate(self.swerve, self.gyro, bor_rot(90, flip))
         lock_note3 = InstantCommand(self.swerve.defcmd.note_tracking_on)
         pickup_note3 = IntakeNote(
@@ -474,7 +473,7 @@ class MyRobot(TimedCommandRobot):
         release_note3 = InstantCommand(self.swerve.defcmd.note_tracking_off)
         rotate_shot3 = Rotate(self.swerve, self.gyro, bor_rot(-150, flip))
         shoot3 = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                       shooter.tilt_safe, 80, do_rotation=True)
+                                       shooter.tilt_safe, 80, do_rotation=True).asProxy()
         last_note = (
             borx(2.0, flip),
             bory(3.75, flip),
@@ -495,7 +494,7 @@ class MyRobot(TimedCommandRobot):
         rotate_shot4 = Rotate(self.swerve, self.gyro, bor_rot(150, flip))
         load_rotate4 = ParallelCommandGroup([rotate_shot4, load_shooter4])
         shoot4 = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                       shooter.tilt_safe, 80, do_rotation=True)
+                                       shooter.tilt_safe, 80, do_rotation=True).asProxy()
 
         cmds = [
             reset_swerve,
