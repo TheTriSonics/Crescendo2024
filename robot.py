@@ -62,12 +62,14 @@ class AxisButton(JoystickButton):
 
 
 class MyRobot(TimedCommandRobot):
+    auton_method = None
 
     def robotInit(self) -> None:
         self.vision_timer = Timer()
         self.field = Field2d()
         SmartDashboard.putData(self.field)
         pn = SmartDashboard.putNumber
+        pn('auton/route', 2)
         pn('visiontest/fakeX', 3)
         pn('visiontest/fakeY', 4)
         pn('visiontest/fakeRot', 0)
@@ -229,6 +231,21 @@ class MyRobot(TimedCommandRobot):
 
     def robotPeriodic(self) -> None:
         # Rough idea of how to incorporate vision into odometry
+        gn = SmartDashboard.getNumber
+        ps = SmartDashboard.putString
+        route = gn('auton/route', 2)
+        if route == 1:
+            self.auton_method = self.auto_station_1
+            ps('auto', 'Lake City 2')
+        elif route == 2:
+            self.auton_method = self.auto_station_2_4note
+            ps('auto', 'GVSU Pole 1st')
+        elif route == 3:
+            self.auton_method = self.auto_station_2_4note_pole_last
+            ps('auto', 'GVSU Pole last')
+        else:
+            ps('auto', 'No Auton will be run. DANGER')
+
         SmartDashboard.putData("Swerve Drivetrain", self.swerve)
         if self.swerve.vision_stable is True:
             from math import pi
@@ -513,7 +530,7 @@ class MyRobot(TimedCommandRobot):
 
         # Experimental auton, leaves pole note for last
         # auto = self.auto_station_2_4note_pole_last()
-        auto = self.auto_station_2_4note()
+        auto = self.auton_method()
         auto.schedule()
         pass
 
