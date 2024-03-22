@@ -44,6 +44,7 @@ import subsystems.photoeyes as photoeyes
 import subsystems.drivetrain as drivetrain
 import subsystems.note_tracker as note_tracker
 import subsystems.leds as leds
+import subsystems.auto_selector as auto_selector
 
 from constants import RobotButtonMap as RBM
 
@@ -69,7 +70,6 @@ class MyRobot(TimedCommandRobot):
         self.field = Field2d()
         SmartDashboard.putData(self.field)
         pn = SmartDashboard.putNumber
-        pn('auton/route', 2)
         pn('visiontest/fakeX', 3)
         pn('visiontest/fakeY', 4)
         pn('visiontest/fakeRot', 0)
@@ -93,6 +93,7 @@ class MyRobot(TimedCommandRobot):
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
                                             self.note_tracker, self.intake)
+        self.auto_selector = auto_selector.AutoSelector()
 
         self.climber = climber.Climber(self.driver, self.commander)
         self.climber.encoder_reset()
@@ -229,23 +230,18 @@ class MyRobot(TimedCommandRobot):
         curr_pose = self.swerve.getPose()
         self.swerve.resetOdometry(curr_pose)
 
+    def get_auton(self, value) -> None:
+        if value == 1:
+            self.auton_method = self.auto_station_1
+        elif value == 2:
+            self.auton_method = self.auto_station_2_4note
+        elif value == 3:
+            self.auton_method = self.auto_station_2_4note_pole_last
+        else:
+            self.auton_method = self.auto_station_2_4note
+
     def robotPeriodic(self) -> None:
         # Rough idea of how to incorporate vision into odometry
-        gn = SmartDashboard.getNumber
-        ps = SmartDashboard.putString
-        route = gn('auton/route', 2)
-        if route == 1:
-            self.auton_method = self.auto_station_1
-            ps('auto', 'Lake City 2')
-        elif route == 2:
-            self.auton_method = self.auto_station_2_4note
-            ps('auto', 'GVSU Pole 1st')
-        elif route == 3:
-            self.auton_method = self.auto_station_2_4note_pole_last
-            ps('auto', 'GVSU Pole last')
-        else:
-            ps('auto', 'No Auton will be run. DANGER')
-
         SmartDashboard.putData("Swerve Drivetrain", self.swerve)
         if self.swerve.vision_stable is True:
             from math import pi
@@ -530,6 +526,8 @@ class MyRobot(TimedCommandRobot):
 
         # Experimental auton, leaves pole note for last
         # auto = self.auto_station_2_4note_pole_last()
+        self.auto_selector_value = self.auto_selector.get_auton()
+        self.get_auton(self.auto_selector_value)
         auto = self.auton_method()
         auto.schedule()
         pass
