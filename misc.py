@@ -1,6 +1,8 @@
 import wpilib
 from functools import wraps
 
+field_max_x = 16.46
+
 
 def is_sim() -> bool:
     return wpilib.RobotBase.isSimulation()
@@ -94,3 +96,23 @@ def iterable(obj):
     except:  # noqa: E722
         return False
     return True
+
+
+def borx(bx, flip) -> float:
+    if flip:
+        return field_max_x - bx
+    return bx
+
+
+def bory(by, flip) -> float:
+    return by
+
+
+def bor_rot(br, flip) -> float:
+    if flip:
+        br += 180
+        while br > 360:
+            br -= 360
+    return br
+
+
