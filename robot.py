@@ -512,8 +512,8 @@ class MyRobot(TimedCommandRobot):
         # rotcmd = Rotate(self.swerve, self.gyro, -180)2
 
         # Experimental auton, leaves pole note for last
-        # auto = self.auto_station_2_4note_pole_last()
-        auto = self.auto_station_2_4note()
+        auto = self.auto_station_2_4note_pole_last()
+        # auto = self.auto_station_2_4note()
         auto.schedule()
         pass
 
