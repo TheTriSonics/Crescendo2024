@@ -91,7 +91,7 @@ class MyRobot(TimedCommandRobot):
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
                                             self.note_tracker, self.intake)
-        
+
         self.climber = climber.Climber(self.driver, self.commander)
         self.climber.encoder_reset()
 
@@ -103,7 +103,7 @@ class MyRobot(TimedCommandRobot):
         self.param_editor = param_editor.ParamEditor(
             self.swerve.defcmd.straight_drive_pid
         )
-        
+
 
         sim = is_sim()
         if not sim:
@@ -138,7 +138,7 @@ class MyRobot(TimedCommandRobot):
         note_track_button.onFalse(
             InstantCommand(self.swerve.defcmd.note_tracking_off)
         )
-        
+
         speaker_track_button = JoystickButton(self.driver_joystick,
                                               RBM.speaker_tracking)
         speaker_track_button.onTrue(
@@ -319,7 +319,7 @@ class MyRobot(TimedCommandRobot):
         ]
         scg = SequentialCommandGroup(cmds)
         return scg
-    
+
     def auto_blue_station_2_4note(self):
         self.swerve.fieldRelative = True
         starting_pose = Pose2d(1.5, 5.5, radians(180))
@@ -327,7 +327,7 @@ class MyRobot(TimedCommandRobot):
         delaycmd = Delay(0.25)
         shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve,
                                          shooter.tilt_sub, 80)
-        sideways_target = (2.0, 3.75, 1) 
+        sideways_target = (2.0, 3.75, 1)
         slide_sideways = DriveToPoint(self.swerve, self.gyro, *sideways_target).asProxy()
 
         # verify_rotate = Rotate(self.swerve, self.gyro, 0)
@@ -337,16 +337,16 @@ class MyRobot(TimedCommandRobot):
         release_note1 = InstantCommand(self.swerve.defcmd.note_tracking_off)
         defspeed = drivetrain.default_note_intake_speed
         fast_note1 = InstantCommand(lambda: self.swerve.set_note_intake_speed(defspeed))
-        
+
         smashed_into_pole_pose = Pose2d(2.7, 3.75, radians(30))
         reset_pole = InstantCommand(lambda: self.swerve.resetOdometry(smashed_into_pole_pose))
-        back_target = (2.0, 3.75, 90) 
+        back_target = (2.0, 3.75, 90)
         slide_back = DriveToPoint(self.swerve, self.gyro, *back_target).asProxy()
         load_shooter1 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes).asProxy()
         load_slide1 = ParallelCommandGroup(
             [slide_back, load_shooter1]
         )
-        
+
         verify_rotate_speaker = Rotate(self.swerve, self.gyro, 150)
         lock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_on)
         unlock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_off)
@@ -363,11 +363,13 @@ class MyRobot(TimedCommandRobot):
         rotate_slide2 = ParallelCommandGroup(
             [verify_rotate_speaker2, load_shooter2]
         )
-        
+
         lock_speaker2 = InstantCommand(self.swerve.defcmd.speaker_tracking_on)
-        unlock_speaker2 = InstantCommand(self.swerve.defcmd.speaker_tracking_off)
         shoot_safe_pos2 = AutoShooterLaunchNote(self.shooter, self.swerve,
                                                 shooter.tilt_safe, 80)
+        unlock_speaker2 = InstantCommand(
+            self.swerve.defcmd.speaker_tracking_off
+        )
 
         rotate2 = Rotate(self.swerve, self.gyro, 80)
         cmds = [
@@ -398,6 +400,72 @@ class MyRobot(TimedCommandRobot):
         scg = SequentialCommandGroup(cmds)
         return scg
 
+    def auto_blue_station_2_4note_pole_last(self):
+        self.swerve.fieldRelative = True
+        starting_pose = Pose2d(1.5, 5.5, radians(180))
+        reset_swerve = self.swerve.resetOdometry(starting_pose)
+        delaycmd = Delay(0.25)
+        shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve,
+                                          shooter.tilt_sub, 80)
+        back_target = (2.0, 5.5, 1)
+        slide_back = DriveToPoint(
+            self.swerve, self.gyro, *back_target
+        ).asProxy()
+
+        # verify_rotate = Rotate(self.swerve, self.gyro, 0)
+        lock_note2 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        pickup_note2 = IntakeNote(
+            self.intake, self.shooter, self.amp, self.photoeyes
+        )
+        release_note2 = InstantCommand(self.swerve.defcmd.note_tracking_off)
+        load_shooter2 = ShooterLoad(
+            self.amp, self.intake, self.shooter, self.photoeyes
+        ).asProxy()
+        rotate_shot2 = Rotate(self.swerve, self.gyro, 180)
+        load_rotate2 = ParallelCommandGroup([rotate_shot2, load_shooter2])
+        shoot2 = AutoShooterLaunchNote(self.shooter, self.swerve,
+                                       shooter.tilt_safe, 80, do_rotation=True)
+        rotate_note3 = Rotate(self.swerve, self.gyro, 90)
+        lock_note3 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        pickup_note3 = IntakeNote(
+            self.intake, self.shooter, self.amp, self.photoeyes
+        )
+        release_note3 = InstantCommand(self.swerve.defcmd.note_tracking_off)
+        rotate_shot3 = Rotate(self.swerve, self.gyro, -150)
+        shoot3 = AutoShooterLaunchNote(self.shooter, self.swerve,
+                                       shooter.tilt_safe, 80, do_rotation=True)
+        last_note = (2.0, 3.75, 1)
+        slide_last_note = DriveToPoint(
+            self.swerve, self.gyro, *last_note
+        ).asProxy()
+
+        lock_note4 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        pickup_note4 = IntakeNote(
+            self.intake, self.shooter, self.amp, self.photoeyes
+        )
+        release_note4 = InstantCommand(self.swerve.defcmd.note_tracking_off)
+        load_shooter4 = ShooterLoad(
+            self.amp, self.intake, self.shooter, self.photoeyes
+        ).asProxy()
+        rotate_shot4 = Rotate(self.swerve, self.gyro, 150)
+        load_rotate4 = ParallelCommandGroup([rotate_shot4, load_shooter4])
+        shoot4 = AutoShooterLaunchNote(self.shooter, self.swerve,
+                                       shooter.tilt_safe, 80, do_rotation=True)
+
+        cmds = [
+            reset_swerve,
+            delaycmd,
+            shoot_sub,
+            slide_back,
+            lock_note2, pickup_note2, release_note2, load_rotate2, shoot2,
+            rotate_note3, lock_note3, pickup_note3, release_note3,
+            rotate_shot3, shoot3,
+            slide_last_note,
+            lock_note4, pickup_note4, release_note4, load_rotate4, shoot4
+        ]
+        scg = SequentialCommandGroup(cmds)
+        return scg
+
     def lock_heading(self, newheading):
         self.swerve.defcmd.desired_heading = newheading
 
@@ -409,7 +477,10 @@ class MyRobot(TimedCommandRobot):
         # seek = DriveOverNote(self.note_tracker, self.swerve)
         # followPath = AutoBuilder.followPath(self.testPathToFollow())
         # haltcmd = HaltDrive(self.swerve)
-        # rotcmd = Rotate(self.swerve, self.gyro, -180)
+        # rotcmd = Rotate(self.swerve, self.gyro, -180)2
+
+        # Experimental auton, leaves pole note for last
+        # auto = self.auto_blue_station_2_4note_pole_last()
         auto = self.auto_blue_station_2_4note()
         auto.schedule()
         pass
