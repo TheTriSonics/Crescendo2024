@@ -354,7 +354,7 @@ class MyRobot(TimedCommandRobot):
         # verify_rotate = Rotate(self.swerve, self.gyro, 0)
         lock_note1 = InstantCommand(self.swerve.defcmd.note_tracking_on)
         slow_note1 = InstantCommand(lambda: self.swerve.set_note_intake_speed(1.0))
-        pickup_note1 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        pickup_note1 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes).asProxy()
         release_note1 = InstantCommand(self.swerve.defcmd.note_tracking_off)
         defspeed = drivetrain.default_note_intake_speed
         fast_note1 = InstantCommand(lambda: self.swerve.set_note_intake_speed(defspeed))
@@ -378,7 +378,7 @@ class MyRobot(TimedCommandRobot):
             [slide_back, load_shooter1]
         )
 
-        verify_rotate_speaker = Rotate(self.swerve, self.gyro, bor_rot(150, flip))
+        verify_rotate_speaker = Rotate(self.swerve, self.gyro, bor_rot(130, flip)).asProxy()
         lock_speaker1 = InstantCommand(self.swerve.defcmd.speaker_tracking_on)
         shoot_safe = AutoShooterLaunchNote(self.shooter, self.swerve,
                                          shooter.tilt_safe, 80).asProxy()
