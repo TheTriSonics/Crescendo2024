@@ -1,6 +1,7 @@
 import rev
 import wpilib
 from rev import CANSparkLowLevel
+from revshim import CANSparkMax
 from misc import is_sim
 from wpilib import DutyCycleEncoder, Joystick, SmartDashboard
 from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
@@ -15,34 +16,6 @@ tilt_encoder_setpoint_up = 0.335
 tilt_encoder_error_margin = 0.005
 
 
-if is_sim():
-    class SparkMaxAbsoluteEncoder:
-
-        def __init__(self) -> None:
-            self._position = 0
-
-        def getPosition(self):
-            return self._position
-
-    class CANSparkMax(wpilib.Spark):
-        IdleMode = rev.CANSparkMax.IdleMode
-
-        def __init__(self, channel: int, ignored) -> None:
-            super().__init__(channel)
-            self._encoder = SparkMaxAbsoluteEncoder()
-
-        def getAbsoluteEncoder(self):
-            return self._encoder
-
-        def setIdleMode(self, mode):
-            pass
-
-else:
-    import rev
-
-    CANSparkMax = rev.CANSparkMax
-
-
 class Intake(Subsystem):
 
     def __init__(self, controller: CommanderController,
@@ -50,6 +23,8 @@ class Intake(Subsystem):
         super().__init__()
         self.controller = controller
         self.photoeyes = photoeyes
+        self.feeding = False
+        self.reversing = False
 
         self.feed_motors = CANSparkMax(RMM.intake_motor_feed,
                                        CANSparkLowLevel.MotorType.kBrushed)
@@ -62,12 +37,18 @@ class Intake(Subsystem):
         # self.setDefaultCommand(defcmd)
 
     def feed(self) -> None:
+        self.feeding = True
+        self.reversing = False
         self.feed_motors.set(1)
 
     def reverse(self) -> None:
+        self.reversing = True
+        self.feeding = False
         self.feed_motors.set(-1)
 
     def halt(self) -> None:
+        self.reversing = False
+        self.feeding = False
         self.feed_motors.set(0)
 
     def tilt_up(self) -> None:
