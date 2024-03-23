@@ -12,22 +12,16 @@ class AmpLoad(Command):
         self.amp = amp
         self.photoeyes = photoeyes
         self.intake = intake
+        self.timer = Timer()
         self.addRequirements(amp)
 
     def initialize(self) -> None:
-        self.timer = Timer()
         self.forceQuit = False
-        # if self.amp.height != self.amp.Height.HOME:
-            # self.amp.set_height(self.amp.Height.HOME)
-        # if not self.amp.is_at_position():
-            # self.forceQuit = True
-        self.timer.start()
-
+        self.timer.restart()
 
     def execute(self) -> None:
         if self.forceQuit is True:
             return
-
         self.intake.feed()
         self.amp.feed()
         pass
