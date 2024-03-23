@@ -112,6 +112,9 @@ class Leds(Subsystem):
         elif self.photoeyes.get_shooter_loaded():
             self.set_colorRGB(BLUE)
 
+        elif self.intake.feeding is True:
+            self.set_colorRGB(GREEN)
+
         else:
             self.set_colorRGB(BLACK)
 
