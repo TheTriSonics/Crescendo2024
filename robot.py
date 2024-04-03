@@ -90,7 +90,7 @@ class MyRobot(TimedCommandRobot):
         self.shooter = shooter.Shooter()
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
-        self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
+        self.swerve = drivetrain.Drivetrain(0, self.gyro, self.driver,
                                             self.note_tracker, self.intake)
 
         self.climber = climber.Climber(self.driver, self.commander)
@@ -100,9 +100,6 @@ class MyRobot(TimedCommandRobot):
             self.amp, self.intake, self.shooter,
             self.swerve, self.note_tracker,
             self.climber, self.photoeyes
-        )
-        self.param_editor = param_editor.ParamEditor(
-            self.swerve.defcmd.straight_drive_pid
         )
 
 
@@ -246,7 +243,7 @@ class MyRobot(TimedCommandRobot):
             ps('auto', 'No Auton will be run. DANGER')
 
         SmartDashboard.putData("Swerve Drivetrain", self.swerve)
-        if self.swerve.vision_stable is True:
+        if self.swerve.vision_stable is False:
             from math import pi
             # Here's our method to pull data from LimeLight's network table
             if is_sim():
@@ -538,7 +535,7 @@ class MyRobot(TimedCommandRobot):
 
     def teleopInit(self) -> None:
         self.swerve.lock_heading()
-        self.swerve.fieldRelative = True
+        self.swerve.fieldRelative = False
         pass
 
     def teleopPeriodic(self) -> None:
@@ -592,7 +589,9 @@ class MyRobot(TimedCommandRobot):
 
             realx = robot_pose_raw[0] + offset_x
             realy = robot_pose_raw[1] + offset_y
-            # Jim Change - the LL t6r_fs gives us "Robot Pose in field space as computed by solvepnp (x,y,z,rx,ry,rz)".  We want rotation around the z axis (yaw).
+            # Jim Change - the LL t6r_fs gives us "Robot Pose in field space as
+            # computed by solvepnp (x,y,z,rx,ry,rz)".  We want rotation around
+            # the z axis (yaw).
             rot = robot_pose_raw[5]
             pose = Pose2d(realx, realy, Rotation2d(radians(rot)))
             poses.append(pose)

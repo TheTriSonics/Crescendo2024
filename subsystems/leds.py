@@ -116,7 +116,12 @@ class Leds(Subsystem):
             self.set_colorRGB(GREEN)
 
         else:
-            self.set_colorRGB(BLACK)
+            # Connection status indicators now since nothing on the robot
+            # that we care about is going on.
+            if DriverStation.isEnabled():
+                self.set_colorRGB(LIGHT_GRAY)
+            else:
+                self.set_colorRGB(BLACK)
 
         if self.rainbow_mode:
             self.rainbow()

@@ -1,6 +1,7 @@
 from wpilib import DigitalInput
 from commands2 import Subsystem, Command
-from rev import CANSparkMax
+# from rev import CANSparkMax
+from revshim import CANSparkMax
 from phoenix6.hardware import TalonFX
 from phoenix6.controls import DynamicMotionMagicVoltage
 from phoenix6.configs import TalonFXConfiguration

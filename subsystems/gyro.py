@@ -1,7 +1,10 @@
+from wpilib import SmartDashboard
 from phoenix6.hardware import Pigeon2
 from commands2 import Subsystem
 
 from constants import RobotSensorMap as RSM
+
+pn = SmartDashboard.putNumber
 
 
 class Gyro(Subsystem):
@@ -18,3 +21,5 @@ class Gyro(Subsystem):
 
     def periodic(self):
         raw_yaw = self.gyro.get_yaw()
+        pn('odometry/gyro/yaw', raw_yaw.value)
+

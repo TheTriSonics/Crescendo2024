@@ -56,25 +56,29 @@ class RobotMotorMap():
 
     if is_sim():
         intake_motor_feed = 5
+        amp_lift_motor = 6
+        amp_feed_motor = 7
+        climber_motor_left = 8
+        climber_motor_right = 9
+        shooter_motor_tilt_left = 10
+        shooter_motor_tilt_right = 11
+        shooter_motor_feed_right = 12
+        shooter_motor_feed_left = 13
     else:
         intake_motor_feed = 51
-
-    amp_lift_motor = 54
-    amp_feed_motor = 55
-
-    # Climber Motors
-    climber_motor_left = 57
-    climber_motor_right = 58
+        amp_lift_motor = 54
+        amp_feed_motor = 55
+        climber_motor_left = 57
+        climber_motor_right = 58
+        shooter_motor_tilt_left = 44
+        shooter_motor_tilt_right = 45
+        shooter_motor_feed_right = 46
+        shooter_motor_feed_left = 47
 
     # Shooter Motors
     shooter_motor_left = 41
     shooter_motor_right = 42
 
-    shooter_motor_feed_right = 46
-    shooter_motor_feed_left = 47
-
-    shooter_motor_tilt_left = 44
-    shooter_motor_tilt_right = 45
 
 
 class RobotSensorMap():

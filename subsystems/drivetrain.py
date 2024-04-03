@@ -6,6 +6,8 @@
 
 import json
 import math
+from re import X
+import ntcore
 import commands.intake_note as intake_note
 import subsystems.swervemodule as swervemodule
 import subsystems.gyro as gyro
@@ -53,16 +55,27 @@ class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
-    def __init__(self, gyro: gyro.Gyro, driver_controller,
+    def __init__(self, orig_heading: float, gyro: gyro.Gyro,
+                 driver_controller: DriverController,
                  photon: NoteTracker, intake: Intake) -> None:
         super().__init__()
+        self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
+        self.straight_drive_pid.setTolerance(2.0)
+
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
         self.frontRightLocation = Translation2d(swerve_offset, -swerve_offset)
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
-        self.photon = photon
-        self.intake = intake
+        self.desired_heading = orig_heading
+        self.xSpeed, self.ySpeed = 0, 0
+
+        # get the default instance of NetworkTables
+        nt = ntcore.NetworkTableInstance.getDefault()
+
+        # Start publishing an array of module states with the "/SwerveStates" key
+        topic = nt.getStructArrayTopic("/SwerveStates", SwerveModuleState)
+        self.pub = topic.publish()
 
         pb(f'{sdbase}/note_tracking', False)
         pb(f'{sdbase}/note_visible', False)
@@ -89,34 +102,35 @@ class Drivetrain(Subsystem):
         # Half the motors need to be inverted to run the right direction and
         # half are in brake mode to slow the robot down faster but also not
         # make it come to a complete stop too quickly.
+        from misc import is_sim
         self.frontLeft = swervemodule.SwerveModule(
             RMM.front_left_drive,
             RMM.front_left_turn,
             RMM.front_left_turn_encoder,
             inverted=True,
             brake=True,
-            name='Front left')
+            name='fl')
         self.frontRight = swervemodule.SwerveModule(
             RMM.front_right_drive,
             RMM.front_right_turn,
             RMM.front_right_turn_encoder,
             inverted=False,
             brake=True,
-            name='Front right')
+            name='fr')
         self.backLeft = swervemodule.SwerveModule(
             RMM.back_left_drive,
             RMM.back_left_turn,
             RMM.back_left_turn_encoder,
             inverted=True,
             brake=True,
-            name='Back left')
+            name='bl')
         self.backRight = swervemodule.SwerveModule(
             RMM.back_right_drive,
             RMM.back_right_turn,
             RMM.back_right_turn_encoder,
             inverted=False,
             brake=True,
-            name='Back right')
+            name='br')
 
         self.modules = [
             self.frontLeft,
@@ -226,7 +240,10 @@ class Drivetrain(Subsystem):
 
     def getSpeeds(self):
         cs = self.kinematics.toChassisSpeeds(
-            [m.getState() for m in self.modules]
+            (self.frontLeft.getState(),
+             self.frontRight.getState(),
+             self.backLeft.getState(),
+             self.backRight.getState()),
         )
         return cs
 
@@ -264,12 +281,8 @@ class Drivetrain(Subsystem):
             )
 
     def get_heading_rotation_2d(self) -> Rotation2d:
-        from misc import is_sim
-        if not is_sim():
-            yaw = self.gyro.get_yaw()
-            return Rotation2d(math.radians(yaw))
-        else:
-            return Rotation2d(0)
+        yaw = self.gyro.get_yaw()
+        return Rotation2d(math.radians(yaw))
 
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
@@ -296,22 +309,6 @@ class Drivetrain(Subsystem):
         :param periodSeconds: Time
         """
 
-        # Force the robot to be field relative if we're tracking a note
-        if self.fieldRelative and not robot_centric_force:
-            flip = self.shouldFlipPath()
-            if flip:
-                xSpeed = -xSpeed
-                ySpeed = -ySpeed
-            cs = ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
-                )
-        else:
-            cs = ChassisSpeeds(xSpeed, ySpeed, rot)
-
-        states = self.kinematics.toSwerveModuleStates(cs)
-        SwerveDrive4Kinematics.desaturateWheelSpeeds(states, kMaxSpeed)
-        for m, s in zip(self.modules, states):
-            m.setDesiredState(s)
 
     def lockWheels(self):
         for m in self.modules:
@@ -326,16 +323,21 @@ class Drivetrain(Subsystem):
         return (m.getState().angle.radians() for m in self.modules)
 
     def updateOdometry(self) -> None:
+        from misc import is_sim
         """Updates the field relative position of the robot."""
-        self.odometry.update(
-            self.get_heading_rotation_2d(),
-            (
-                self.frontLeft.getPosition(),
-                self.frontRight.getPosition(),
-                self.backLeft.getPosition(),
-                self.backRight.getPosition(),
-            ),
+        heading = self.get_heading_rotation_2d()
+        if is_sim() and False:
+            print(f'Robot heading: {heading.degrees()}')
+        fl_pos, fr_pos, bl_pos, br_pos = (
+            m.getPosition() for m in self.modules
         )
+        """
+        print(f'FL: {fl_pos.angle}/{fl_pos.distance}, \n' +
+              f'FR: {fr_pos.angle}/{fr_pos.distance}, \n' +
+              f'BL: {bl_pos.angle}/{bl_pos.distance}, \n' +
+              f'BR: {br_pos.angle}/{br_pos.distance}')
+        """
+        self.odometry.update(heading, (fl_pos, fr_pos, bl_pos, br_pos))
 
     def getPose(self) -> Pose2d:
         return self.odometry.getEstimatedPosition()
@@ -357,18 +359,46 @@ class Drivetrain(Subsystem):
             if f['fID'] != id:
                 continue
             tag_heading = f['tx']
-        # pn = SmartDashboard.putNumber
         # pn(f'fids/{id}', tag_heading)
         return tag_heading
 
     def periodic(self) -> None:
         self.updateOdometry()
-        pb = SmartDashboard.putBoolean
-        pn = SmartDashboard.putNumber
+        fl, fr, bl, br = (self.frontLeft.getState(),
+                          self.frontRight.getState(),
+                          self.backLeft.getState(),
+                          self.backRight.getState())
+        self.pub.set([fl, fr, bl, br])
         pb("drivetrain/field_relative", self.fieldRelative)
         pn('drivetrain/odometry/pose_x', self.getPose().X())
         pn('drivetrain/odometry/pose_y', self.getPose().Y())
-        pn('drivetrain/odometry/pose_rotation', self.getPose().rotation().degrees())
+        pn('drivetrain/odometry/pose_rotation',
+           self.getPose().rotation().degrees())
+
+        xSpeed = self.xSpeed
+        ySpeed = self.ySpeed
+        rot = 0
+        curr = self.get_heading_rotation_2d().degrees()
+        error = curr - self.desired_heading
+        if abs(error) > 1.0:
+            rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
+
+        # Force the robot to be field relative if we're tracking a note
+        if self.fieldRelative:
+            flip = self.shouldFlipPath()
+            if flip:
+                xSpeed = -xSpeed
+                ySpeed = -ySpeed
+            cs = ChassisSpeeds.fromFieldRelativeSpeeds(
+                    xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
+                )
+        else:
+            cs = ChassisSpeeds(xSpeed, ySpeed, rot)
+
+        states = self.kinematics.toSwerveModuleStates(cs)
+        SwerveDrive4Kinematics.desaturateWheelSpeeds(states, kMaxSpeed)
+        for m, s in zip(self.modules, states):
+            m.setDesiredState(s)
 
 
 class DrivetrainDefaultCommand(Command):
@@ -386,8 +416,6 @@ class DrivetrainDefaultCommand(Command):
         self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
-        self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
-        self.straight_drive_pid.setTolerance(2.0)
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(5.0)
         self.yslew = SlewRateLimiter(5.0)
@@ -448,7 +476,6 @@ class DrivetrainDefaultCommand(Command):
         fake = gb(f'{sdbase}/speaker_aimed', False)
         return self.drivetrain.speaker_aimed or fake
 
-
     def is_amp_tracking(self):
         fake = gb(f'{sdbase}/amp_tracking', False)
         return self.drivetrain.amp_tracking or fake
@@ -488,6 +515,14 @@ class DrivetrainDefaultCommand(Command):
         if self.swapped:
             xSpeed = -xSpeed
             ySpeed = -ySpeed
+        self.drivetrain.xSpeed = xSpeed
+        self.drivetrain.ySpeed = ySpeed
+        # Ehh, scaling will need to be worked out
+        self.drivetrain.desired_heading += rot
+
+        pn('drivetrain/input/x', xSpeed)
+        pn('drivetrain/input/y', ySpeed)
+        pn('drivetrain/input/rot', rot)
 
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
@@ -495,15 +530,14 @@ class DrivetrainDefaultCommand(Command):
         if rot != 0:
             self.lock_heading()
         else:
-            error = curr - self.desired_heading
-            if abs(error) > 1.0:
-                rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
-            else:
-                rot = 0
+            rot = 0
 
+        """
+        This doesn't seem to work on the real robot so removing it for now
         if self.controller.get_yaw_reset():
             forward = 180 if self.drivetrain.shouldFlipPath() else 0
             self.gyro.set_yaw(forward)
+        """
 
         # When in lockon mode, the robot will rotate to face the node
         # that PhotonVision is detecting
@@ -512,20 +546,8 @@ class DrivetrainDefaultCommand(Command):
         self.drivetrain.note_tracking = False
         self.drivetrain.note_visible = False
         if self.note_lockon:
-            # TODO: Make sure the note intake command is running when this is happening
-            # The trick will be kicking the command on but not letting it go away immediately
-            # but also don't start a brand new one if it is already running
-            """
-            if intake_note.running is False:
-                sched = CommandScheduler.getInstance()
-                sched.schedule(
-                    intake_note.IntakeNote(self.intake, self.shooter, self.amp,
-                                           self.photoeyes)
-                )
-            """
             self.note_tracking = True
             robot_centric_force = True
-            pn = SmartDashboard.putNumber
             yaw_raw = self.photon.getYawOffset()
             if yaw_raw is not None:
                 self.note_visible = True
@@ -570,12 +592,15 @@ class DrivetrainDefaultCommand(Command):
             fid = 4 if self.drivetrain.is_red_alliance() else 7
             speaker_heading = self.drivetrain.get_fid_heading(fid)
             if speaker_heading is not None:
+                print(f'{fid}: {speaker_heading}')
                 self.drivetrain.speaker_visible = True
                 if abs(speaker_heading) < 3.0:
                     rot = 0
                     self.drivetrain.speaker_aimed = True
                 else:
                     rot = self.speaker_pid.calculate(speaker_heading, 0)
+            else:
+                print(f'Not found: {fid}')
 
         self.drivetrain.drive(xSpeed, ySpeed, rot,
                               robot_centric_force=robot_centric_force)

@@ -8,7 +8,8 @@ from phoenix6.configs import TalonFXConfiguration
 from phoenix6.controls import DutyCycleOut, VelocityDutyCycle
 from phoenix6.hardware import TalonFX
 from phoenix6.controls import CoastOut
-from rev import CANSparkMax, CANSparkLowLevel
+from rev import CANSparkLowLevel
+from revshim import CANSparkMax
 
 
 # Local application/library specific imports
@@ -164,13 +165,13 @@ class Shooter(Subsystem):
         if self.speed_target == 0:
             ret = False or fake
         else:
-            ret = fake or (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1)
+            ret = fake or (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 4)
         if ret is True:
             self.speed_timer.restart()
         return ret
 
     def is_tilt_aimed(self):
-        return abs(self.tilt_encoder.getAbsolutePosition() - self.tilt_target) < max_tilt_diff
+        return abs(self.tilt_encoder.getAbsolutePosition() - self.tilt_target) < max_tilt_diff*2
 
     def feed_note(self):
         self.feed_motor_left.set(0.25)

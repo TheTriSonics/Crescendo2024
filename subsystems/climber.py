@@ -1,6 +1,7 @@
 from wpilib import SmartDashboard, DutyCycleEncoder
 from commands2 import Command, Subsystem
-from rev import CANSparkLowLevel, CANSparkMax
+from rev import CANSparkLowLevel
+from revshim import CANSparkMax
 
 from constants import RobotMotorMap as RMM
 from constants import RobotSensorMap as RSM
@@ -14,7 +15,7 @@ class Climber(Subsystem):
 
         self.controller = controller
         self.op_controller = op_controller
-        
+
         defcmd = ClimberDefaultCommand(self, controller, op_controller)
         self.setDefaultCommand(defcmd)
 

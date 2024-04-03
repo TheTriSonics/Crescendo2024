@@ -14,7 +14,8 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
-      "/SmartDashboard/Field": "Field2d"
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/Swerve Drivetrain": "Subsystem"
     },
     "windows": {
       "/SmartDashboard/Field": {
@@ -31,22 +32,29 @@
     }
   },
   "NetworkTables": {
+    "Retained Values": {
+      "open": false
+    },
     "transitory": {
       "Shuffleboard": {
         "open": true
       },
       "SmartDashboard": {
         "drivetrain": {
+          "input": {
+            "open": true
+          },
           "odometry": {
             "open": true
           },
-          "open": true
+          "swervemodule": {
+            "open": true
+          }
         },
         "fakesensors": {
           "drivetrain": {
             "open": true
           },
-          "open": true,
           "photoeye": {
             "open": true
           },
@@ -55,9 +63,18 @@
           }
         },
         "open": true,
+        "simulator": {
+          "open": true
+        },
         "visiontest": {
           "open": true
         }
+      },
+      "photonvision": {
+        "notecam": {
+          "open": true
+        },
+        "open": true
       }
     }
   },

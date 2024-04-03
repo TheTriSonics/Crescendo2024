@@ -5,6 +5,8 @@
 #
 
 import math
+import ntcore
+from math import degrees
 
 from commands2 import Subsystem
 from wpimath.geometry import Rotation2d
@@ -30,6 +32,10 @@ COAST = signals.NeutralModeValue.COAST
 CCW = signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
 CW = signals.InvertedValue.CLOCKWISE_POSITIVE
 
+pn = SmartDashboard.putNumber
+pd = SmartDashboard.putData
+
+
 class SwerveModule(Subsystem):
     def __init__(
         self,
@@ -50,11 +56,20 @@ class SwerveModule(Subsystem):
         """
         self.driveMotor = TalonFX(driveMotorChannel, "canivore")
         self.turningMotor = TalonFX(turningMotorChannel, "canivore")
+        self.optimized_state_for_sim = None
         # self.driveMotor = TalonFX(driveMotorChannel)
         # self.turningMotor = TalonFX(turningMotorChannel)
+        # get the default instance of NetworkTables
+        nt = ntcore.NetworkTableInstance.getDefault()
+
+        # Start publishing an array of module states with the "/SwerveStates" key
+        topic = nt.getStructArrayTopic("/SwerveStates", SwerveModuleState)
+        self.pub = topic.publish()
 
         driveConfigurator = self.driveMotor.configurator
 
+        self.inverted = inverted
+        self.brake = brake
         drive_Output = configs.MotorOutputConfigs()
         drive_Output.neutral_mode = BRAKE if brake else COAST
         drive_Output.inverted = CCW if inverted else CW
@@ -147,12 +162,15 @@ class SwerveModule(Subsystem):
 
         # Optimize the reference state to avoid spinning further than 90 deg
         state = SwerveModuleState.optimize(desiredState, encoderRotation)
+        self.optimized_state_for_sim = state
 
         # Scale speed by cosine of angle error. If the error is 90 degrees
         # cos(90) = 0, and the wheels will not spin. If the error is 0 degrees,
         # cos(0) = 1, and the wheels will spin at full speed. Values between
         # 0 and 90 degrees will scale the speed accordingly.
-        state.speed *= (state.angle - encoderRotation).cos()
+        scale_angle_factor = (state.angle - encoderRotation).cos()
+        pn(f'drivetrain/swervemodule/{self.name} scale_angle_factor', scale_angle_factor)
+        state.speed *= scale_angle_factor
 
         """
         SmartDashboard.putNumber(f'{self.name} state speed', state.speed)
@@ -167,9 +185,8 @@ class SwerveModule(Subsystem):
         turnOutput = self.turningPIDController.calculate(
             turn_pos, state.angle.radians()
         )
-        pn = SmartDashboard.putNumber
-        # pn(f'drivetrain/swervemodule/{self.name} turnOutput', turnOutput)
-        # pn(f'drivetrain/swervemodule/{self.name} driveOutput', driveOutput)
+        pn(f'drivetrain/swervemodule/{self.name} turnOutput', turnOutput)
+        pn(f'drivetrain/swervemodule/{self.name} driveOutput', driveOutput)
 
         # Now set the motor outputs where 0 is none and 1 is full
         # SmartDashboard.putNumber(f'{self.name} driveOutput', driveOutput)
@@ -177,5 +194,7 @@ class SwerveModule(Subsystem):
         self.turningMotor.set_control(DutyCycleOut(turnOutput))
 
     def periodic(self):
-        pn = SmartDashboard.putNumber
-        # pn(f'drivetrain/swervemodule/{self.name}_encoder', self.driveMotor.get_position().value)
+        pn(f'drivetrain/swervemodule/{self.name}_drive_encoder',
+           self.driveMotor.get_position().value)
+        pn(f'drivetrain/swervemodule/turn_encoder_pos_{self.name}',
+           degrees(self.turnEncoder.get_absolute_position().value * math.tau))
