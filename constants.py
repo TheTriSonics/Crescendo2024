@@ -14,19 +14,19 @@ class RobotMotorMap():
     # REAL CAN ASSIGNMENTS
 
     # Swerve Motors
-    front_left_drive = 11
-    front_right_drive = 12
+    front_left_drive = 12
+    front_right_drive = 11
     back_left_drive = 13
     back_right_drive = 14
 
-    front_left_turn = 21
-    front_right_turn = 22
+    front_left_turn = 22
+    front_right_turn = 21
     back_left_turn = 23
     back_right_turn = 24
 
     # Cancoders
-    front_left_turn_encoder = 31
-    front_right_turn_encoder = 32
+    front_left_turn_encoder = 32
+    front_right_turn_encoder = 31
     back_left_turn_encoder = 33
     back_right_turn_encoder = 34
 

@@ -213,7 +213,7 @@ class MyRobot(TimedCommandRobot):
 
         shoot_button = JoystickButton(self.commander_joystick2,
                                       RBM.shooter_shoot_c2)
-        shoot_button.onTrue(ShooterLaunchNote(self.shooter, self.commander))
+        shoot_button.onTrue(ShooterLaunchNote(self.shooter, self.amp, self.commander))
         # shoot_button.onTrue(AutoShooterLaunchNote(self.shooter))
 
         shooter_spin = JoystickButton(self.commander_joystick2,
@@ -501,7 +501,7 @@ class MyRobot(TimedCommandRobot):
             delaycmd,
             shoot_sub,
             slide_back,
-            lock_note2, pickup_note2, release_note2, load_rotate2, shoot2,
+            lock_note2, pickup_note2, release_note2, rotate_shot2, load_shooter2, shoot2,
             rotate_note3, lock_note3, pickup_note3, release_note3,
             rotate_shot3, shoot3,
             slide_last_note,
@@ -535,8 +535,9 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def teleopInit(self) -> None:
+        self.swerve.resetOdometry(Pose2d(0.3, 4, Rotation2d(0)))
         self.swerve.lock_heading()
-        self.swerve.fieldRelative = True
+        self.swerve.fieldRelative = False
         pass
 
     def teleopPeriodic(self) -> None:
@@ -570,13 +571,17 @@ class MyRobot(TimedCommandRobot):
             # start with a very uncertain value unless a condition is met to
             # say otherwise. The format is undertainty in the x in meters,
             # y in meters, and rotation in degrees
-            certainty = (10, 10, 5)
+            v = 100
+            if target_area > 100:
+                v = 1.0
             if target_area > 200:
-                certainty = (3, 3, 3)
+                v = 0.5
             if target_area > 300:
-                certainty = (2, 2, 2)
+                v = 0.1
             if target_area > 400:
-                certainty = (1, 1, 1)
+                v = 0.05
+            SmartDashboard.putNumber('llacc', v)
+            certainty = (v, v, v)
 
             robot_pose_raw = fid['t6r_fs']
             # It seems like we get a None value from the network table
@@ -593,8 +598,9 @@ class MyRobot(TimedCommandRobot):
             # Jim Change - the LL t6r_fs gives us "Robot Pose in field space as computed by solvepnp (x,y,z,rx,ry,rz)".  We want rotation around the z axis (yaw).
             rot = robot_pose_raw[5]
             pose = Pose2d(realx, realy, Rotation2d(radians(rot)))
-            poses.append(pose)
-            certain_within.append(certainty)
+            if v < 100:
+                poses.append(pose)
+                certain_within.append(certainty)
         t2 = time()
         diff = t2 - t1
         return poses, certain_within, camera_lag, diff

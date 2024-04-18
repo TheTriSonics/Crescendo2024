@@ -101,7 +101,7 @@ class Drivetrain(Subsystem):
             RMM.front_right_turn,
             RMM.front_right_turn_encoder,
             inverted=False,
-            brake=True,
+            brake=True,  # Set to false becaue this module isn't working at GVSU
             name='Front right')
         self.backLeft = swervemodule.SwerveModule(
             RMM.back_left_drive,
@@ -141,6 +141,7 @@ class Drivetrain(Subsystem):
             self.backRightLocation,
         )
 
+        woc = 0.05
         self.odometry = SwerveDrive4PoseEstimator(
             self.kinematics,
             self.get_heading_rotation_2d(),
@@ -151,7 +152,7 @@ class Drivetrain(Subsystem):
                 self.backRight.getPosition(),
             ),
             Pose2d(),
-            (0.1, 0.1, 0.1),  # wheel std devs for Kalman filters
+            (woc, woc, woc),  # wheel std devs for Kalman filters
             (0.9, 0.9, 0.9),  # vision std devs for Kalman filters
         )
 

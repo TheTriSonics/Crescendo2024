@@ -110,9 +110,7 @@ def bory(by, flip) -> float:
 
 def bor_rot(br, flip) -> float:
     if flip:
-        br += 180
-        while br > 360:
-            br -= 360
+        return -br
     return br
 
 

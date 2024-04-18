@@ -1,7 +1,7 @@
 import rev
 import wpilib
 from rev import CANSparkLowLevel
-from revshim import CANSparkMax
+from rev import CANSparkMax
 from misc import is_sim
 from wpilib import DutyCycleEncoder, Joystick, SmartDashboard
 from constants import RobotMotorMap as RMM, RobotSensorMap as RSM
