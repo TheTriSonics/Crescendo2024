@@ -2,6 +2,7 @@ from commands2 import Subsystem
 from wpilib import SmartDashboard
 from photonlibpy.photonCamera import PhotonCamera
 from photonlibpy.photonPipelineResult import PhotonTrackedTarget
+from misc import is_sim
 
 
 class NoteTracker(Subsystem):
@@ -46,6 +47,8 @@ class NoteTracker(Subsystem):
         return a  # for now just return the first one
 
     def periodic(self):
+        if is_sim():
+            return
         # Store off data on where the note is
         lr = self.camera.getLatestResult()
         pn = SmartDashboard.putNumber
@@ -59,8 +62,8 @@ class NoteTracker(Subsystem):
         for t in targets:
             # Photon vision sorts identified objects by area
             # with the first object being the largest
-            self.closest = t 
-            self.largest = t 
+            self.closest = t
+            self.largest = t
             # TODO: Remove break when the above methods are implemented
             break  # Only process the first target
         # pn('photon/note/closest/yaw', self.closest.yaw)

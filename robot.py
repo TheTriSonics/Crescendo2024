@@ -2,6 +2,7 @@
 
 from dataclasses import Field
 import json
+import ntcore
 
 from time import time
 from math import radians
@@ -9,7 +10,7 @@ from wpilib import SmartDashboard, Joystick, DriverStation, Timer, Field2d
 from commands2 import ( ParallelCommandGroup, TimedCommandRobot, SequentialCommandGroup,
                         InstantCommand, CommandScheduler,
 )
-from commands2.button import JoystickButton, CommandGenericHID
+from commands2.button import JoystickButton, CommandGenericHID, NetworkButton
 from wpimath.geometry import Rotation2d, Pose2d
 from pathplannerlib.auto import PathPlannerAuto, NamedCommands
 from commands.amp_score import AmpScore
@@ -106,7 +107,6 @@ class MyRobot(TimedCommandRobot):
             self.swerve.defcmd.straight_drive_pid
         )
 
-
         sim = is_sim()
         if not sim:
             NamedCommands.registerCommand(
@@ -151,10 +151,15 @@ class MyRobot(TimedCommandRobot):
         )
 
     def configure_commander_controls(self):
+        inst = ntcore.NetworkTableInstance.getDefault()
+        nt_table = inst.getTable('virtual_commander')
         intake_button = JoystickButton(self.commander_joystick1,
                                        RBM.intake_ready_c1)
-        intake_button.whileTrue(IntakeNote(self.intake, self.shooter,
-                                           self.gyro, self.photoeyes))
+        intake_button_nt = NetworkButton(nt_table, 'intake_ready')
+
+        for b in [intake_button, intake_button_nt]:
+            b.whileTrue(IntakeNote(self.intake, self.shooter,
+                                   self.gyro, self.photoeyes))
 
         eject_button = JoystickButton(self.commander_joystick1,
                                       RBM.intake_eject_c1)
@@ -162,7 +167,12 @@ class MyRobot(TimedCommandRobot):
 
         amp_load_button = JoystickButton(self.commander_joystick2,
                                          RBM.load_note_amp_c2)
+        print('doing the nt button binding')
+        al = nt_table.getBooleanTopic('amp_load').getEntry(False)
+        amp_load_button_nt = NetworkButton(al)
         amp_load_button.onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
+        amp_load_button_nt.onTrue(AmpLoad(self.amp, self.intake,
+                                          self.photoeyes))
 
         shooter_load_button = JoystickButton(self.commander_joystick1,
                                              RBM.load_note_shooter_c1)

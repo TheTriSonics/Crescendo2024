@@ -16,6 +16,7 @@ class AmpLoad(Command):
         self.addRequirements(amp)
 
     def initialize(self) -> None:
+        print('amp load started')
         self.forceQuit = False
         self.timer.restart()
 
@@ -27,6 +28,7 @@ class AmpLoad(Command):
         pass
 
     def end(self, isInterrupted) -> None:
+        print('amp load finished')
         self.intake.halt()
         self.amp.halt()
         pass

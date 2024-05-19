@@ -38,16 +38,12 @@
       },
       "SmartDashboard": {
         "drivetrain": {
-          "odometry": {
-            "open": true
-          },
           "open": true
         },
         "fakesensors": {
           "drivetrain": {
             "open": true
           },
-          "open": true,
           "photoeye": {
             "open": true
           },
@@ -56,9 +52,18 @@
           }
         },
         "open": true,
+        "photoeyes": {
+          "open": true
+        },
+        "shooter": {
+          "open": true
+        },
         "visiontest": {
           "open": true
         }
+      },
+      "virtual_commander": {
+        "open": true
       }
     }
   },
