@@ -7,6 +7,7 @@ from subsystems.photoeyes import Photoeyes
 import subsystems.gyro as gyro
 from wpimath.filter import SlewRateLimiter, LinearFilter
 
+
 pn = SmartDashboard.putNumber
 yaw_raw = None
 
