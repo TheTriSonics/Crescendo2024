@@ -13,10 +13,7 @@ class ShooterTrack(Command):
 
         self.shooter = shooter
         self.drive = drive
-        self.addRequirements(self.shooter)
-
-    def initialize(self):
-        pass
+        self.addRequirements(Shooter)
 
     def _target_xy(self):
         # 13.5 feet in meters is ... 4.1148 meters
