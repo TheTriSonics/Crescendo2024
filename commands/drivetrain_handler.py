@@ -4,6 +4,7 @@ from subsystems.drivetrain import Drivetrain
 from commands.haltdrive import HaltDrive
 from controllers.commander import CommanderController
 from wpilib import Joystick
+from commands.note_lockon import NoteLockOnCommand
 
 class DrivetrainPriority(Command):
     def __init__(self, controller: CommanderController):
@@ -13,7 +14,7 @@ class DrivetrainPriority(Command):
 
     def execute(self):
         if self.controller.getRawButton(4):
-            rotational_speed = note_lockon.get_rotational_speed()  # Replace with your actual code to get rotational speed from note_lockon file
+            rotational_speed = NoteLockOnCommand.get_rotational_speed()  # Find the method
             Drivetrain.drive(0, 0, rotational_speed)
         else:
             x_speed = driver_controller.getX(wpilib.GenericHID.Hand.kLeft)
