@@ -52,9 +52,11 @@ class DrivetrainDefaultCommand(Command):
         self.addRequirements(drivetrain)
 
     def initialize(self):
-        self.note_lockon = False
-        self.speaker_lockon = False
+        # Heading is in degrees here
+        if self.desired_heading is None:
+            self.desired_heading = self._curr_heading()
         self.swapped = False
+        self.slow_mode = False
 
     def note_tracking_on(self):
         self.note_lockon = True
@@ -102,7 +104,6 @@ class DrivetrainDefaultCommand(Command):
         fake = gb(f'{sdbase}/speaker_aimed', False)
         return self.drivetrain.speaker_aimed or fake
 
-
     def is_amp_tracking(self):
         fake = gb(f'{sdbase}/amp_tracking', False)
         return self.drivetrain.amp_tracking or fake
@@ -111,38 +112,39 @@ class DrivetrainDefaultCommand(Command):
         fake = gb(f'{sdbase}/amp_visible', False)
         return self.drivetrain.amp_visible or fake
 
-    def execute(self) -> None:
-        # Heading is in degrees here
-        if self.desired_heading is None:
-            self.desired_heading = self._curr_heading()
-        curr = self.drivetrain.get_heading_rotation_2d().degrees()
+    def _get_x_speed(self) -> float:
+        master_throttle = self.controller.get_master_throttle()
         xraw = self.controller.get_drive_x()
         xSpeed = self.xslew.calculate(xraw)
         if xraw == 0:
             xSpeed /= 2
         xSpeed *= kMaxSpeed
+        if self.swapped:
+            xSpeed = -xSpeed
+        return xSpeed*master_throttle
 
+    def _get_y_speed(self) -> float:
+        master_throttle = self.controller.get_master_throttle()
         yraw = self.controller.get_drive_y()
         ySpeed = self.yslew.calculate(yraw)
         if yraw == 0:
             ySpeed /= 2
         ySpeed *= kMaxSpeed
+        if self.swapped:
+            ySpeed = -ySpeed
+        return ySpeed*master_throttle
 
+    def _get_rotation(self) -> float:
+        master_throttle = self.controller.get_master_throttle()
         rotraw = self.controller.get_drive_rot()
         rot = self.rotslew.calculate(rotraw)
         if rotraw == 0:
             rot /= 2
         rot *= kMaxAngularSpeed
+        return rot*master_throttle
 
-        master_throttle = self.controller.get_master_throttle()
-        xSpeed *= master_throttle
-        ySpeed *= master_throttle
-        rot *= master_throttle
-
-        if self.swapped:
-            xSpeed = -xSpeed
-            ySpeed = -ySpeed
-
+    def lock_heading_helper(self, rot):
+        curr = self.drivetrain.get_heading_rotation_2d().degrees()
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
@@ -151,85 +153,26 @@ class DrivetrainDefaultCommand(Command):
         else:
             error = curr - self.desired_heading
             if abs(error) > 1.0:
-                rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
+                rot = self.straight_drive_pid.calculate(curr,
+                                                        self.desired_heading)
             else:
                 rot = 0
+        return rot
 
-        if self.controller.get_yaw_reset():
-            forward = 180 if self.drivetrain.shouldFlipPath() else 0
-            self.gyro.set_yaw(forward)
-
-        # When in lockon mode, the robot will rotate to face the node
-        # that PhotonVision is detecting
-        robot_centric_force = False
-
-        self.drivetrain.note_tracking = False
-        self.drivetrain.note_visible = False
-        if self.note_lockon:
-            # TODO: Make sure the note intake command is running when this is happening
-            # The trick will be kicking the command on but not letting it go away immediately
-            # but also don't start a brand new one if it is already running
-            """
-            if intake_note.running is False:
-                sched = CommandScheduler.getInstance()
-                sched.schedule(
-                    intake_note.IntakeNote(self.intake, self.shooter, self.amp,
-                                           self.photoeyes)
-                )
-            """
-            self.note_tracking = True
-            robot_centric_force = True
-            pn = SmartDashboard.putNumber
-            yaw_raw = self.photon.getYawOffset()
-            if yaw_raw is not None:
-                self.note_visible = True
-                self.current_yaw = self.note_yaw_filtered.calculate(yaw_raw)
-                pn('drivetrain/note_tracker/yaw_raw', yaw_raw)
-                yaw = self.current_yaw
-                pn('drivetrain/note_tracker/yaw', yaw)
-            pitch = self.photon.getPitchOffset()
-            if yaw_raw is not None:
-                # Setpoint was 0 but moved to 2 to try and get the
-                # robot from going left of the note
-                rot = self.note_pid.calculate(yaw_raw, -2)
-                xSpeed = curr_note_intake_speed
-                # if abs(yaw_raw) < 1.7:
-                #     rot = 0
-                # else:
-                #     rot = self.note_pid.calculate(yaw_raw, 0)
-                #     xSpeed = 0.5
-                # else:
-                #     if pitch is not None and pitch > 0:
-                #         rot = self.note_pid.calculate(yaw, 0)
-                #     else:
-                #         rot = 0
-                #         # Force a translation to center on the note when close
-                #         ySpeed = self.note_translate_pid.calculate(yaw, 0)
-
-        self.slow_mode = False
+    def get_stick_data(self):
+        xSpeed = self._get_x_speed()
+        ySpeed = self._get_y_speed()
+        rot = self._get_rotation()
+        # TODO: Move to an InstantCommand
         if self.controller.get_slow_mode():
             self.slow_mode = True
             slow_mode_factor = 1/2
             xSpeed *= slow_mode_factor
             ySpeed *= slow_mode_factor
             rot *= slow_mode_factor
+        return xSpeed, ySpeed, rot
 
-        self.drivetrain.speaker_tracking = False
-        self.drivetrain.speaker_visible = False
-        self.drivetrain.speaker_aimed = False
-        if self.speaker_lockon:
-            # TODO: Possible! Check with Nathan -- slow down the drivetrain by setting
-            # master_throttle to something like 0.8 or 0.6...
-            self.drivetrain.speaker_tracking = True
-            fid = 4 if self.drivetrain.is_red_alliance() else 7
-            speaker_heading = self.drivetrain.get_fid_heading(fid)
-            if speaker_heading is not None:
-                self.drivetrain.speaker_visible = True
-                if abs(speaker_heading) < 3.0:
-                    rot = 0
-                    self.drivetrain.speaker_aimed = True
-                else:
-                    rot = self.speaker_pid.calculate(speaker_heading, 0)
+    def execute(self) -> None:
+        xSpeed, ySpeed, rot = self.get_stick_data()
+        self.drivetrain.drive(xSpeed, ySpeed, rot, robot_centric_force=False)
 
-        self.drivetrain.drive(xSpeed, ySpeed, rot,
-                              robot_centric_force=robot_centric_force)

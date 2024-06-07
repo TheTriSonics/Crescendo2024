@@ -42,6 +42,7 @@ import subsystems.param_editor as param_editor
 import subsystems.shooter as shooter
 import subsystems.photoeyes as photoeyes
 import subsystems.drivetrain as drivetrain
+import subsystems.speaker_tracker as speaker_tracker
 import subsystems.note_tracker as note_tracker
 import subsystems.leds as leds
 import subsystems.auto_selector as auto_selector
@@ -85,13 +86,15 @@ class MyRobot(TimedCommandRobot):
 
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.Photoeyes()
+        self.speaker_tracker = speaker_tracker.SpeakerTracker()
 
         self.amp = amp.Amp(self.commander, self.photoeyes)
         self.shooter = shooter.Shooter()
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
-                                            self.note_tracker, self.intake)
+                                            self.note_tracker, self.intake,
+                                            self.speaker_tracker)
         self.auto_selector = auto_selector.AutoSelector()
 
         self.climber = climber.Climber(self.driver, self.commander)

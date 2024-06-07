@@ -8,6 +8,7 @@ import json
 import math
 import commands.intake_note as intake_note
 import commands.drivetrain_default as drivetrain_default
+from subsystems.speaker_tracker import SpeakerTracker
 import subsystems.swervemodule as swervemodule
 import subsystems.gyro as gyro
 from commands2 import CommandScheduler, Subsystem, Command
@@ -53,7 +54,8 @@ class Drivetrain(Subsystem):
     Represents a swerve drive style drivetrain.
     """
     def __init__(self, gyro: gyro.Gyro, driver_controller,
-                 photon: NoteTracker, intake: Intake) -> None:
+                 photon: NoteTracker, intake: Intake,
+                 speaker_tracker: SpeakerTracker) -> None:
         super().__init__()
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
@@ -339,27 +341,6 @@ class Drivetrain(Subsystem):
 
     def getPose(self) -> Pose2d:
         return self.odometry.getEstimatedPosition()
-
-    def get_fid_heading(self, id) -> tuple[list[Pose2d], float]:
-        tag_heading = None
-        data = self.ll_json_entry.get()
-        obj = json.loads(data)
-        # tl = None
-        # Short circuit any JSON processing if we got back an empty list, which
-        # is the default value for the limelight network table entry
-        if len(obj) == 0:
-            return None
-        results = obj['Results']
-        if 'Fiducial' not in results:
-            return None
-        fids = results['Fiducial']
-        for f in fids:
-            if f['fID'] != id:
-                continue
-            tag_heading = f['tx']
-        # pn = SmartDashboard.putNumber
-        # pn(f'fids/{id}', tag_heading)
-        return tag_heading
 
     def periodic(self) -> None:
         self.updateOdometry()
