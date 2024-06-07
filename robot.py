@@ -14,10 +14,6 @@ from wpimath.geometry import Rotation2d, Pose2d
 from pathplannerlib.auto import PathPlannerAuto, NamedCommands
 from commands.amp_score import AmpScore
 from commands.delay import Delay
-from commands.auton_commands.auto_shooter_launch_note import (
-    AutoShooterLaunchNote
-)
-from commands.auton_commands.pickup_note import AutoPickupNote
 from commands.eject_note import EjectNote
 
 from commands.rotate import Rotate
@@ -33,6 +29,7 @@ from commands.amp_load import AmpLoad
 from commands.shooter_launch_note_test import ShooterLaunchNoteTest
 from commands.shooter_load import ShooterLoad
 from commands.shooter_move import ShooterMove
+from commands.drivetrain_handler import TrackerType, DrivetrainHandler
 
 import subsystems.amp as amp
 import subsystems.climber as climber
@@ -87,10 +84,10 @@ class MyRobot(TimedCommandRobot):
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.Photoeyes()
         self.speaker_tracker = speaker_tracker.SpeakerTracker()
+        self.note_tracker = note_tracker.NoteTracker()
 
         self.amp = amp.Amp(self.commander, self.photoeyes)
         self.shooter = shooter.Shooter()
-        self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
                                             self.note_tracker, self.intake,
@@ -109,7 +106,6 @@ class MyRobot(TimedCommandRobot):
             self.swerve.defcmd.straight_drive_pid
         )
 
-
         sim = is_sim()
         if not sim:
             NamedCommands.registerCommand(
@@ -123,6 +119,25 @@ class MyRobot(TimedCommandRobot):
         self.configure_driver_controls()
         self.configure_commander_controls()
 
+    def vision_auto_track(self):
+        # Decide wich thing we're going to track
+        # If I don't have a note I should track a note
+        cmd = None
+        # If I have a note in the shooter I should track the speaker
+        if self.photoeyes.get_shooter_loaded() is True:
+            cmd = DrivetrainHandler(self.speaker_tracker, self.note_tracker,
+                                    TrackerType.SPEAKER)
+        # if I have a note in the amp mech I should track the amp
+        if self.photoeyes.get_amp_loaded() is True:
+            cmd = DrivetrainHandler(self.speaker_tracker, self.note_tracker,
+                                    TrackerType.AMP)
+        elif self.photoeyes.get_intake_loaded() is False:
+            cmd = DrivetrainHandler(self.speaker_tracker, self.note_tracker,
+                                    TrackerType.NOTE)
+        # If we have a command to run, schedule it
+        if cmd is not None:
+            cmd.schedule()
+
     def configure_driver_controls(self):
         fr_button = JoystickButton(self.driver_joystick,
                                    RBM.toggle_field_relative)
@@ -134,15 +149,22 @@ class MyRobot(TimedCommandRobot):
         swap_button = JoystickButton(self.driver_joystick, RBM.swap_direction)
         swap_button.onTrue(InstantCommand(self.swerve.swapDirection))
 
+        track_button = JoystickButton(self.driver_joystick,
+                                      RBM.auto_tracking)
+
+        track_button.onTrue(InstantCommand(self.vision_auto_track))
+
+        # Old way of doing tracking w/ the drivetrain
+        """
         note_track_button = JoystickButton(self.driver_joystick,
                                            RBM.note_tracking)
-        # note_track_button = AxisButton(self.driver_joystick, 3)
         note_track_button.onTrue(
             InstantCommand(self.swerve.defcmd.note_tracking_on)
         )
         note_track_button.onFalse(
             InstantCommand(self.swerve.defcmd.note_tracking_off)
         )
+        """
 
         speaker_track_button = JoystickButton(self.driver_joystick,
                                               RBM.speaker_tracking)

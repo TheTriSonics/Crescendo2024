@@ -13,8 +13,6 @@ class SpeakerTracker(Subsystem):
         self.ntinst = NetworkTableInstance.getDefault().getTable('limelight')
         self.ll_json = self.ntinst.getStringTopic("json")
         self.ll_json_entry = self.ll_json.getEntry('[]')
-        self.tracking = False
-        pass
 
     # This should get the data from limelight
     def periodic(self):
@@ -41,13 +39,11 @@ class SpeakerTracker(Subsystem):
         self.speaker_heading = tag_heading
         # Now determine what to do with the rotation
         # value.
-        if abs(self.speaker_heading) < 3:
+        self.desired_rotation = None
+        if abs(tag_heading) < 3:
             self.desired_rotation = 0
         else:
-            if self.speaker_heading < 0:
+            if tag_heading < 0:
                 self.desired_rotation = -1
             else:
                 self.desired_rotation = 1
-
-
-

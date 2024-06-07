@@ -1,7 +1,7 @@
 from enum import Enum
 from subsystems.speaker_tracker import SpeakerTracker
 from subsystems.note_tracker import NoteTracker
-from commands.drivetrain_default import DrivetrainDefaultCommand
+from subsystems.drivetrain import DrivetrainDefaultCommand
 
 
 class TrackerType(Enum):
@@ -13,7 +13,7 @@ class TrackerType(Enum):
     STAGE_POS_C = 6
 
 
-class DivetrainHandler(DrivetrainDefaultCommand):
+class DrivetrainHandler(DrivetrainDefaultCommand):
 
     def __init__(self, speaker_tracker: SpeakerTracker,
                  note_tracker: NoteTracker, tracker_type: TrackerType):
@@ -34,13 +34,13 @@ class DivetrainHandler(DrivetrainDefaultCommand):
         elif self.tracking == TrackerType.NOTE and note_rot is not None:
             # Cut the xpeed down too
             # and force to robot centric
+            # Should we also force the ySpeed to 0?
             rot = self.note_tracker.desired_rotation
             robot_centric = True
         # add more tracking ideas here.
 
         self.drivetrain.drive(xSpeed, ySpeed, rot,
                               robot_centric_force=robot_centric)
-
 
     def isFinished(self):
         return False
