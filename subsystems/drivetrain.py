@@ -5,14 +5,13 @@
 #
 
 import math
-from subsystems.speaker_tracker import SpeakerTracker
-import subsystems.swervemodule as swervemodule
-import subsystems.gyro as gyro
-from commands2 import CommandScheduler, Subsystem, Command
+
+from commands2 import Subsystem, Command
 from wpilib import SmartDashboard, DriverStation
-from ntcore import NetworkTableInstance
+from wpimath.filter import SlewRateLimiter, LinearFilter
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
+from wpimath.controller import PIDController
 from wpimath.kinematics import (
     SwerveModuleState, SwerveDrive4Kinematics,
     SwerveModulePosition, ChassisSpeeds
@@ -22,49 +21,30 @@ from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
 
-from constants import RobotMotorMap as RMM
-from subsystems.note_tracker import NoteTracker
-from subsystems.intake import Intake
-
-
-kMaxSpeed = 4.5  # m/s
-kMaxAngularSpeed = math.pi * 5
-
-swerve_offset = 27 / 100  # cm converted to meters
-
-
-pn = SmartDashboard.putNumber
-gn = SmartDashboard.getNumber
-pb = SmartDashboard.putBoolean
-gb = SmartDashboard.getBoolean
-
-sdbase = 'fakesensors/drivetrain'
-
-curr_note_intake_speed = 2
-default_note_intake_speed = 2
-
-import math
-from commands2 import Command
-from wpilib import PS4Controller, SmartDashboard
 from controllers.driver import DriverController
 
 from subsystems.gyro import Gyro
 from subsystems.intake import Intake
-from subsystems.note_tracker import NoteTracker
+from subsystems.swervemodule import SwerveModule
 
-from wpimath.filter import SlewRateLimiter, LinearFilter
-from wpimath.controller import PIDController
 from constants import RobotPIDConstants as PIDC
+from constants import RobotMotorMap as RMM
 
-sdbase = 'fakesensors/drivetrain'
 
+kMaxSpeed = 4.5  # meters/second
+kMaxAngularSpeed = math.pi * 5  # radians/second
+
+# These functions are used so often it is nice to have some shorthand
+# for them. With Python we can assign a function to a variable and then
+# use that variable like we would the function itself.
 pn = SmartDashboard.putNumber
 gn = SmartDashboard.getNumber
 pb = SmartDashboard.putBoolean
 gb = SmartDashboard.getBoolean
 
-kMaxSpeed = 4.5  # m/s
-kMaxAngularSpeed = math.pi * 5
+# A base string for the SmartDashboard keys for the fake sensors we might
+# want to use in testing or simulation
+sdbase = 'fakesensors/drivetrain'
 
 curr_note_intake_speed = 2
 default_note_intake_speed = 2
@@ -74,65 +54,49 @@ class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
-    def __init__(self, gyro: gyro.Gyro, driver_controller,
-                 photon: NoteTracker, intake: Intake,
-                 speaker_tracker: SpeakerTracker) -> None:
+    def __init__(self, gyro: Gyro, driver_controller, intake: Intake) -> None:
         super().__init__()
-        # TODO: Set these to the right numbers in centimeters
+        # Set these to the right numbers in centimeters whenever
+        # the robot changes
+        swerve_offset = 27 / 100  # cm converted to meters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
         self.frontRightLocation = Translation2d(swerve_offset, -swerve_offset)
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
-        self.photon = photon
+        self.gyro = gyro
         self.intake = intake
-
-        pb(f'{sdbase}/note_tracking', False)
-        pb(f'{sdbase}/note_visible', False)
-
-        pb(f'{sdbase}/speaker_tracking', False)
-        pb(f'{sdbase}/speaker_visible', False)
-        pb(f'{sdbase}/speaker_aimed', False)
-
-        pb(f'{sdbase}/amp_tracking', False)
-        pb(f'{sdbase}/amp_visible', False)
-
-        self.note_tracking = False
-        self.note_visible = False
-        self.speaker_tracking = False
-        self.speaker_visible = False
-        self.speaker_aimed = False
-        self.amp_tracking = False
-        self.amp_visible = False
-        self.lockable = False
-        self.locked = False
-        self.vision_stable = True
-
+        self.controller = driver_controller
 
         # Half the motors need to be inverted to run the right direction and
         # half are in brake mode to slow the robot down faster but also not
         # make it come to a complete stop too quickly.
-        self.frontLeft = swervemodule.SwerveModule(
+        # UPDATE: Eventually we moved to all of them in brake mode because we
+        # wanted faster deceleration.
+
+        # TIP: If a module fails and needs to be run in competition take
+        # it out of brake mode.
+        self.frontLeft = SwerveModule(
             RMM.front_left_drive,
             RMM.front_left_turn,
             RMM.front_left_turn_encoder,
             inverted=True,
             brake=True,
             name='Front left')
-        self.frontRight = swervemodule.SwerveModule(
+        self.frontRight = SwerveModule(
             RMM.front_right_drive,
             RMM.front_right_turn,
             RMM.front_right_turn_encoder,
             inverted=False,
-            brake=True,  # Set to false becaue this module isn't working at GVSU
+            brake=True,
             name='Front right')
-        self.backLeft = swervemodule.SwerveModule(
+        self.backLeft = SwerveModule(
             RMM.back_left_drive,
             RMM.back_left_turn,
             RMM.back_left_turn_encoder,
             inverted=True,
             brake=True,
             name='Back left')
-        self.backRight = swervemodule.SwerveModule(
+        self.backRight = SwerveModule(
             RMM.back_right_drive,
             RMM.back_right_turn,
             RMM.back_right_turn_encoder,
@@ -147,14 +111,7 @@ class Drivetrain(Subsystem):
             self.backRight,
         ]
 
-        self.ntinst = NetworkTableInstance.getDefault().getTable('limelight')
-        self.ll_json = self.ntinst.getStringTopic("json")
-        self.ll_json_entry = self.ll_json.getEntry('[]')
-
         self.fieldRelative = False
-
-        self.gyro = gyro
-        self.controller = driver_controller
 
         self.kinematics = SwerveDrive4Kinematics(
             self.frontLeftLocation,
@@ -178,9 +135,15 @@ class Drivetrain(Subsystem):
             (0.9, 0.9, 0.9),  # vision std devs for Kalman filters
         )
 
+        # NOTE: Because this is in the __init__ method odometry will be reset
+        # when the drivetrain is created, not when first used.
+        # The drivetrain is genereally created on robot init, or when the
+        # roboRio comes online and starts the code. If you want to ensure a
+        # reset at a later time you can do another reseetOdometry call instead
+        # of trying to move this one around.
         self.resetOdometry()
 
-        # Configure the AutoBuilder last
+        # Configure the AutoBuilder for PathPlanner last
         AutoBuilder.configureHolonomic(
             # Robot pose supplier
             self.getPose,
@@ -207,66 +170,32 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro, intake)
+        self.defcmd = DrivetrainDefaultCommand(self, self.controller, intake)
         self.setDefaultCommand(self.defcmd)
 
-    def set_note_intake_speed(self, x):
-        curr_note_intake_speed = x
-
-    def is_note_tracking(self):
-        fake = gb(f'{sdbase}/note_tracking', False)
-        return self.defcmd.is_note_tracking() or fake
-
-    def is_note_visible(self):
-        fake = gb(f'{sdbase}/note_visible', False)
-        return self.defcmd.is_note_visible() or fake
-
-    def is_speaker_tracking(self):
-        fake = gb(f'{sdbase}/speaker_tracking', False)
-        return self.defcmd.is_speaker_tracking() or fake
-
-    def is_speaker_visible(self):
-        fake = gb(f'{sdbase}/speaker_visible', False)
-        return self.defcmd.is_speaker_visible() or fake
-
-    def is_speaker_aimed(self):
-        fake = gb(f'{sdbase}/speaker_aimed', False)
-        return self.defcmd.is_speaker_aimed() or fake
-
-    def is_amp_tracking(self):
-        fake = gb(f'{sdbase}/amp_tracking', False)
-        return self.defcmd.is_amp_tracking() or fake
-
-    def is_amp_visible(self):
-        fake = gb(f'{sdbase}/amp_visible', False)
-        return self.defcmd.is_amp_visible() or fake
-
-    def lock_heading(self):
+    def lock_heading(self) -> None:
         self.desired_heading = self.get_heading_rotation_2d().degrees()
 
-    def llJson(self) -> str:
-        return self.ll_json.getEntry("[]")
-
-    def getSpeeds(self):
+    def getSpeeds(self) -> ChassisSpeeds:
         cs = self.kinematics.toChassisSpeeds(
             [m.getState() for m in self.modules]
         )
         return cs
 
-    def driveRobotRelative(self, speeds):
+    def driveRobotRelative(self, speeds) -> None:
         self.fieldRelative = False
         states = self.kinematics.toSwerveModuleStates(speeds)
         SwerveDrive4Kinematics.desaturateWheelSpeeds(states, kMaxSpeed)
         for m, s in zip(self.modules, states):
             m.setDesiredState(s)
 
-    def shouldFlipPath(self):
+    def shouldFlipPath(self) -> bool:
+        return self.is_red_alliance()
+
+    def is_red_alliance(self) -> bool:
         return DriverStation.getAlliance() == DriverStation.Alliance.kRed
 
-    def is_red_alliance(self):
-        return DriverStation.getAlliance() == DriverStation.Alliance.kRed
-
-    def resetOdometry(self, pose: Pose2d = None):
+    def resetOdometry(self, pose: Pose2d = None) -> None:
         if pose is None:
             self.gyro.set_yaw(0)
             defaultPos = (
@@ -287,19 +216,17 @@ class Drivetrain(Subsystem):
             )
 
     def get_heading_rotation_2d(self) -> Rotation2d:
-        from misc import is_sim
-        if not is_sim():
-            yaw = self.gyro.get_yaw()
-            return Rotation2d(math.radians(yaw))
-        else:
-            return Rotation2d(0)
+        yaw = self.gyro.get_yaw()
+        return Rotation2d(math.radians(yaw))
 
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
 
+    # Used to expose a method in the default command to the robot as a whole
     def flipHeading(self):
         self.defcmd.flipHeading()
 
+    # Used to expose a method in the default command to the robot as a whole
     def swapDirection(self):
         self.defcmd.swapDirection()
 
@@ -319,7 +246,7 @@ class Drivetrain(Subsystem):
         :param periodSeconds: Time
         """
 
-        # Force the robot to be field relative if we're tracking a note
+        # used to the robot to be field relative if we're tracking a note
         if self.fieldRelative and not robot_centric_force:
             flip = self.shouldFlipPath()
             if flip:
@@ -331,8 +258,15 @@ class Drivetrain(Subsystem):
         else:
             cs = ChassisSpeeds(xSpeed, ySpeed, rot)
 
+        # First we convert the desired chassis speeds, or what we want the
+        # robot as a whole to do into individual module states.
         states = self.kinematics.toSwerveModuleStates(cs)
+        # Next, if we are asking any module to do too much we have to
+        # scale the request back so the robot can actually handle it
+        # we call this desaturation.
         SwerveDrive4Kinematics.desaturateWheelSpeeds(states, kMaxSpeed)
+        # Next we iterate through the modules and states at the same time
+        # and set the desired state of each one.
         for m, s in zip(self.modules, states):
             m.setDesiredState(s)
 
@@ -340,16 +274,18 @@ class Drivetrain(Subsystem):
         for m in self.modules:
             m.lock()
 
-    def setStates(self, fl: SwerveModuleState, fr: SwerveModuleState,
+    def setStates(self,
+                  fl: SwerveModuleState, fr: SwerveModuleState,
                   bl: SwerveModuleState, br: SwerveModuleState):
         for m, s in zip(self.modules, (fl, fr, bl, br)):
             m.setDesiredState(s)
 
+    # return the current angle of each wheel in the swerve modules
     def getAngles(self) -> tuple[float, float, float, float]:
         return (m.getState().angle.radians() for m in self.modules)
 
     def updateOdometry(self) -> None:
-        """Updates the field relative position of the robot."""
+        # Updates the field relative position of the robot.
         self.odometry.update(
             self.get_heading_rotation_2d(),
             (
@@ -365,14 +301,11 @@ class Drivetrain(Subsystem):
 
     def periodic(self) -> None:
         self.updateOdometry()
-        pb = SmartDashboard.putBoolean
-        pn = SmartDashboard.putNumber
+        pose = self.getPose()
         pb("drivetrain/field_relative", self.fieldRelative)
-        pn('drivetrain/odometry/pose_x', self.getPose().X())
-        pn('drivetrain/odometry/pose_y', self.getPose().Y())
-        pn('drivetrain/odometry/pose_rotation', self.getPose().rotation().degrees())
-
-
+        pn('drivetrain/odometry/pose_x', pose.X())
+        pn('drivetrain/odometry/pose_y', pose.Y())
+        pn('drivetrain/odometry/pose_rotation', pose.rotation().degrees())
 
 
 class DrivetrainDefaultCommand(Command):
@@ -380,14 +313,13 @@ class DrivetrainDefaultCommand(Command):
     Default command for the drivetrain.
     """
     def __init__(self, drivetrain: Drivetrain, controller: DriverController,
-                 photon: NoteTracker, gyro: Gyro, intake: Intake) -> None:
+                 gyro: Gyro, intake: Intake) -> None:
         super().__init__()
         self.drivetrain = drivetrain
         self.controller = controller
-        self.photon = photon
         self.gyro = gyro
         self.intake = intake
-        self.note_pid = PS4Controller(*PIDC.note_tracking_pid)
+        self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
@@ -396,8 +328,6 @@ class DrivetrainDefaultCommand(Command):
         self.xslew = SlewRateLimiter(5.0)
         self.yslew = SlewRateLimiter(5.0)
         self.rotslew = SlewRateLimiter(2)
-        self.note_yaw_filtered = LinearFilter.highPass(0.1, 0.02)
-        self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
 
@@ -434,34 +364,6 @@ class DrivetrainDefaultCommand(Command):
     def lock_heading(self):
         self.desired_heading = self._curr_heading()
 
-    def is_note_tracking(self):
-        fake = gb(f'{sdbase}/note_tracking', False)
-        return self.drivetrain.note_tracking or fake
-
-    def is_note_visible(self):
-        fake = gb(f'{sdbase}/note_visible', False)
-        return self.drivetrain.note_visible or fake
-
-    def is_speaker_tracking(self):
-        fake = gb(f'{sdbase}/speaker_tracking', False)
-        return self.drivetrain.speaker_tracking or fake
-
-    def is_speaker_visible(self):
-        fake = gb(f'{sdbase}/speaker_visible', False)
-        return self.drivetrain.speaker_visible or fake
-
-    def is_speaker_aimed(self):
-        fake = gb(f'{sdbase}/speaker_aimed', False)
-        return self.drivetrain.speaker_aimed or fake
-
-    def is_amp_tracking(self):
-        fake = gb(f'{sdbase}/amp_tracking', False)
-        return self.drivetrain.amp_tracking or fake
-
-    def is_amp_visible(self):
-        fake = gb(f'{sdbase}/amp_visible', False)
-        return self.drivetrain.amp_visible or fake
-
     def _get_x_speed(self) -> float:
         master_throttle = self.controller.get_master_throttle()
         xraw = self.controller.get_drive_x()
@@ -493,6 +395,10 @@ class DrivetrainDefaultCommand(Command):
         rot *= kMaxAngularSpeed
         return rot*master_throttle
 
+    # Method that uses a PID loop to adjust the robot's heading to keep
+    # it pointed straight when the driver is not commanding a rotation
+    # Due to mechanical imperfections in the robot's drive train it is
+    # going to usually lean to one side or another.
     def lock_heading_helper(self, rot):
         curr = self.drivetrain.get_heading_rotation_2d().degrees()
         # If the user is commanding rotation set the desired heading to the
@@ -509,19 +415,23 @@ class DrivetrainDefaultCommand(Command):
                 rot = 0
         return rot
 
+    def slow_mode_on(self):
+        self.slow_mode = True
+
+    def slow_mode_off(self):
+        self.slow_mode = False
+
     def get_stick_data(self):
         xSpeed = self._get_x_speed()
         ySpeed = self._get_y_speed()
         rot = self._get_rotation()
-        # TODO: Move to an InstantCommand
-        if self.controller.get_slow_mode():
-            self.slow_mode = True
-            slow_mode_factor = 1/2
-            xSpeed *= slow_mode_factor
-            ySpeed *= slow_mode_factor
-            rot *= slow_mode_factor
         return xSpeed, ySpeed, rot
 
     def execute(self) -> None:
         xSpeed, ySpeed, rot = self.get_stick_data()
+        if self.slow_mode:
+            slow_mode_factor = 1/2
+            xSpeed *= slow_mode_factor
+            ySpeed *= slow_mode_factor
+            rot *= slow_mode_factor
         self.drivetrain.drive(xSpeed, ySpeed, rot, robot_centric_force=False)

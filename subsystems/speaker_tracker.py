@@ -37,8 +37,9 @@ class SpeakerTracker(Subsystem):
         # pn(f'fids/{id}', tag_heading)
         # Let the system know what the speaker's heading is
         self.speaker_heading = tag_heading
-        # Now determine what to do with the rotation
-        # value.
+        # Now determine what to do with the rotation; the value we're setting
+        # here corresponds to the position of the joystick on the controller
+        # -1 is left, 0 is center, 1 is right (TODO: check this)
         self.desired_rotation = None
         if abs(tag_heading) < 3:
             self.desired_rotation = 0
