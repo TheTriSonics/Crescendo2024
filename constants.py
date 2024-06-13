@@ -107,6 +107,7 @@ class RobotButtonMap():
 
     # Driver button assignments
     note_tracking = 5  # Left bumper
+    auto_tracking = 5  # Left bumper
     toggle_field_relative = 3
     speaker_tracking = 6  # Right bumper
     slow_drive_mode = 4  # Y Button
