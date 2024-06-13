@@ -137,7 +137,7 @@ class MyRobot(TimedCommandRobot):
                                    RBM.toggle_field_relative)
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
 
-        slow_button = JoystickButton(self.driver_joystick, RBM.slow_mode)
+        slow_button = JoystickButton(self.driver_joystick, RBM.slow_drive_mode)
         slow_button.onTrue(
             InstantCommand(self.swerve.slow_mode_on)
         ).onFalse(

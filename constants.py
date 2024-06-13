@@ -114,7 +114,6 @@ class RobotButtonMap():
     flip_heading = 1
     swap_direction = 2
 
-
     RESET_YAW = 8
 
     # Button Panel List

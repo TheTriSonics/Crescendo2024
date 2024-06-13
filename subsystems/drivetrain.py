@@ -170,7 +170,8 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        self.defcmd = DrivetrainDefaultCommand(self, self.controller, intake)
+        self.defcmd = DrivetrainDefaultCommand(self, self.controller, gyro,
+                                               intake)
         self.setDefaultCommand(self.defcmd)
 
     def lock_heading(self) -> None:
@@ -181,6 +182,13 @@ class Drivetrain(Subsystem):
             [m.getState() for m in self.modules]
         )
         return cs
+
+    def slow_mode_on(self):
+        self.slow_mode = True
+
+    def slow_mode_off(self):
+        self.slow_mode = False
+
 
     def driveRobotRelative(self, speeds) -> None:
         self.fieldRelative = False
@@ -414,12 +422,6 @@ class DrivetrainDefaultCommand(Command):
             else:
                 rot = 0
         return rot
-
-    def slow_mode_on(self):
-        self.slow_mode = True
-
-    def slow_mode_off(self):
-        self.slow_mode = False
 
     def get_stick_data(self):
         xSpeed = self._get_x_speed()
