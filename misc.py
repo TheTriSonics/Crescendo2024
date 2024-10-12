@@ -101,6 +101,8 @@ def iterable(obj):
 def borx(bx, flip) -> float:
     if flip:
         return field_max_x - bx
+    print("bx")
+    print(bx)
     return bx
 
 

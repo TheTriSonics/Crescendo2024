@@ -18,15 +18,17 @@ class AutoShooterLaunchNote(Command):
         self.tilt = tilt
         self.rpm = rpm
         self.do_rotation = do_rotation
-        if self.do_rotation:
-            self.drive.defcmd.speaker_tracking_on()
         self.addRequirements(shooter)
         # self.addRequirements(drivetrain)
 
     def initialize(self) -> None:
+        print("Shooter launch note started")
         self.shooter.set_tilt(self.tilt)
         self.shooter.set_velocity(self.rpm)
         self.shooter.spin_up()
+        if self.do_rotation:
+            print("Speaker Tracking Auto")
+            self.drive.defcmd.speaker_tracking_on()
         self.shot_fired = False
         self.timer.restart()
 

@@ -237,7 +237,7 @@ class MyRobot(TimedCommandRobot):
         elif value == 3:
             self.auton_method = self.auto_station_2_4note_pole_last
         else:
-            self.auton_method = self.auto_station_2_4note
+            self.auton_method = self.auto_station_2_4note_pole_last
 
     def robotPeriodic(self) -> None:
         # Rough idea of how to incorporate vision into odometry
@@ -433,7 +433,10 @@ class MyRobot(TimedCommandRobot):
 
     def auto_station_2_4note_pole_last(self):
         self.swerve.fieldRelative = True
-        flip = self.swerve.shouldFlipPath()
+        # flip = self.swerve.shouldFlipPath()
+        flip = True
+        print("station flipped")
+        print(flip)
         starting_pose = Pose2d(
             borx(1.5, flip),
             bory(5.5, flip),
@@ -444,55 +447,77 @@ class MyRobot(TimedCommandRobot):
         shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve,
                                           shooter.tilt_sub, 80).asProxy()
         back_target = (
-            borx(2.0, flip),
+            borx(1.8, flip),
             bory(5.5, flip),
-            bor_rot(1, flip)
+            bor_rot(180, flip)
         )
         slide_back = DriveToPoint(
             self.swerve, self.gyro, *back_target
         ).asProxy()
+        
+        rotate1 = Rotate(self.swerve, self.gyro, bor_rot(2, flip)).asProxy()
 
-        # verify_rotate = Rotate(self.swerve, self.gyro, 0)
-        lock_note2 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        lock_note2 = InstantCommand(self.swerve.defcmd.note_tracking_on).asProxy()
         pickup_note2 = IntakeNote(
             self.intake, self.shooter, self.amp, self.photoeyes
-        )
-        release_note2 = InstantCommand(self.swerve.defcmd.note_tracking_off)
+        ).asProxy()
+        release_note2 = InstantCommand(self.swerve.defcmd.note_tracking_off).asProxy()
         load_shooter2 = ShooterLoad(
             self.amp, self.intake, self.shooter, self.photoeyes
         ).asProxy()
-        rotate_shot2 = Rotate(self.swerve, self.gyro, bor_rot(180, flip))
-        load_rotate2 = ParallelCommandGroup([rotate_shot2, load_shooter2])
+        rotate_shot2 = Rotate(self.swerve, self.gyro, bor_rot(180, flip)).asProxy()
+        # load_rotate2 = ParallelCommandGroup([load_shooter2, rotate_shot2]).asProxy()
         shoot2 = AutoShooterLaunchNote(self.shooter, self.swerve,
                                        shooter.tilt_safe, 80, do_rotation=True).asProxy()
-        rotate_note3 = Rotate(self.swerve, self.gyro, bor_rot(90, flip))
-        lock_note3 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        rotate_note3 = Rotate(self.swerve, self.gyro, bor_rot(90, flip)).asProxy()
+        note_3_target = (
+            borx(2.9, flip),
+            bory(6, flip),
+            bor_rot(90, flip)
+        )
+        move_3_pickup = DriveToPoint(
+            self.swerve, self.gyro, *note_3_target
+        ).asProxy()
+        lock_note3 = InstantCommand(self.swerve.defcmd.note_tracking_on).asProxy()
         pickup_note3 = IntakeNote(
             self.intake, self.shooter, self.amp, self.photoeyes
+        ).asProxy()
+        release_note3 = InstantCommand(self.swerve.defcmd.note_tracking_off).asProxy()
+                
+        shoot_3_target = (
+            borx(2.9, flip),
+            bory(5.5, flip),
+            bor_rot(180, flip)
         )
-        release_note3 = InstantCommand(self.swerve.defcmd.note_tracking_off)
-        rotate_shot3 = Rotate(self.swerve, self.gyro, bor_rot(-150, flip))
+        move_3_shot = DriveToPoint(
+            self.swerve, self.gyro, *shoot_3_target
+        ).asProxy()
+        load_shooter3 = ShooterLoad(
+            self.amp, self.intake, self.shooter, self.photoeyes
+        ).asProxy()
+        # load_move3 = ParallelCommandGroup([move_3_shot, load_shooter3]).asProxy()
+        #### rotate_shot3 = Rotate(self.swerve, self.gyro, bor_rot(-150, flip)).asProxy()
         shoot3 = AutoShooterLaunchNote(self.shooter, self.swerve,
                                        shooter.tilt_safe, 80, do_rotation=True).asProxy()
         last_note = (
-            borx(2.0, flip),
-            bory(3.75, flip),
+            borx(1.8, flip),
+            bory(4, flip),
             bor_rot(1, flip)
         )
         slide_last_note = DriveToPoint(
             self.swerve, self.gyro, *last_note
         ).asProxy()
 
-        lock_note4 = InstantCommand(self.swerve.defcmd.note_tracking_on)
+        lock_note4 = InstantCommand(self.swerve.defcmd.note_tracking_on).asProxy()
         pickup_note4 = IntakeNote(
             self.intake, self.shooter, self.amp, self.photoeyes
-        )
-        release_note4 = InstantCommand(self.swerve.defcmd.note_tracking_off)
+        ).asProxy()
+        release_note4 = InstantCommand(self.swerve.defcmd.note_tracking_off).asProxy()
         load_shooter4 = ShooterLoad(
             self.amp, self.intake, self.shooter, self.photoeyes
         ).asProxy()
-        rotate_shot4 = Rotate(self.swerve, self.gyro, bor_rot(150, flip))
-        load_rotate4 = ParallelCommandGroup([rotate_shot4, load_shooter4])
+        rotate_shot4 = Rotate(self.swerve, self.gyro, bor_rot(150, flip)).asProxy()
+        load_rotate4 = ParallelCommandGroup([rotate_shot4, load_shooter4]).asProxy()
         shoot4 = AutoShooterLaunchNote(self.shooter, self.swerve,
                                        shooter.tilt_safe, 80, do_rotation=True).asProxy()
 
@@ -500,13 +525,30 @@ class MyRobot(TimedCommandRobot):
             reset_swerve,
             delaycmd,
             shoot_sub,
-            slide_back,
-            lock_note2, pickup_note2, release_note2, rotate_shot2, load_shooter2, shoot2,
-            rotate_note3, lock_note3, pickup_note3, release_note3,
-            rotate_shot3, shoot3,
+            slide_back, 
+            rotate1,
+            lock_note2,
+            pickup_note2,
+            release_note2,
+            load_shooter2,
+            rotate_shot2,
+            shoot2,
+            rotate_note3,
+            move_3_pickup,
+            lock_note3,
+            pickup_note3,
+            release_note3,
+            load_shooter3,
+            move_3_shot,
+            shoot3,
             slide_last_note,
-            lock_note4, pickup_note4, release_note4, load_rotate4, shoot4
-        ]
+            lock_note4,
+            pickup_note4,
+            release_note4
+            ]
+        """ 
+           load_rotate4, shoot4
+        """
         scg = SequentialCommandGroup(cmds)
         return scg
 
@@ -535,9 +577,12 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def teleopInit(self) -> None:
-        self.swerve.resetOdometry(Pose2d(0.3, 4, Rotation2d(0)))
+        # JRD Not sure what this resetOdometry is doing with the fixed coords/pose listed.  Maybe leftover from the end of an Auton?
+        # In any case, I believe the camera system should be getting an accurate Pose throughout the match.
+        # self.swerve.resetOdometry(Pose2d(0.3, 4, Rotation2d(0)))
         self.swerve.lock_heading()
-        self.swerve.fieldRelative = False
+        self.swerve.fieldRelative = True
+        # self.swerve.fieldRelative = False
         pass
 
     def teleopPeriodic(self) -> None:

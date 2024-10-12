@@ -410,6 +410,7 @@ class DrivetrainDefaultCommand(Command):
         self.note_lockon = False
 
     def speaker_tracking_on(self):
+        print("drivetrain.defcmd.speaker_tracking_on function called")
         self.speaker_lockon = True
 
     def speaker_tracking_off(self):
@@ -577,6 +578,10 @@ class DrivetrainDefaultCommand(Command):
                     self.drivetrain.speaker_aimed = True
                 else:
                     rot = self.speaker_pid.calculate(speaker_heading, 0)
+        
+        pb("Speaker tracking", self.drivetrain.speaker_tracking)
+        pb("Speaker visible", self.drivetrain.speaker_visible)
+        pb("Speaker aimed", self.drivetrain.speaker_aimed)
 
         self.drivetrain.drive(xSpeed, ySpeed, rot,
                               robot_centric_force=robot_centric_force)

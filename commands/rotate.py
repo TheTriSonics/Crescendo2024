@@ -16,6 +16,7 @@ class Rotate(Command):
         self.timer = Timer()
 
     def initialize(self):
+        print("rotate started")
         self.drive.defcmd.desired_heading = self.targetHeading
         self.timer.restart()
         pass

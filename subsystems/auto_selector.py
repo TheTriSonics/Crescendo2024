@@ -10,8 +10,8 @@ class AutoSelector(Subsystem):
 
     def __init__(self):
         super().__init__()
-        self.auton_method = 2
-        SmartDashboard.putNumber('auton/route', 2)
+        self.auton_method = 3
+        SmartDashboard.putNumber('auton/route', 3)
 
     def get_auton(self) -> int:
         return self.auton_method
@@ -19,7 +19,7 @@ class AutoSelector(Subsystem):
     def periodic(self) -> None:
         gn = SmartDashboard.getNumber
         ps = SmartDashboard.putString
-        route = gn('auton/route', 2)
+        route = gn('auton/route', 3)
         if route == 1:
             self.auton_method = 1
             ps('auto', 'Lake City 2')

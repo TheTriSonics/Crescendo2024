@@ -20,6 +20,7 @@ class ShooterLoad(Command):
         self.addRequirements(intake)
 
     def initialize(self) -> None:
+        print("shooter loading")
         self.timer = Timer()
         self.forceQuit = False
         self.shooter.prepare_to_load()
@@ -36,6 +37,7 @@ class ShooterLoad(Command):
         pass
 
     def end(self, isInterrupted) -> None:
+        print("shooter load done")
         self.intake.halt()
         self.amp.halt()
         self.shooter.feed_off()
@@ -49,6 +51,7 @@ class ShooterLoad(Command):
         if self.timer.get() > 4.0:
             return True
         if self.photoeyes.get_shooter_loaded() is True:
+            print("shooter load photoeye triggered")
             return True
         return False
 
