@@ -35,25 +35,6 @@ class RobotMotorMap():
     # Can Ranges: Swerve Motors = 11-24, Swerve Cancoders = 31-34, Pigeon = 35,
     # Shooter = 41-45, Intake = 51-52, Amp = 54-55, Climber = 57-58
 
-    # ## CHASSIS BOT ## #
-    # Swerve
-    # front_right_drive = 11
-    # front_right_turn = 21
-    # front_right_turn_encoder = 31
-
-    # front_left_drive = 12
-    # front_left_turn = 22
-    # front_left_turn_encoder = 32
-
-    # back_right_drive = 13
-    # back_right_turn = 23
-    # back_right_turn_encoder = 33
-
-    # back_left_drive = 14
-    # back_left_turn = 24
-    # back_left_turn_encoder = 34
-    # ## CHASSIS BOT ## #
-
     if is_sim():
         intake_motor_feed = 5
     else:
@@ -107,14 +88,14 @@ class RobotButtonMap():
 
     # Driver button assignments
     note_tracking = 5  # Left bumper
-    toggle_field_relative = 3
+    toggle_field_relative = 3 ### X Button per driver
     speaker_tracking = 6  # Right bumper
     slow_drive_mode = 4  # Y Button
-    flip_heading = 1
-    swap_direction = 2
+    flip_heading = 1 ### A Button per copilot
+    swap_direction = 2 ### B Button per copilot
 
 
-    RESET_YAW = 8
+    RESET_YAW = 8 ### Start Button per copilot
 
     # Button Panel List
     # INTAKE: Intake Ready, Intake Eject

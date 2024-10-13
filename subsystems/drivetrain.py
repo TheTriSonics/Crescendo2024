@@ -188,6 +188,12 @@ class Drivetrain(Subsystem):
         self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro, intake)
         self.setDefaultCommand(self.defcmd)
 
+    def get_max_speed(self):
+        return kMaxSpeed
+    
+    def get_max_angular_speed(self):
+        return kMaxAngularSpeed
+
     def set_note_intake_speed(self, x):
         curr_note_intake_speed = x
 
@@ -277,9 +283,6 @@ class Drivetrain(Subsystem):
 
     def flipHeading(self):
         self.defcmd.flipHeading()
-
-    def swapDirection(self):
-        self.defcmd.swapDirection()
 
     def drive(
         self,
@@ -401,7 +404,8 @@ class DrivetrainDefaultCommand(Command):
     def initialize(self):
         self.note_lockon = False
         self.speaker_lockon = False
-        self.swapped = False
+        self.flipped = self.drivetrain.shouldFlipPath()
+        print(str(self.flipped) + " is the flipped value")
 
     def note_tracking_on(self):
         self.note_lockon = True
@@ -423,9 +427,6 @@ class DrivetrainDefaultCommand(Command):
         self.desired_heading += 180
         if self.desired_heading > 360:
             self.desired_heading -= 360
-
-    def swapDirection(self):
-        self.swapped = not self.swapped
 
     def lock_heading(self):
         self.desired_heading = self._curr_heading()
@@ -487,7 +488,7 @@ class DrivetrainDefaultCommand(Command):
         ySpeed *= master_throttle
         rot *= master_throttle
 
-        if self.swapped:
+        if self.flipped:
             xSpeed = -xSpeed
             ySpeed = -ySpeed
 

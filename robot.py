@@ -17,7 +17,7 @@ from commands.delay import Delay
 from commands.auton_commands.auto_shooter_launch_note import (
     AutoShooterLaunchNote
 )
-from commands.auton_commands.pickup_note import AutoPickupNote
+from commands.Deprecated.pickup_note import AutoPickupNote
 from commands.eject_note import EjectNote
 
 from commands.rotate import Rotate
@@ -26,11 +26,11 @@ from commands.set_amp_override import SetAmpOverride
 from commands.shooter_launch_note import ShooterLaunchNote
 from commands.intake_note import IntakeNote
 from commands.drivetopoint import DriveToPoint
+from commands.drive_target import DriveTarget
 
 from commands.field_relative_toggle import FieldRelativeToggle
 
 from commands.amp_load import AmpLoad
-from commands.shooter_launch_note_test import ShooterLaunchNoteTest
 from commands.shooter_load import ShooterLoad
 from commands.shooter_move import ShooterMove
 
@@ -105,6 +105,7 @@ class MyRobot(TimedCommandRobot):
         self.param_editor = param_editor.ParamEditor(
             self.swerve.defcmd.straight_drive_pid
         )
+        self.drive_target = DriveTarget(self.swerve)
 
 
         sim = is_sim()
@@ -268,9 +269,6 @@ class MyRobot(TimedCommandRobot):
             if len(ll_poses) > 0:
                 timelag = cameralag + computelag
                 for p, cw in zip(ll_poses, certain_within):
-                    x = p.X()
-                    y = p.Y()
-                    rot = p.rotation().degrees()
                     # self.swerve.odometry.addVisionMeasurement(p, 0, (0.1, 0.1, 0.1))
                     ts = self.vision_timer.getFPGATimestamp() - timelag
                     # print(f'vision heading: {x}, {y}, {rot}, {ts}')
@@ -282,6 +280,7 @@ class MyRobot(TimedCommandRobot):
                 # print('no vision data')
                 pass
         self.field.setRobotPose(self.swerve.getPose())
+
         pass
 
     def auto_station_1(self):
@@ -433,10 +432,8 @@ class MyRobot(TimedCommandRobot):
 
     def auto_station_2_4note_pole_last(self):
         self.swerve.fieldRelative = True
-        # flip = self.swerve.shouldFlipPath()
-        flip = True
-        print("station flipped")
-        print(flip)
+        flip = self.swerve.shouldFlipPath()
+        print("Auto station flipped" + str(flip))
         starting_pose = Pose2d(
             borx(1.5, flip),
             bory(5.5, flip),

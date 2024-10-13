@@ -34,17 +34,6 @@ class DriverController():
     def get_master_throttle(self) -> float:
         return 1
 
-    # Toggles whether or the robot is in robot relative
-    # or field relative mode
-    def get_field_relative_toggle(self) -> bool:
-        return self.joystick.getRawButton(RBM.toggle_field_relative)
-
-    def get_note_lockon(self) -> bool:
-        return self.joystick.getRawButton(RBM.note_tracking)
-
-    def get_speaker_lockon(self) -> bool:
-        return self.joystick.getRawButton(RBM.speaker_tracking)
-
     def get_slow_mode(self) -> bool:
         return self.joystick.getRawButton(RBM.slow_drive_mode)
 
