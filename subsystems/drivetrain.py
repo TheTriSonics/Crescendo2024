@@ -43,10 +43,9 @@ gn = SmartDashboard.getNumber
 pb = SmartDashboard.putBoolean
 gb = SmartDashboard.getBoolean
 
-sdbase = 'fakesensors/drivetrain'
-
 curr_note_intake_speed = 2
 default_note_intake_speed = 2
+
 
 
 class Drivetrain(Subsystem):
@@ -63,17 +62,6 @@ class Drivetrain(Subsystem):
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
         self.photon = photon
         self.intake = intake
-
-        pb(f'{sdbase}/note_tracking', False)
-        pb(f'{sdbase}/note_visible', False)
-
-        pb(f'{sdbase}/speaker_tracking', False)
-        pb(f'{sdbase}/speaker_visible', False)
-        pb(f'{sdbase}/speaker_aimed', False)
-
-        pb(f'{sdbase}/amp_tracking', False)
-        pb(f'{sdbase}/amp_visible', False)
-
         self.note_tracking = False
         self.note_visible = False
         self.speaker_tracking = False
@@ -156,7 +144,8 @@ class Drivetrain(Subsystem):
             (0.9, 0.9, 0.9),  # vision std devs for Kalman filters
         )
 
-        self.resetOdometry()
+        # Take out the unknown reason for the initial reset.
+        # self.resetOdometry()
 
         # Configure the AutoBuilder last
         AutoBuilder.configureHolonomic(
@@ -192,32 +181,25 @@ class Drivetrain(Subsystem):
         curr_note_intake_speed = x
 
     def is_note_tracking(self):
-        fake = gb(f'{sdbase}/note_tracking', False)
-        return self.defcmd.is_note_tracking() or fake
+        return self.defcmd.is_note_tracking()
 
     def is_note_visible(self):
-        fake = gb(f'{sdbase}/note_visible', False)
-        return self.defcmd.is_note_visible() or fake
+        return self.defcmd.is_note_visible()
 
     def is_speaker_tracking(self):
-        fake = gb(f'{sdbase}/speaker_tracking', False)
-        return self.defcmd.is_speaker_tracking() or fake
+        return self.defcmd.is_speaker_tracking()
 
     def is_speaker_visible(self):
-        fake = gb(f'{sdbase}/speaker_visible', False)
-        return self.defcmd.is_speaker_visible() or fake
+        return self.defcmd.is_speaker_visible()
 
     def is_speaker_aimed(self):
-        fake = gb(f'{sdbase}/speaker_aimed', False)
-        return self.defcmd.is_speaker_aimed() or fake
+        return self.defcmd.is_speaker_aimed()
 
     def is_amp_tracking(self):
-        fake = gb(f'{sdbase}/amp_tracking', False)
-        return self.defcmd.is_amp_tracking() or fake
+        return self.defcmd.is_amp_tracking()
 
     def is_amp_visible(self):
-        fake = gb(f'{sdbase}/amp_visible', False)
-        return self.defcmd.is_amp_visible() or fake
+        return self.defcmd.is_amp_visible()
 
     def lock_heading(self):
         self.desired_heading = self.get_heading_rotation_2d().degrees()
@@ -300,9 +282,14 @@ class Drivetrain(Subsystem):
         # Force the robot to be field relative if we're tracking a note
         if self.fieldRelative and not robot_centric_force:
             flip = self.shouldFlipPath()
+
+            # removed step to flip speed.  We are using the absolute coordinate system with origin at blue corner.
+            # We should only be flipping the driver stick inputs, not all speed commands.
+            """
             if flip:
                 xSpeed = -xSpeed
                 ySpeed = -ySpeed
+            """
             cs = ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
                 )
@@ -358,8 +345,6 @@ class Drivetrain(Subsystem):
             if f['fID'] != id:
                 continue
             tag_heading = f['tx']
-        # pn = SmartDashboard.putNumber
-        # pn(f'fids/{id}', tag_heading)
         return tag_heading
 
     def periodic(self) -> None:
@@ -370,6 +355,12 @@ class Drivetrain(Subsystem):
         pn('drivetrain/odometry/pose_x', self.getPose().X())
         pn('drivetrain/odometry/pose_y', self.getPose().Y())
         pn('drivetrain/odometry/pose_rotation', self.getPose().rotation().degrees())
+        
+    def getPID(self):
+        self.P = SmartDashboard.getNumber('PIDtuning/P', 1)
+        self.I = SmartDashboard.getNumber('PIDtuning/I', 0)
+        self.D = SmartDashboard.getNumber('PIDtuning/D', 0)
+        return self.P, self.I, self.D
 
 
 class DrivetrainDefaultCommand(Command):
@@ -384,7 +375,7 @@ class DrivetrainDefaultCommand(Command):
         self.photon = photon
         self.gyro = gyro
         self.intake = intake
-        self.note_pid = PIDController(*PIDC.note_tracking_pid)
+        # self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
@@ -393,7 +384,7 @@ class DrivetrainDefaultCommand(Command):
         self.xslew = SlewRateLimiter(5.0)
         self.yslew = SlewRateLimiter(5.0)
         self.rotslew = SlewRateLimiter(2)
-        self.note_yaw_filtered = LinearFilter.highPass(0.1, 0.02)
+        self.note_yaw_filter = LinearFilter.highPass(0.1, 0.02)
         self.idle_counter = 0
         self.desired_heading = None
         self.addRequirements(drivetrain)
@@ -431,46 +422,45 @@ class DrivetrainDefaultCommand(Command):
         self.desired_heading = self._curr_heading()
 
     def is_note_tracking(self):
-        fake = gb(f'{sdbase}/note_tracking', False)
-        return self.drivetrain.note_tracking or fake
+        return self.drivetrain.note_tracking
 
     def is_note_visible(self):
-        fake = gb(f'{sdbase}/note_visible', False)
-        return self.drivetrain.note_visible or fake
+        return self.drivetrain.note_visible
 
     def is_speaker_tracking(self):
-        fake = gb(f'{sdbase}/speaker_tracking', False)
-        return self.drivetrain.speaker_tracking or fake
+        return self.drivetrain.speaker_tracking
 
     def is_speaker_visible(self):
-        fake = gb(f'{sdbase}/speaker_visible', False)
-        return self.drivetrain.speaker_visible or fake
+        return self.drivetrain.speaker_visible
 
     def is_speaker_aimed(self):
-        fake = gb(f'{sdbase}/speaker_aimed', False)
-        return self.drivetrain.speaker_aimed or fake
+        return self.drivetrain.speaker_aimed
 
 
     def is_amp_tracking(self):
-        fake = gb(f'{sdbase}/amp_tracking', False)
-        return self.drivetrain.amp_tracking or fake
+        return self.drivetrain.amp_tracking
 
     def is_amp_visible(self):
-        fake = gb(f'{sdbase}/amp_visible', False)
-        return self.drivetrain.amp_visible or fake
+        return self.drivetrain.amp_visible
 
     def execute(self) -> None:
         # Heading is in degrees here
         if self.desired_heading is None:
             self.desired_heading = self._curr_heading()
         curr = self.drivetrain.get_heading_rotation_2d().degrees()
-        xraw = self.controller.get_drive_x()
+        if self.drivetrain.shouldFlipPath():
+            xraw = -self.controller.get_drive_x()
+        else:
+            xraw = self.controller.get_drive_x()
         xSpeed = self.xslew.calculate(xraw)
         if xraw == 0:
             xSpeed /= 2
         xSpeed *= kMaxSpeed
 
-        yraw = self.controller.get_drive_y()
+        if self.drivetrain.shouldFlipPath():
+            yraw = -self.controller.get_drive_y()
+        else:
+            yraw = self.controller.get_drive_y()
         ySpeed = self.yslew.calculate(yraw)
         if yraw == 0:
             ySpeed /= 2
@@ -528,31 +518,27 @@ class DrivetrainDefaultCommand(Command):
             self.note_tracking = True
             robot_centric_force = True
             pn = SmartDashboard.putNumber
-            yaw_raw = self.photon.getYawOffset()
-            if yaw_raw is not None:
+            note_yaw = self.photon.getYawOffset()
+            if note_yaw is not None:
                 self.note_visible = True
-                self.current_yaw = self.note_yaw_filtered.calculate(yaw_raw)
-                pn('drivetrain/note_tracker/yaw_raw', yaw_raw)
-                yaw = self.current_yaw
-                pn('drivetrain/note_tracker/yaw', yaw)
+                self.note_yaw_filtered = self.note_yaw_filter.calculate(note_yaw)
+                pn('drivetrain/note_tracker/note_yaw', note_yaw)
+                pn('drivetrain/note_tracker/note_yaw_filtered', self.note_yaw_filtered)
             pitch = self.photon.getPitchOffset()
-            if yaw_raw is not None:
+            if note_yaw is not None:
                 # Setpoint was 0 but moved to 2 to try and get the
                 # robot from going left of the note
-                rot = self.note_pid.calculate(yaw_raw, -2)
+                self.P = 0.0014286 * pitch + 0.044286
+                if self.P > 0.07:
+                    self.P = 0.07
+                elif self.P < 0.03:
+                    self.P = 0.03
+                self.I = 0
+                self.D = 0.004
+                # self.P, self.I, self.D = self.drivetrain.getPID()
+                self.note_pid = PIDController(self.P, self.I, self.D)
+                rot = self.note_pid.calculate(note_yaw, 0)
                 xSpeed = curr_note_intake_speed
-                # if abs(yaw_raw) < 1.7:
-                #     rot = 0
-                # else:
-                #     rot = self.note_pid.calculate(yaw_raw, 0)
-                #     xSpeed = 0.5
-                # else:
-                #     if pitch is not None and pitch > 0:
-                #         rot = self.note_pid.calculate(yaw, 0)
-                #     else:
-                #         rot = 0
-                #         # Force a translation to center on the note when close
-                #         ySpeed = self.note_translate_pid.calculate(yaw, 0)
 
         self.slow_mode = False
         if self.controller.get_slow_mode():

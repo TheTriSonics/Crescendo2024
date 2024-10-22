@@ -112,7 +112,6 @@ def bory(by, flip) -> float:
 
 def bor_rot(br, flip) -> float:
     if flip:
-        return -br
+        offset = br - 90
+        return (90 - offset)
     return br
-
-

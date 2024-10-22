@@ -69,9 +69,6 @@ class MyRobot(TimedCommandRobot):
         self.auton_method = self.auto_station_2_4note
         SmartDashboard.putData(self.field)
         pn = SmartDashboard.putNumber
-        pn('visiontest/fakeX', 3)
-        pn('visiontest/fakeY', 4)
-        pn('visiontest/fakeRot', 0)
         """Robot initialization function"""
         if True:
             # Disable the joystick warnings in simulator mode; they're annoying
@@ -119,6 +116,9 @@ class MyRobot(TimedCommandRobot):
 
         self.configure_driver_controls()
         self.configure_commander_controls()
+        pn('PIDtuning/P', 0)
+        pn('PIDtuning/I', 0)
+        pn('PIDtuning/D', 0)
 
     def configure_driver_controls(self):
         fr_button = JoystickButton(self.driver_joystick,
@@ -245,19 +245,9 @@ class MyRobot(TimedCommandRobot):
         if self.swerve.vision_stable is True:
             from math import pi
             # Here's our method to pull data from LimeLight's network table
-            if is_sim():
-                gn = SmartDashboard.getNumber
-                fakex = gn('visiontest/fakeX', 0)
-                fakey = gn('visiontest/fakeY', 0)
-                fakerot = gn('visiontest/fakeRot', 0)
-                ll_poses = [Pose2d(fakex, fakey, Rotation2d(radians(fakerot)))]
-                certain_within = [(10, 10, 1/pi)]
-                cameralag = 0
-                computelag = 0
-            else:
-                ll_poses, certain_within, cameralag, computelag = (
-                    self.get_poses_from_limelight()
-                )
+            ll_poses, certain_within, cameralag, computelag = (
+                self.get_poses_from_limelight()
+            )
             # Here we can make a determination to use the vision data or not
             # For example we might only want to accept posees that are already
             # within 1 meter of where we think we are.
@@ -268,9 +258,6 @@ class MyRobot(TimedCommandRobot):
             if len(ll_poses) > 0:
                 timelag = cameralag + computelag
                 for p, cw in zip(ll_poses, certain_within):
-                    x = p.X()
-                    y = p.Y()
-                    rot = p.rotation().degrees()
                     # self.swerve.odometry.addVisionMeasurement(p, 0, (0.1, 0.1, 0.1))
                     ts = self.vision_timer.getFPGATimestamp() - timelag
                     # print(f'vision heading: {x}, {y}, {rot}, {ts}')
@@ -281,7 +268,6 @@ class MyRobot(TimedCommandRobot):
             else:
                 # print('no vision data')
                 pass
-        self.field.setRobotPose(self.swerve.getPose())
         pass
 
     def auto_station_1(self):
@@ -433,13 +419,10 @@ class MyRobot(TimedCommandRobot):
 
     def auto_station_2_4note_pole_last(self):
         self.swerve.fieldRelative = True
-        # flip = self.swerve.shouldFlipPath()
-        flip = True
-        print("station flipped")
-        print(flip)
+        flip = self.swerve.shouldFlipPath()
         starting_pose = Pose2d(
             borx(1.5, flip),
-            bory(5.5, flip),
+            bory(5.55, flip),
             radians(bor_rot(180, flip))
         )
         reset_swerve = self.swerve.resetOdometry(starting_pose)
@@ -448,7 +431,7 @@ class MyRobot(TimedCommandRobot):
                                           shooter.tilt_sub, 80).asProxy()
         back_target = (
             borx(1.8, flip),
-            bory(5.5, flip),
+            bory(5.55, flip),
             bor_rot(180, flip)
         )
         slide_back = DriveToPoint(
@@ -547,7 +530,7 @@ class MyRobot(TimedCommandRobot):
             release_note4
             ]
         """ 
-           load_rotate4, shoot4
+            load_rotate4, shoot4
         """
         scg = SequentialCommandGroup(cmds)
         return scg
@@ -556,15 +539,8 @@ class MyRobot(TimedCommandRobot):
         self.swerve.defcmd.desired_heading = newheading
 
     def autonomousInit(self):
-        self.swerve.resetOdometry()
-        self.swerve.updateOdometry()
-        # cmd = Rotate(self.swerve, self.gyro, 0)
-        # cmd = DriveToPoint(self.swerve, self.gyro, 3, 0, 0)
-        # seek = DriveOverNote(self.note_tracker, self.swerve)
-        # followPath = AutoBuilder.followPath(self.testPathToFollow())
-        # haltcmd = HaltDrive(self.swerve)
-        # rotcmd = Rotate(self.swerve, self.gyro, -180)2
-
+        # self.swerve.resetOdometry()
+        # self.swerve.updateOdometry()
         # Experimental auton, leaves pole note for last
         # auto = self.auto_station_2_4note_pole_last()
         self.auto_selector_value = self.auto_selector.get_auton()
@@ -609,24 +585,29 @@ class MyRobot(TimedCommandRobot):
         result = obj['Results']
         # camera_lag = result['tl']
         for fid in result['Fiducial']:
-            target_area = fid['ta']
-            # Use this, the total area the target is in pixels on the camera
+            target_area = fid['ta'] * 100 # 'ta' reads in decimal value, convert to percentage
+            # Use this, the total area the target is decimal fraction of the camera
             # picture, to determine how certain we are of the robot's position.
 
             # start with a very uncertain value unless a condition is met to
             # say otherwise. The format is undertainty in the x in meters,
             # y in meters, and rotation in degrees
-            v = 100
-            if target_area > 100:
+            v = 1
+            rv = 60
+            if target_area > 0.12:
                 v = 1.0
-            if target_area > 200:
+                rv = 20
+            if target_area > 0.15:
                 v = 0.5
-            if target_area > 300:
+                rv = 10
+            if target_area > 0.2:
                 v = 0.1
-            if target_area > 400:
+                rv = 8
+            if target_area > 0.7:
                 v = 0.05
+                rv = 3
             SmartDashboard.putNumber('llacc', v)
-            certainty = (v, v, v)
+            certainty = (v, v, rv)
 
             robot_pose_raw = fid['t6r_fs']
             # It seems like we get a None value from the network table
@@ -642,6 +623,9 @@ class MyRobot(TimedCommandRobot):
             realy = robot_pose_raw[1] + offset_y
             # Jim Change - the LL t6r_fs gives us "Robot Pose in field space as computed by solvepnp (x,y,z,rx,ry,rz)".  We want rotation around the z axis (yaw).
             rot = robot_pose_raw[5]
+            SmartDashboard.putNumber("Limelight realx", realx)
+            SmartDashboard.putNumber("Limelight realy", realy)
+            SmartDashboard.putNumber("limelight rotation", rot)
             pose = Pose2d(realx, realy, Rotation2d(radians(rot)))
             if v < 100:
                 poses.append(pose)
