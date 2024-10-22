@@ -27,9 +27,6 @@ gn = SmartDashboard.getNumber
 pb = SmartDashboard.putBoolean
 gb = SmartDashboard.getBoolean
 
-sdbase = 'fakesensors/shooter'
-
-
 class Shooter(Subsystem):
     # The SparkMax doesn't do any internal PID so for that it's software PID
     # or nothing.
@@ -45,7 +42,6 @@ class Shooter(Subsystem):
         self.speed_timer.start()
         self.left_tilt_encoder_last = None
         self.right_tilt_encoder_last = None
-        pb(f'{sdbase}/is_up_to_speed', False)
         # defcmd = ShooterDefaultCommand(self)
         # self.setDefaultCommand(defcmd)
 
@@ -160,11 +156,10 @@ class Shooter(Subsystem):
         if not self.speed_timer.hasElapsed(1.0):
             return True
 
-        fake = gb(f'{sdbase}/is_up_to_speed', False)
         if self.speed_target == 0:
-            ret = False or fake
+            ret = False
         else:
-            ret = fake or (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1)
+            ret = (abs(self.shooter_motor_left.get_velocity().value - self.speed_target) < 1)
         if ret is True:
             self.speed_timer.restart()
         return ret

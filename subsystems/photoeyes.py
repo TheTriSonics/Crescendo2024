@@ -7,7 +7,6 @@ gn = SmartDashboard.getNumber
 pb = SmartDashboard.putBoolean
 gb = SmartDashboard.getBoolean
 
-sdbase = 'fakesensors/photoeye'
 
 class Photoeyes(Subsystem):
     def __init__(self):
@@ -16,26 +15,18 @@ class Photoeyes(Subsystem):
         self.intake_hold_photoeye = DigitalInput(RSM.intake_hold_photoeye)
         self.amp_hold_photoeye = DigitalInput(RSM.amp_hold_photoeye)
         self.shooter_hold_photoeye = DigitalInput(RSM.shooter_hold_photoeye)
-        pb(f'{sdbase}/intake_front', False)
-        pb(f'{sdbase}/intake_loaded', False)
-        pb(f'{sdbase}/shooter_loaded', False)
-        pb(f'{sdbase}/amp_loaded', False)
 
     def get_intake_front(self) -> bool:
-        fake = gb(f'{sdbase}/intake_front', False)
-        return not self.intake_front_photoeye.get() or fake
+        return not self.intake_front_photoeye.get()
 
     def get_intake_loaded(self) -> bool:
-        fake = gb(f'{sdbase}/intake_loaded', False)
-        return not self.intake_hold_photoeye.get() or fake
+        return not self.intake_hold_photoeye.get()
 
     def get_shooter_loaded(self) -> bool:
-        fake = gb(f'{sdbase}/shooter_loaded', False)
-        return not self.shooter_hold_photoeye.get() or fake
+        return not self.shooter_hold_photoeye.get()
 
     def get_amp_loaded(self) -> bool:
-        fake = gb(f'{sdbase}/amp_loaded', False)
-        return not self.amp_hold_photoeye.get() or fake
+        return not self.amp_hold_photoeye.get()
 
     def periodic(self) -> None:
         pb = SmartDashboard.putBoolean

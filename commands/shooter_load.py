@@ -9,12 +9,13 @@ from subsystems.shooter import Shooter
 
 class ShooterLoad(Command):
     def __init__(self, amp: Amp, intake: Intake, shooter: Shooter,
-                 photoeyes: Photoeyes) -> None:
+                 photoeyes: Photoeyes, speed = 0) -> None:
         super().__init__()
         self.amp = amp
         self.photoeyes = photoeyes
         self.intake = intake
         self.shooter = shooter
+        self.speed = speed
         self.addRequirements(amp)
         self.addRequirements(shooter)
         self.addRequirements(intake)
@@ -34,6 +35,9 @@ class ShooterLoad(Command):
         self.intake.feed()
         self.amp.reverse()
         self.shooter.feed_note()
+        if self.speed > 0:
+            self.shooter.set_velocity(self.speed)
+            self.shooter.spin_up()
         pass
 
     def end(self, isInterrupted) -> None:

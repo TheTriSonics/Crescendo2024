@@ -186,14 +186,23 @@ class Drivetrain(Subsystem):
     def is_note_visible(self):
         return self.defcmd.is_note_visible()
 
+    def set_speaker_tracking(self, speaker_tracking = False):
+        self.speaker_tracking = speaker_tracking
+
     def is_speaker_tracking(self):
-        return self.defcmd.is_speaker_tracking()
+        return self.speaker_tracking
+    
+    def set_speaker_visible(self, speaker_visible = False):
+        self.speaker_visible = speaker_visible
 
     def is_speaker_visible(self):
-        return self.defcmd.is_speaker_visible()
+        return self.speaker_visible
+    
+    def set_speaker_aimed(self, speaker_aimed = False):
+        self.speaker_aimed = speaker_aimed
 
     def is_speaker_aimed(self):
-        return self.defcmd.is_speaker_aimed()
+        return self.speaker_aimed
 
     def is_amp_tracking(self):
         return self.defcmd.is_amp_tracking()
@@ -379,7 +388,7 @@ class DrivetrainDefaultCommand(Command):
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
         self.straight_drive_pid = PIDController(*PIDC.straight_drive_pid)
-        self.straight_drive_pid.setTolerance(2.0)
+        self.straight_drive_pid.setTolerance(3.0)
         # Slew rate limiters to make joystick inputs more gentle
         self.xslew = SlewRateLimiter(5.0)
         self.yslew = SlewRateLimiter(5.0)
@@ -484,11 +493,11 @@ class DrivetrainDefaultCommand(Command):
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
-        if rot != 0:
+        if rot < 0.01:
             self.lock_heading()
         else:
             error = curr - self.desired_heading
-            if abs(error) > 1.0:
+            if abs(error) > 2.0:
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
             else:
                 rot = 0

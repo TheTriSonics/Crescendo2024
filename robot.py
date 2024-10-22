@@ -6,13 +6,14 @@ import json
 from time import time
 from math import radians
 from wpilib import SmartDashboard, Joystick, DriverStation, Timer, Field2d
-from commands2 import ( ParallelCommandGroup, TimedCommandRobot, SequentialCommandGroup,
+from commands2 import ( ParallelCommandGroup, ParallelRaceGroup, TimedCommandRobot, SequentialCommandGroup,
                         InstantCommand, CommandScheduler,
 )
 from commands2.button import JoystickButton, CommandGenericHID
 from wpimath.geometry import Rotation2d, Pose2d
 from pathplannerlib.auto import PathPlannerAuto, NamedCommands
 from commands.amp_score import AmpScore
+from commands.auto_drive import AutoDriveCommand
 from commands.delay import Delay
 from commands.auton_commands.auto_shooter_launch_note import (
     AutoShooterLaunchNote
@@ -236,8 +237,10 @@ class MyRobot(TimedCommandRobot):
             self.auton_method = self.auto_station_2_4note
         elif value == 3:
             self.auton_method = self.auto_station_2_4note_pole_last
+        elif value == 4:
+            self.auton_method = self.auto_station_2_4note_pole_last_fast
         else:
-            self.auton_method = self.auto_station_2_4note_pole_last
+            self.auton_method = self.auto_station_2_4note_pole_last_fast
 
     def robotPeriodic(self) -> None:
         # Rough idea of how to incorporate vision into odometry
@@ -534,6 +537,101 @@ class MyRobot(TimedCommandRobot):
         """
         scg = SequentialCommandGroup(cmds)
         return scg
+
+    def auto_station_2_4note_pole_last_fast(self):
+        self.swerve.fieldRelative = True
+        flip = self.swerve.shouldFlipPath()
+        starting_pose = Pose2d(borx(1.5, flip), bory(5.55, flip), radians(bor_rot(180, flip)))
+        reset_swerve = self.swerve.resetOdometry(starting_pose)
+        
+        delaycmd = Delay(0.25)
+        
+        shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_sub, 80)
+        
+        back_target = (borx(1.8, flip), bory(5.55, flip), bor_rot(180, flip))
+        slide_back = DriveToPoint(self.swerve, self.gyro, *back_target)
+        
+        rotate1 = Rotate(self.swerve, self.gyro, bor_rot(2, flip))
+
+        lock_note2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, note_lockon=True, timeout=5)
+        pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        get_note2 = ParallelRaceGroup([lock_note2, pickup_note2])
+        
+        load_shooter2 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, speed = 80)
+        rotate_shot2 = Rotate(self.swerve, self.gyro, bor_rot(180, flip))
+        load_rotate2 = ParallelCommandGroup([load_shooter2, rotate_shot2])
+
+        align_shot2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
+        Launch2 = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_safe, 80, do_rotation=True)
+        shoot_note2 = ParallelRaceGroup([align_shot2, Launch2])
+        
+        rotate_note3 = Rotate(self.swerve, self.gyro, bor_rot(90, flip))
+        
+        note_3_target = (borx(2.9, flip), bory(6, flip), bor_rot(90, flip))
+        move_3_pickup = DriveToPoint(self.swerve, self.gyro, *note_3_target)
+
+        lock_note3 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, note_lockon=True, timeout=5)
+        pickup_note3 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        get_note3 = ParallelRaceGroup([lock_note3, pickup_note3])
+        # This isn't used at this time.  Trying to see how the scheduler treats reusing commands.
+
+
+        shoot_3_target = (borx(2.9, flip), bory(5.5, flip), bor_rot(180, flip))
+        move_3_shot = DriveToPoint(self.swerve, self.gyro, *shoot_3_target)
+        load_shooter3 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, speed = 80)
+        load_move3 = ParallelCommandGroup([move_3_shot, load_shooter3])
+
+        align_shot3 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
+        Launch3 = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_safe, 80, do_rotation=True)
+        shoot_note3 = ParallelRaceGroup([align_shot3, Launch3])
+
+        pickup4_target = (borx(1.8, flip), bory(4, flip), bor_rot(1, flip))
+        slide_note4 = DriveToPoint(self.swerve, self.gyro, *pickup4_target)
+
+        lock_note4 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, note_lockon=True, timeout=5)
+        pickup_note4 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        get_note4 = ParallelRaceGroup([lock_note4, pickup_note4])
+        # This isn't used at this time.  Trying to see how the scheduler treats reusing commands.
+
+        backup4_target = (borx(2, flip), bory(4.5, flip), bor_rot(1, flip))
+        backup_note4 = DriveToPoint(self.swerve, self.gyro, *backup4_target)
+
+        load_shooter4 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, speed = 80)
+        rotate_shot4 = Rotate(self.swerve, self.gyro, bor_rot(160, flip))
+        load_rotate4 = ParallelCommandGroup([rotate_shot4, load_shooter4])
+        
+        align_shot4 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
+        Launch4 = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_safe, 80, do_rotation=True)
+        shoot_note4 = ParallelRaceGroup([align_shot4, Launch4])
+
+
+
+        cmds = [
+            reset_swerve,
+            delaycmd,
+            shoot_sub,
+            slide_back, 
+            rotate1,
+            get_note2,
+            load_rotate2,
+            shoot_note2,
+            rotate_note3,
+            move_3_pickup,
+            get_note2,
+            load_move3,
+            shoot_note3,
+            slide_note4,
+            get_note2,
+            backup_note4,
+            load_rotate4,
+            shoot_note4
+            ]
+        """ 
+            
+        """
+        scg = SequentialCommandGroup(cmds)
+        return scg
+
 
     def lock_heading(self, newheading):
         self.swerve.defcmd.desired_heading = newheading
