@@ -1,6 +1,3 @@
-from misc import is_sim
-
-
 class RobotPIDConstants():
     note_tracking_pid = (0.07, 0, 0.004)
     note_translate_pid = note_tracking_pid
@@ -54,10 +51,7 @@ class RobotMotorMap():
     # back_left_turn_encoder = 34
     # ## CHASSIS BOT ## #
 
-    if is_sim():
-        intake_motor_feed = 5
-    else:
-        intake_motor_feed = 51
+    intake_motor_feed = 51
 
     amp_lift_motor = 54
     amp_feed_motor = 55

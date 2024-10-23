@@ -1,3 +1,4 @@
+import math
 from commands2 import Command
 from wpilib import SmartDashboard, Timer
 from controllers.driver import DriverController
@@ -47,12 +48,15 @@ class AutoDriveCommand(Command):
         self.straight_drive_pid.setTolerance(2.0)
         self.note_yaw_filter = LinearFilter.highPass(0.1, 0.02)
         self.idle_counter = 0
-        self.desired_heading = None
+        self.desired_heading = 0
         self.addRequirements(drivetrain)
         self.stop = False
         self.drivetrain.set_speaker_tracking(False)
         self.drivetrain.set_speaker_visible(False)
         self.drivetrain.set_speaker_aimed(False)
+        self.xSpeed = 0
+        self.ySpeed = 0
+        self.rot = 0
 
 
     def initialize(self):
@@ -113,27 +117,27 @@ class AutoDriveCommand(Command):
 
     def execute(self) -> None:
         # Heading is in degrees here
-        if self.desired_heading is None:
-            self.desired_heading = self._curr_heading()
+        if self.drivetrain.get_lock_heading() is None:
+            self.drivetrain.set_lock_heading(self._curr_heading())
         curr = self.drivetrain.get_heading_rotation_2d().degrees()
-        xSpeed *= kMaxSpeed
-        ySpeed *= kMaxSpeed
-        rot *= kMaxAngularSpeed
+        self.xSpeed *= kMaxSpeed
+        self.ySpeed *= kMaxSpeed
+        self.rot *= kMaxAngularSpeed
         if self.swapped:
-            xSpeed = -xSpeed
-            ySpeed = -ySpeed
+            self.xSpeed = -self.xSpeed
+            self.ySpeed = -self.ySpeed
 
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
-        if rot != 0:
+        if self.rot != 0:
             self.lock_heading()
         else:
             error = curr - self.desired_heading
             if abs(error) > 1.0:
-                rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
+                self.rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
             else:
-                rot = 0
+                self.rot = 0
         # When in lockon mode, the robot will rotate to face the node
         # that PhotonVision is detecting
         robot_centric_force = False
@@ -161,16 +165,16 @@ class AutoDriveCommand(Command):
                 self.D = 0.004
                 # self.P, self.I, self.D = self.drivetrain.getPID()
                 self.note_pid = PIDController(self.P, self.I, self.D)
-                rot = self.note_pid.calculate(note_yaw, 0)
-                xSpeed = curr_note_intake_speed
+                self.rot = self.note_pid.calculate(note_yaw, 0)
+                self.xSpeed = curr_note_intake_speed
 
         self.slow_mode = False
         if self.slow_mode:
             self.slow_mode = True
             slow_mode_factor = 1/2
-            xSpeed *= slow_mode_factor
-            ySpeed *= slow_mode_factor
-            rot *= slow_mode_factor
+            self.xSpeed *= slow_mode_factor
+            self.ySpeed *= slow_mode_factor
+            self.rot *= slow_mode_factor
 
         if self.speaker_lockon:
             self.drivetrain.set_speaker_tracking(True)
@@ -179,16 +183,16 @@ class AutoDriveCommand(Command):
             if speaker_heading is not None:
                 self.drivetrain.set_speaker_visible(True)
                 if abs(speaker_heading) < 3.0:
-                    rot = 0
+                    self.rot = 0
                     self.drivetrain.set_speaker_aimed(True)
                 else:
-                    rot = self.speaker_pid.calculate(speaker_heading, 0)
+                    self.rot = self.speaker_pid.calculate(speaker_heading, 0)
         
         pb("Speaker tracking", self.drivetrain.speaker_tracking)
         pb("Speaker visible", self.drivetrain.speaker_visible)
         pb("Speaker aimed", self.drivetrain.speaker_aimed)
 
-        self.drivetrain.drive(xSpeed, ySpeed, rot,
+        self.drivetrain.drive(self.xSpeed, self.ySpeed, self.rot,
                               robot_centric_force=robot_centric_force)
 
     def end(self, interrupted: bool):

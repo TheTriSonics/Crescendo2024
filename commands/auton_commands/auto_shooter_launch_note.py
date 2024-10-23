@@ -1,4 +1,4 @@
-from wpilib import Timer
+from wpilib import SmartDashboard, Timer
 from commands2 import Command
 from subsystems.drivetrain import Drivetrain
 

@@ -7,17 +7,15 @@ from time import time
 from math import radians
 from wpilib import SmartDashboard, Joystick, DriverStation, Timer, Field2d
 from commands2 import ( ParallelCommandGroup, ParallelRaceGroup, TimedCommandRobot, SequentialCommandGroup,
-                        InstantCommand, CommandScheduler,
-)
+                        InstantCommand)
 from commands2.button import JoystickButton, CommandGenericHID
 from wpimath.geometry import Rotation2d, Pose2d
 from pathplannerlib.auto import PathPlannerAuto, NamedCommands
 from commands.amp_score import AmpScore
 from commands.auto_drive import AutoDriveCommand
+from commands.auto_rotate import AutoRotate
 from commands.delay import Delay
-from commands.auton_commands.auto_shooter_launch_note import (
-    AutoShooterLaunchNote
-)
+from commands.auton_commands.auto_shooter_launch_note import AutoShooterLaunchNote
 from commands.auton_commands.pickup_note import AutoPickupNote
 from commands.eject_note import EjectNote
 
@@ -28,10 +26,7 @@ from commands.shooter_launch_note import ShooterLaunchNote
 from commands.intake_note import IntakeNote
 from commands.drivetopoint import DriveToPoint
 
-from commands.field_relative_toggle import FieldRelativeToggle
-
 from commands.amp_load import AmpLoad
-from commands.shooter_launch_note_test import ShooterLaunchNoteTest
 from commands.shooter_load import ShooterLoad
 from commands.shooter_move import ShooterMove
 
@@ -52,7 +47,7 @@ from constants import RobotButtonMap as RBM
 from controllers.driver import DriverController
 from controllers.commander import CommanderController
 
-from misc import bor_rot, is_sim, add_timing, borx, bory, bor_rot
+from misc import bor_rot, borx, bory, bor_rot
 
 
 class AxisButton(JoystickButton):
@@ -84,8 +79,8 @@ class MyRobot(TimedCommandRobot):
         self.gyro = gyro.Gyro()
         self.photoeyes = photoeyes.Photoeyes()
 
-        self.amp = amp.Amp(self.commander, self.photoeyes)
         self.shooter = shooter.Shooter()
+        self.amp = amp.Amp(self.commander, self.photoeyes)
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
@@ -105,13 +100,11 @@ class MyRobot(TimedCommandRobot):
         )
 
 
-        sim = is_sim()
-        if not sim:
-            NamedCommands.registerCommand(
+        NamedCommands.registerCommand(
                 "PickupNote", AutoPickupNote(self.swerve, self.intake,
                                              self.note_tracker)
             )
-            NamedCommands.registerCommand(
+        NamedCommands.registerCommand(
                 "AutoShoot", AutoShooterLaunchNote(self.shooter, self.swerve, rpm=80, do_rotation=False)
             )
 
@@ -546,26 +539,26 @@ class MyRobot(TimedCommandRobot):
         
         delaycmd = Delay(0.25)
         
-        shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_sub, 80)
+        # shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_sub, 80)
         
         back_target = (borx(1.8, flip), bory(5.55, flip), bor_rot(180, flip))
         slide_back = DriveToPoint(self.swerve, self.gyro, *back_target)
         
-        rotate1 = Rotate(self.swerve, self.gyro, bor_rot(2, flip))
+        rotate1 = DriveToPoint(self.swerve, self.gyro, x = None, y = None, targetHeading = bor_rot(2, flip))
 
         lock_note2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, note_lockon=True, timeout=5)
         pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
         get_note2 = ParallelRaceGroup([lock_note2, pickup_note2])
         
         load_shooter2 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, speed = 80)
-        rotate_shot2 = Rotate(self.swerve, self.gyro, bor_rot(180, flip))
+        rotate_shot2 = AutoRotate(self.swerve, self.gyro, bor_rot(180, flip))
         load_rotate2 = ParallelCommandGroup([load_shooter2, rotate_shot2])
 
         align_shot2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
         Launch2 = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_safe, 80, do_rotation=True)
         shoot_note2 = ParallelRaceGroup([align_shot2, Launch2])
         
-        rotate_note3 = Rotate(self.swerve, self.gyro, bor_rot(90, flip))
+        rotate3 = AutoRotate(self.swerve, self.gyro, bor_rot(90, flip))
         
         note_3_target = (borx(2.9, flip), bory(6, flip), bor_rot(90, flip))
         move_3_pickup = DriveToPoint(self.swerve, self.gyro, *note_3_target)
@@ -597,37 +590,35 @@ class MyRobot(TimedCommandRobot):
         backup_note4 = DriveToPoint(self.swerve, self.gyro, *backup4_target)
 
         load_shooter4 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, speed = 80)
-        rotate_shot4 = Rotate(self.swerve, self.gyro, bor_rot(160, flip))
-        load_rotate4 = ParallelCommandGroup([rotate_shot4, load_shooter4])
+        rotate4 = AutoRotate(self.swerve, self.gyro, bor_rot(160, flip))
+        load_rotate4 = ParallelCommandGroup([rotate4, load_shooter4])
         
         align_shot4 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
         Launch4 = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_safe, 80, do_rotation=True)
         shoot_note4 = ParallelRaceGroup([align_shot4, Launch4])
 
-
-
         cmds = [
             reset_swerve,
             delaycmd,
-            shoot_sub,
             slide_back, 
             rotate1,
-            get_note2,
+            get_note2
+            ]
+        """ 
+            shoot_sub,
+
             load_rotate2,
             shoot_note2,
-            rotate_note3,
+            rotate3,
             move_3_pickup,
-            get_note2,
+            get_note3,
             load_move3,
             shoot_note3,
             slide_note4,
-            get_note2,
+            get_note4,
             backup_note4,
             load_rotate4,
             shoot_note4
-            ]
-        """ 
-            
         """
         scg = SequentialCommandGroup(cmds)
         return scg

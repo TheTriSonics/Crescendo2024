@@ -219,8 +219,8 @@ class Shooter(Subsystem):
         # pn("shooter/left_actual_speed", left_velocity)
         # pn("shooter/right_actual_speed", right_velocity)
         # pn("Shooter Feed Speed", self.tilt_motor_left.get())
-        pn("Shooter Tilt Encoder", self.tilt_encoder.getAbsolutePosition())
-        pn("Shooter tilt motor Encoder", self.tilt_motor_left_encoder.getPosition())
+        pn("shooter/Shooter Tilt Encoder", self.tilt_encoder.getAbsolutePosition())
+        pn("shooter/Shooter tilt motor Encoder", self.tilt_motor_left_encoder.getPosition())
 
         # Control the shooter flywheels with a software PID Controller
         # self.left_shooter_pid.setSetpoint(self.speed_target)
@@ -265,3 +265,5 @@ class Shooter(Subsystem):
         self.tilt_motor_left.set(tilt_power)
         self.tilt_motor_right.set(tilt_power)
         pn("shooter/tilt_power", tilt_power)
+        pb("shooter/is_tilt_aimed",self.is_tilt_aimed())
+        pb("shooter/is_up_to_speed", self.is_up_to_speed())

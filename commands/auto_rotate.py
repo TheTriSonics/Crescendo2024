@@ -5,7 +5,7 @@ from subsystems.drivetrain import Drivetrain
 from subsystems.gyro import Gyro
 
 
-class Rotate(Command):
+class AutoRotate(Command):
     def __init__(self, drive: Drivetrain, gyro: Gyro, targetHeading):
         super().__init__()
         self.drivetrain = drive
@@ -20,6 +20,7 @@ class Rotate(Command):
         pass
 
     def execute(self):
+        
         pass
 
     def end(self, i):

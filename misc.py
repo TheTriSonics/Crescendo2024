@@ -3,11 +3,6 @@ from functools import wraps
 
 field_max_x = 16.46
 
-
-def is_sim() -> bool:
-    return wpilib.RobotBase.isSimulation()
-
-
 def add_timing(func):
     # This function shows the execution time of
     # the function object passed

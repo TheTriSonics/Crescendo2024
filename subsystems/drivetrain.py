@@ -72,6 +72,7 @@ class Drivetrain(Subsystem):
         self.lockable = False
         self.locked = False
         self.vision_stable = True
+        self.desired_heading = None
 
 
         # Half the motors need to be inverted to run the right direction and
@@ -213,6 +214,12 @@ class Drivetrain(Subsystem):
     def lock_heading(self):
         self.desired_heading = self.get_heading_rotation_2d().degrees()
 
+    def get_lock_heading(self):
+        return self.desired_heading
+    
+    def set_lock_heading(self, heading):
+        self.desired_heading = heading
+
     def llJson(self) -> str:
         return self.ll_json.getEntry("[]")
 
@@ -256,12 +263,9 @@ class Drivetrain(Subsystem):
             )
 
     def get_heading_rotation_2d(self) -> Rotation2d:
-        from misc import is_sim
-        if not is_sim():
-            yaw = self.gyro.get_yaw()
-            return Rotation2d(math.radians(yaw))
-        else:
-            return Rotation2d(0)
+        yaw = self.gyro.get_yaw()
+        return Rotation2d(math.radians(yaw))
+        
 
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
@@ -395,7 +399,7 @@ class DrivetrainDefaultCommand(Command):
         self.rotslew = SlewRateLimiter(2)
         self.note_yaw_filter = LinearFilter.highPass(0.1, 0.02)
         self.idle_counter = 0
-        self.desired_heading = None
+        self.desired_heading = 0
         self.addRequirements(drivetrain)
 
     def initialize(self):
@@ -493,7 +497,7 @@ class DrivetrainDefaultCommand(Command):
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
-        if rot < 0.01:
+        if abs(rot) > 0.01:
             self.lock_heading()
         else:
             error = curr - self.desired_heading

@@ -4,7 +4,7 @@ cryptography==42.0.3
 iniconfig==2.0.0
 limelightlib-python==0.9.1
 packaging==23.2
-paramiko==3.4.0
+navx==3.4.0
 phoenix6==24.2.0
 photonlibpy==2024.2.6
 Pint==0.23

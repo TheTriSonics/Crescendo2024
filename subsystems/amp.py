@@ -1,6 +1,6 @@
 from wpilib import DigitalInput
-from commands2 import Subsystem, Command
-from rev import CANSparkMax
+from commands2 import Subsystem
+from rev import CANSparkLowLevel, CANSparkMax
 from phoenix6.hardware import TalonFX
 from phoenix6.controls import DynamicMotionMagicVoltage
 from phoenix6.configs import TalonFXConfiguration
@@ -11,12 +11,9 @@ from subsystems.photoeyes import Photoeyes
 
 
 class Amp(Subsystem):
-    class Direction():
-        SHOOTER = 1
-        AMP = -1
-
+    
     class Height():
-        HOME = 0.075
+        HOME = 0.085
         AMP = 17.327
         TRAP = 20.327
         LIMIT = 30.35
@@ -24,7 +21,7 @@ class Amp(Subsystem):
     dir_up = 1
     dir_down = -1
 
-    def __init__(self, controller: CommanderController, photoeyes: Photoeyes):
+    def __init__(self, controller: CommanderController, photoeyes: Photoeyes) -> None:
         super().__init__()
 
         self.controller = controller
@@ -33,9 +30,8 @@ class Amp(Subsystem):
         self.limit_switch = DigitalInput(RSM.amp_lift_bottom_limit_switch)
 
         self.feed_motor = CANSparkMax(RMM.amp_feed_motor,
-                                      CANSparkMax.MotorType.kBrushed)
+                                      CANSparkLowLevel.MotorType.kBrushed)
         self.lift_motor = TalonFX(RMM.amp_lift_motor, "canivore")
-        # self.lift_motor = TalonFX(RMM.amp_lift_motor)
 
         self.feed_motor.setInverted(True)
 
