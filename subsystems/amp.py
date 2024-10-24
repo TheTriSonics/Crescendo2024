@@ -13,7 +13,7 @@ from subsystems.photoeyes import Photoeyes
 class Amp(Subsystem):
     
     class Height():
-        HOME = 0.085
+        HOME = 0.14
         AMP = 17.327
         TRAP = 20.327
         LIMIT = 30.35

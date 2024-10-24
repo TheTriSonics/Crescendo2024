@@ -7,6 +7,7 @@
 import json
 import math
 import commands.intake_note as intake_note
+from misc import bor_rot
 import subsystems.swervemodule as swervemodule
 import subsystems.gyro as gyro
 from commands2 import CommandScheduler, Subsystem, Command
@@ -555,8 +556,9 @@ class DrivetrainDefaultCommand(Command):
 
         self.slow_mode = False
         if self.controller.get_slow_mode():
+            #print("Slow mode engaged")
             self.slow_mode = True
-            slow_mode_factor = 1/2
+            slow_mode_factor = 0.2
             xSpeed *= slow_mode_factor
             ySpeed *= slow_mode_factor
             rot *= slow_mode_factor
@@ -564,6 +566,7 @@ class DrivetrainDefaultCommand(Command):
         self.drivetrain.speaker_tracking = False
         self.drivetrain.speaker_visible = False
         self.drivetrain.speaker_aimed = False
+        
         if self.speaker_lockon:
             # TODO: Possible! Check with Nathan -- slow down the drivetrain by setting
             # master_throttle to something like 0.8 or 0.6...
@@ -577,6 +580,8 @@ class DrivetrainDefaultCommand(Command):
                     self.drivetrain.speaker_aimed = True
                 else:
                     rot = self.speaker_pid.calculate(speaker_heading, 0)
+            else:
+                rot = self.speaker_pid.calculate(self._curr_heading(), bor_rot(180, self.drivetrain.shouldFlipPath()))
         
         pb("Speaker tracking", self.drivetrain.speaker_tracking)
         pb("Speaker visible", self.drivetrain.speaker_visible)

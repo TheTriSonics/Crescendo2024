@@ -44,7 +44,7 @@ class AmpScore(Command):
         if self.timer.get() > 3.0:
             return True
         loaded = self.photoeyes.get_amp_loaded()
-        timeout = self.dump_timer.get() > 0.2
+        timeout = self.dump_timer.get() > 0.5
         if loaded is False and timeout:
             return True
         return False

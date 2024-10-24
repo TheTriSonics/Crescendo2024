@@ -113,8 +113,10 @@ class MyRobot(TimedCommandRobot):
         pn('PIDtuning/P', 0)
         pn('PIDtuning/I', 0)
         pn('PIDtuning/D', 0)
+        SmartDashboard.putBoolean('Controls in Auto', False)
 
     def configure_driver_controls(self):
+        # TODO: Add a button config for slow mode here.
         fr_button = JoystickButton(self.driver_joystick,
                                    RBM.toggle_field_relative)
         fr_button.onTrue(InstantCommand(self.swerve.toggleFieldRelative))
@@ -127,7 +129,6 @@ class MyRobot(TimedCommandRobot):
 
         note_track_button = JoystickButton(self.driver_joystick,
                                            RBM.note_tracking)
-        # note_track_button = AxisButton(self.driver_joystick, 3)
         note_track_button.onTrue(
             InstantCommand(self.swerve.defcmd.note_tracking_on)
         )
@@ -163,17 +164,19 @@ class MyRobot(TimedCommandRobot):
         shooter_load_button.onTrue(ShooterLoad(self.amp, self.intake,
                                                self.shooter, self.photoeyes))
 
-        amp_set_height_amp = JoystickButton(self.commander_joystick2,
+        amp_set_height_home = JoystickButton(self.commander_joystick2,
                                             RBM.amp_lift_home_c2)
-        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME))
+        amp_set_height_home.onTrue(SetAmpHeight(self.amp, self.amp.Height.HOME))
 
         amp_set_height_amp = JoystickButton(self.commander_joystick2,
                                             RBM.amp_lift_amp_c2)
+        # amp_set_height_amp.and_(self.photoeyes.get_intake_loaded() and 
+        #                        ~self.photoeyes.get_amp_loaded()).onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
         amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
 
-        amp_set_height_amp = JoystickButton(self.commander_joystick2,
+        amp_set_height_trap = JoystickButton(self.commander_joystick2,
                                             RBM.amp_lift_trap_c2)
-        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.TRAP))
+        amp_set_height_trap.onTrue(SetAmpHeight(self.amp, self.amp.Height.TRAP))
 
         amp_override_up = JoystickButton(self.commander_joystick2,
                                          RBM.amp_override_up_c2)
@@ -264,6 +267,17 @@ class MyRobot(TimedCommandRobot):
             else:
                 # print('no vision data')
                 pass
+        """"
+        # This is a test to see if we can change the command assigned to a button based on a shuffleboard setting
+        auto_controls = SmartDashboard.getBoolean('Controls in Auto', False)
+        # Change the command assigned to the amp height button based on the shuffleboard setting
+        
+        self.
+        if auto_controls is True:
+            if self.photoeyes.get_intake_loaded() and not self.photoeyes.get_amp_loaded():
+                amp
+                amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
+        """
         pass
 
     def auto_station_1(self):
@@ -642,6 +656,9 @@ class MyRobot(TimedCommandRobot):
         pass
 
     def teleopInit(self) -> None:
+        # self.configure_driver_controls()
+        # self.configure_commander_controls()
+
         # JRD Not sure what this resetOdometry is doing with the fixed coords/pose listed.  Maybe leftover from the end of an Auton?
         # In any case, I believe the camera system should be getting an accurate Pose throughout the match.
         # self.swerve.resetOdometry(Pose2d(0.3, 4, Rotation2d(0)))
