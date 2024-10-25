@@ -110,3 +110,11 @@ def bor_rot(br, flip) -> float:
         offset = br - 90
         return (90 - offset)
     return br
+
+def angle_offset(angle, target):
+    offset = target - angle
+    while offset > 180:
+        offset -= 360
+    while offset < -180:
+        offset += 360
+    return offset

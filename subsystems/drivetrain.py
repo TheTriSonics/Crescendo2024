@@ -7,9 +7,10 @@
 import json
 import math
 import commands.intake_note as intake_note
-from misc import bor_rot
+from misc import angle_offset, bor_rot
 import subsystems.swervemodule as swervemodule
 import subsystems.gyro as gyro
+import subsystems.shooter as shooter
 from commands2 import CommandScheduler, Subsystem, Command
 from wpilib import SmartDashboard, DriverStation
 from ntcore import NetworkTableInstance
@@ -30,6 +31,7 @@ from controllers.driver import DriverController
 from constants import RobotMotorMap as RMM
 from subsystems.note_tracker import NoteTracker
 from subsystems.gyro import Gyro
+from subsystems.shooter import Shooter
 from subsystems.intake import Intake
 from constants import RobotPIDConstants as PIDC
 
@@ -54,7 +56,7 @@ class Drivetrain(Subsystem):
     Represents a swerve drive style drivetrain.
     """
     def __init__(self, gyro: gyro.Gyro, driver_controller,
-                 photon: NoteTracker, intake: Intake) -> None:
+                 photon: NoteTracker, intake: Intake, shooter: shooter.Shooter) -> None:
         super().__init__()
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
@@ -63,6 +65,7 @@ class Drivetrain(Subsystem):
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
         self.photon = photon
         self.intake = intake
+        self.shooter = shooter
         self.note_tracking = False
         self.note_visible = False
         self.speaker_tracking = False
@@ -176,7 +179,7 @@ class Drivetrain(Subsystem):
             self  # Reference to this subsystem to set requirements
         )
 
-        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro, intake)
+        self.defcmd = DrivetrainDefaultCommand(self, self.controller, photon, gyro, intake, shooter)
         self.setDefaultCommand(self.defcmd)
 
     def set_note_intake_speed(self, x):
@@ -350,6 +353,7 @@ class Drivetrain(Subsystem):
         # Short circuit any JSON processing if we got back an empty list, which
         # is the default value for the limelight network table entry
         if len(obj) == 0:
+            print("not getting limelight data")
             return None
         results = obj['Results']
         if 'Fiducial' not in results:
@@ -360,6 +364,27 @@ class Drivetrain(Subsystem):
                 continue
             tag_heading = f['tx']
         return tag_heading
+    
+    def get_fid_distance(self, id) -> tuple[list[Pose2d], float]:
+        tag_distance = None
+        data = self.ll_json_entry.get()
+        obj = json.loads(data)
+        # tl = None
+        # Short circuit any JSON processing if we got back an empty list, which
+        # is the default value for the limelight network table entry
+        if len(obj) == 0:
+            return None
+        results = obj['Results']
+        if 'Fiducial' not in results:
+            return None
+        fids = results['Fiducial']
+        for f in fids:
+            if f['fID'] != id:
+                continue
+            tag_angle = f['ty'] 
+            tag_distance = (1.45 - 0.62)/math.tan(math.radians(tag_angle + 8.3))
+        return tag_distance
+
 
     def periodic(self) -> None:
         self.updateOdometry()
@@ -382,13 +407,14 @@ class DrivetrainDefaultCommand(Command):
     Default command for the drivetrain.
     """
     def __init__(self, drivetrain: Drivetrain, controller: DriverController,
-                 photon: NoteTracker, gyro: Gyro, intake: Intake) -> None:
+                 photon: NoteTracker, gyro: Gyro, intake: Intake, shooter: Shooter) -> None:
         super().__init__()
         self.drivetrain = drivetrain
         self.controller = controller
         self.photon = photon
         self.gyro = gyro
         self.intake = intake
+        self.shooter = shooter
         # self.note_pid = PIDController(*PIDC.note_tracking_pid)
         self.note_translate_pid = PIDController(*PIDC.note_translate_pid)
         self.speaker_pid = PIDController(*PIDC.speaker_tracking_pid)
@@ -400,7 +426,8 @@ class DrivetrainDefaultCommand(Command):
         self.rotslew = SlewRateLimiter(2)
         self.note_yaw_filter = LinearFilter.highPass(0.1, 0.02)
         self.idle_counter = 0
-        self.desired_heading = 0
+        self.slow_mode = False
+        self.desired_heading = self.drivetrain.get_heading_rotation_2d().degrees()
         self.addRequirements(drivetrain)
 
     def initialize(self):
@@ -434,6 +461,9 @@ class DrivetrainDefaultCommand(Command):
 
     def lock_heading(self):
         self.desired_heading = self._curr_heading()
+
+    def set_lock_heading(self, heading):
+        self.desired_heading = heading
 
     def is_note_tracking(self):
         return self.drivetrain.note_tracking
@@ -498,7 +528,7 @@ class DrivetrainDefaultCommand(Command):
         # If the user is commanding rotation set the desired heading to the
         # current heading so if they let off we can use PID to keep the robot
         # driving straight
-        if abs(rot) > 0.01:
+        if rot != 0:
             self.lock_heading()
         else:
             error = curr - self.desired_heading
@@ -554,10 +584,10 @@ class DrivetrainDefaultCommand(Command):
                 rot = self.note_pid.calculate(note_yaw, 0)
                 xSpeed = curr_note_intake_speed
 
-        self.slow_mode = False
+        
         if self.controller.get_slow_mode():
             #print("Slow mode engaged")
-            self.slow_mode = True
+            self.slow_mode = -self.slow_mode
             slow_mode_factor = 0.2
             xSpeed *= slow_mode_factor
             ySpeed *= slow_mode_factor
@@ -573,15 +603,26 @@ class DrivetrainDefaultCommand(Command):
             self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
             speaker_heading = self.drivetrain.get_fid_heading(fid)
+            speaker_distance = self.drivetrain.get_fid_distance(fid)
+            # print(f"speaker distance is {speaker_distance}")
             if speaker_heading is not None:
+                self.shooter.calc_otf_tilt(speaker_distance)
                 self.drivetrain.speaker_visible = True
                 if abs(speaker_heading) < 3.0:
                     rot = 0
                     self.drivetrain.speaker_aimed = True
                 else:
                     rot = self.speaker_pid.calculate(speaker_heading, 0)
+            """ this doesn't seem to work as the robot slips too much when turning
             else:
-                rot = self.speaker_pid.calculate(self._curr_heading(), bor_rot(180, self.drivetrain.shouldFlipPath()))
+                offset = angle_offset(curr, bor_rot(180, self.drivetrain.shouldFlipPath()))
+                rot = -self.speaker_pid.calculate(offset, 0)
+                if rot > kMaxAngularSpeed: rot = kMaxAngularSpeed
+                if rot < -kMaxAngularSpeed: rot = -kMaxAngularSpeed
+                print(f"curr is {curr}")
+                print(f"offset for speaker tracking is {offset}")
+                print(f"rot is {rot}")
+            """
         
         pb("Speaker tracking", self.drivetrain.speaker_tracking)
         pb("Speaker visible", self.drivetrain.speaker_visible)

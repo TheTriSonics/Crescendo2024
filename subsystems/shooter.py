@@ -52,6 +52,7 @@ class Shooter(Subsystem):
         self.speed_target = 0
         self.waiting_speed_target = 0
         self.tilt_target = tilt_load_limit
+        self.otf_tilt_target = tilt_load_limit
 
         # Initialize the motor controllers
         self.shooter_motor_left = TalonFX(RMM.shooter_motor_left, "canivore")
@@ -149,6 +150,13 @@ class Shooter(Subsystem):
     def set_tilt(self, tilt):
         self.tilt_target = tilt
 
+    def calc_otf_tilt(self, distance: float):
+        if distance is not None:
+            self.otf_tilt_target = 0.7622085 + 0.1940302/(2 ** (distance / 0.9421715))
+    
+    def go_otf_tilt(self):
+        self.tilt_target = self.otf_tilt_target
+
     def is_up_to_speed(self):
         # If somebody asks for this value, and we return a true we want to keep
         # returning true for at least this time delay. It prevents flashing
@@ -197,6 +205,9 @@ class Shooter(Subsystem):
     def sub_shot(self):
         self.tilt_target = tilt_sub
         self.waiting_speed_target = 68
+
+    def otf_shot(self):
+        self.waiting_speed_target = 80
 
     def spin_up(self):
         self.speed_target = self.waiting_speed_target
@@ -267,3 +278,4 @@ class Shooter(Subsystem):
         pn("shooter/tilt_power", tilt_power)
         pb("shooter/is_tilt_aimed",self.is_tilt_aimed())
         pb("shooter/is_up_to_speed", self.is_up_to_speed())
+        pn('shooter/velocity', self.shooter_motor_left.get_velocity().value)

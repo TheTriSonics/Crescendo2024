@@ -11,7 +11,7 @@ class AutoSelector(Subsystem):
 
     def __init__(self):
         super().__init__()
-        self.auton_method = 4
+        self.auton_method = 3
         SmartDashboard.putNumber('auton/route', self.auton_method)
 
     def get_auton(self) -> int:

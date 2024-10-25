@@ -15,7 +15,7 @@ class Rotate(Command):
 
     def initialize(self):
         print(f"rotate started with heading = {self.targetHeading}")
-        self.drivetrain.set_lock_heading(self.targetHeading)
+        self.drivetrain.defcmd.set_lock_heading(self.targetHeading)
         self.timer.restart()
         pass
 

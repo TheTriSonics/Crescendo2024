@@ -19,6 +19,9 @@ class Photoeyes(Subsystem):
     def get_intake_front(self) -> bool:
         return not self.intake_front_photoeye.get()
 
+    def get_intake_unloaded(self) -> bool:
+        return self.intake_hold_photoeye.get()
+
     def get_intake_loaded(self) -> bool:
         return not self.intake_hold_photoeye.get()
 

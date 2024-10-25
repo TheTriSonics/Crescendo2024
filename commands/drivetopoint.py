@@ -30,7 +30,7 @@ class DriveToPoint(Command):
         pass
 
     def execute(self):
-        # print(f"DTP target x = {self.x}, y = {self.y}, heading = {self.targetHeading}")
+        print(f"DTP target x = {self.x}, y = {self.y}, heading = {self.targetHeading}")
         pose = self.drivetrain.getPose()
         curr_yaw = self.gyro.get_yaw()
         currx = pose.X()

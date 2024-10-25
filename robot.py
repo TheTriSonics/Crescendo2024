@@ -16,6 +16,7 @@ from commands.auto_drive import AutoDriveCommand
 from commands.auto_rotate import AutoRotate
 from commands.delay import Delay
 from commands.auton_commands.auto_shooter_launch_note import AutoShooterLaunchNote
+from commands.auton_commands.otf_shooter_launch_note import OTFShooterLaunchNote
 from commands.auton_commands.pickup_note import AutoPickupNote
 from commands.eject_note import EjectNote
 
@@ -84,7 +85,7 @@ class MyRobot(TimedCommandRobot):
         self.note_tracker = note_tracker.NoteTracker()
         self.intake = intake.Intake(self.commander, self.photoeyes)
         self.swerve = drivetrain.Drivetrain(self.gyro, self.driver,
-                                            self.note_tracker, self.intake)
+                                            self.note_tracker, self.intake, self.shooter)
         self.auto_selector = auto_selector.AutoSelector()
 
         self.climber = climber.Climber(self.driver, self.commander)
@@ -132,6 +133,8 @@ class MyRobot(TimedCommandRobot):
         note_track_button.onTrue(
             InstantCommand(self.swerve.defcmd.note_tracking_on)
         )
+        note_track_button.onTrue(IntakeNote(self.intake, self.shooter,
+                                           self.gyro, self.photoeyes))
         note_track_button.onFalse(
             InstantCommand(self.swerve.defcmd.note_tracking_off)
         )
@@ -170,9 +173,12 @@ class MyRobot(TimedCommandRobot):
 
         amp_set_height_amp = JoystickButton(self.commander_joystick2,
                                             RBM.amp_lift_amp_c2)
-        # amp_set_height_amp.and_(self.photoeyes.get_intake_loaded() and 
+        amp_set_height_amp.and_(lambda: self.photoeyes.get_intake_loaded()).onTrue(AmpLoad(self.amp,
+                                                                                            self.intake, self.photoeyes))
+        amp_set_height_amp.and_(lambda: self.photoeyes.get_intake_unloaded()).onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
+                                # ~self.photoeyes.get_amp_loaded()).onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))      
         #                        ~self.photoeyes.get_amp_loaded()).onTrue(AmpLoad(self.amp, self.intake, self.photoeyes))
-        amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
+        # amp_set_height_amp.onTrue(SetAmpHeight(self.amp, self.amp.Height.AMP))
 
         amp_set_height_trap = JoystickButton(self.commander_joystick2,
                                             RBM.amp_lift_trap_c2)
@@ -204,6 +210,11 @@ class MyRobot(TimedCommandRobot):
                                           RBM.shooter_aim_safe_c1)
         safe_shot_button.onTrue(InstantCommand(self.shooter.safe_shot))
 
+        otf_shot_button = JoystickButton(self.commander_joystick1,
+                                          RBM.shooter_aim_otf_c1)
+        otf_shot_button.and_(lambda: self.driver.get_speaker_lockon()).whileTrue(OTFShooterLaunchNote(self.shooter,
+                    self.swerve, self.driver, self.intake, self.amp, driverneeded = True, rpm = 85, do_rotation = True))
+
         sub_shot_button = JoystickButton(self.commander_joystick1,
                                          RBM.shooter_aim_sub_c1)
         sub_shot_button.onTrue(InstantCommand(self.shooter.sub_shot))
@@ -217,10 +228,6 @@ class MyRobot(TimedCommandRobot):
                                       RBM.shooter_spin_c2)
         shooter_spin.onTrue(InstantCommand(self.shooter.spin_up))
         shooter_spin.onFalse(InstantCommand(self.shooter.spin_down))
-
-        reset_odo = JoystickButton(self.commander_joystick2,
-                                   RBM.reset_odometry_c2)
-        reset_odo.onTrue(InstantCommand(self.resetOdometryToCurrentPose))
 
     def resetOdometryToCurrentPose(self):
         curr_pose = self.swerve.getPose()
@@ -236,7 +243,7 @@ class MyRobot(TimedCommandRobot):
         elif value == 4:
             self.auton_method = self.auto_station_2_4note_pole_last_fast
         else:
-            self.auton_method = self.auto_station_2_4note_pole_last_fast
+            self.auton_method = self.auto_station_2_4note_pole_last
 
     def robotPeriodic(self) -> None:
         # Rough idea of how to incorporate vision into odometry
@@ -460,8 +467,10 @@ class MyRobot(TimedCommandRobot):
         ).asProxy()
         rotate_shot2 = Rotate(self.swerve, self.gyro, bor_rot(180, flip)).asProxy()
         # load_rotate2 = ParallelCommandGroup([load_shooter2, rotate_shot2]).asProxy()
-        shoot2 = AutoShooterLaunchNote(self.shooter, self.swerve,
-                                       shooter.tilt_safe, 80, do_rotation=True).asProxy()
+        # shoot2 = AutoShooterLaunchNote(self.shooter, self.swerve,
+        #                               shooter.tilt_safe, 80, do_rotation=True).asProxy()
+        
+        shoot2 = OTFShooterLaunchNote(self.shooter, self.swerve, self.driver, self.intake, self.amp, do_rotation=True) 
         rotate_note3 = Rotate(self.swerve, self.gyro, bor_rot(90, flip)).asProxy()
         note_3_target = (
             borx(2.9, flip),
@@ -555,10 +564,10 @@ class MyRobot(TimedCommandRobot):
         
         # shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_sub, 80)
         
-        back_target = (borx(1.8, flip), bory(5.55, flip), bor_rot(180, flip))
+        back_target = (borx(1.8, flip), bory(5.55, flip), bor_rot(1, flip))
         slide_back = DriveToPoint(self.swerve, self.gyro, *back_target)
         
-        rotate1 = DriveToPoint(self.swerve, self.gyro, x = None, y = None, targetHeading = bor_rot(2, flip))
+        # rotate1 = DriveToPoint(self.swerve, self.gyro, x = None, y = None, targetHeading = bor_rot(2, flip))
 
         lock_note2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, note_lockon=True, timeout=5)
         pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
@@ -569,7 +578,7 @@ class MyRobot(TimedCommandRobot):
         load_rotate2 = ParallelCommandGroup([load_shooter2, rotate_shot2])
 
         align_shot2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
-        Launch2 = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_safe, 80, do_rotation=True)
+        Launch2 = OTFShooterLaunchNote(self.shooter, self.swerve, self.driver, self.intake, self.amp, 80, do_rotation=True)
         shoot_note2 = ParallelRaceGroup([align_shot2, Launch2])
         
         rotate3 = AutoRotate(self.swerve, self.gyro, bor_rot(90, flip))
@@ -615,7 +624,7 @@ class MyRobot(TimedCommandRobot):
             reset_swerve,
             delaycmd,
             slide_back, 
-            rotate1,
+            # rotate1,
             get_note2
             ]
         """ 
