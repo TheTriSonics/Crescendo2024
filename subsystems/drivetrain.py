@@ -298,7 +298,7 @@ class Drivetrain(Subsystem):
 
         # Force the robot to be field relative if we're tracking a note
         if self.fieldRelative and not robot_centric_force:
-            flip = self.shouldFlipPath()
+            # flip = self.shouldFlipPath()
 
             # removed step to flip speed.  We are using the absolute coordinate system with origin at blue corner.
             # We should only be flipping the driver stick inputs, not all speed commands.
@@ -531,7 +531,7 @@ class DrivetrainDefaultCommand(Command):
         if rot != 0:
             self.lock_heading()
         else:
-            error = curr - self.desired_heading
+            error = angle_offset(curr, self.desired_heading)
             if abs(error) > 2.0:
                 rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
             else:
@@ -568,21 +568,16 @@ class DrivetrainDefaultCommand(Command):
                 self.note_yaw_filtered = self.note_yaw_filter.calculate(note_yaw)
                 pn('drivetrain/note_tracker/note_yaw', note_yaw)
                 pn('drivetrain/note_tracker/note_yaw_filtered', self.note_yaw_filtered)
-            pitch = self.photon.getPitchOffset()
+            # pitch = self.photon.getPitchOffset()
             if note_yaw is not None:
                 # Setpoint was 0 but moved to 2 to try and get the
                 # robot from going left of the note
-                self.P = 0.0014286 * pitch + 0.044286
-                if self.P > 0.07:
-                    self.P = 0.07
-                elif self.P < 0.03:
-                    self.P = 0.03
-                self.I = 0
-                self.D = 0.004
+                self.P, self.I, self.D = 0.05, 0, 0
                 # self.P, self.I, self.D = self.drivetrain.getPID()
                 self.note_pid = PIDController(self.P, self.I, self.D)
                 rot = self.note_pid.calculate(note_yaw, 0)
-                xSpeed = curr_note_intake_speed
+                # xSpeed = -0.003 * note_yaw ** 2 + curr_note_intake_speed
+                xSpeed = 1.3
 
         
         if self.controller.get_slow_mode():

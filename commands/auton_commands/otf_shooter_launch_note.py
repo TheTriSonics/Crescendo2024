@@ -17,6 +17,7 @@ class OTFShooterLaunchNote(Command):
         self.driver = driver
         self.amp = amp
         self.intake = intake
+        self.driverneeded = driverneeded
         self.timer = Timer()
         self.shot_timer = Timer()
         self.rpm = rpm
@@ -29,7 +30,6 @@ class OTFShooterLaunchNote(Command):
 
     def initialize(self) -> None:
         print("OTF Shooter launch note started")
-        self.shooter.go_otf_tilt()
         self.shooter.set_velocity(self.rpm)
         self.shooter.spin_up()
         self.shot_fired = False
@@ -41,12 +41,14 @@ class OTFShooterLaunchNote(Command):
         up_to_speed = self.shooter.is_up_to_speed()
         aimed = self.shooter.is_tilt_aimed()
         driverRB = self.driver.get_speaker_lockon()
-        if not driverRB:
+        self.shooter.go_otf_tilt()
+        if self.driverneeded and not driverRB:
             self.timer.restart()
         if self.do_rotation:
             drive_aimed = self.drivetrain.is_speaker_aimed()
         else:
             drive_aimed = True
+        # print(f"OTF uptospeed = {up_to_speed}, aimed = {aimed}, timerelapsed = {self.timer.hasElapsed(0.5)}")
         if not self.shot_fired and up_to_speed and aimed and drive_aimed and self.timer.hasElapsed(0.5):
             self.intake.feed()
             self.amp.reverse()

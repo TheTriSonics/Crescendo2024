@@ -1,5 +1,5 @@
 class RobotPIDConstants():
-    note_tracking_pid = (0.07, 0, 0.004)
+    note_tracking_pid = (0.07, 0, 0.004) # this probably isn't used anymore
     note_translate_pid = note_tracking_pid
     speaker_tracking_pid = (0.06, 0, 0)
     # well, guess no, we don't want PID for that.

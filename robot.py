@@ -242,6 +242,8 @@ class MyRobot(TimedCommandRobot):
             self.auton_method = self.auto_station_2_4note_pole_last
         elif value == 4:
             self.auton_method = self.auto_station_2_4note_pole_last_fast
+        elif value == 5:
+            self.auton_method = self.auto_loading_side
         else:
             self.auton_method = self.auto_station_2_4note_pole_last
 
@@ -557,19 +559,20 @@ class MyRobot(TimedCommandRobot):
     def auto_station_2_4note_pole_last_fast(self):
         self.swerve.fieldRelative = True
         flip = self.swerve.shouldFlipPath()
-        starting_pose = Pose2d(borx(1.5, flip), bory(5.55, flip), radians(bor_rot(180, flip)))
+        starting_pose = Pose2d(borx(1.5, flip), bory(5.7, flip), radians(bor_rot(180, flip)))
         reset_swerve = self.swerve.resetOdometry(starting_pose)
         
-        delaycmd = Delay(0.25)
+        delaycmd = Delay(0.1)
         
-        # shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_sub, 80)
+        shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_sub, 80)
         
-        back_target = (borx(1.8, flip), bory(5.55, flip), bor_rot(1, flip))
+        back_target = (borx(1.8, flip), bory(5.7, flip), bor_rot(180, flip))
         slide_back = DriveToPoint(self.swerve, self.gyro, *back_target)
         
-        # rotate1 = DriveToPoint(self.swerve, self.gyro, x = None, y = None, targetHeading = bor_rot(2, flip))
+        rotate1 = AutoRotate(self.swerve, self.gyro, bor_rot(2, flip))
 
-        lock_note2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, note_lockon=True, timeout=5)
+        lock_note2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                       note_lockon=True, timeout=5)
         pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
         get_note2 = ParallelRaceGroup([lock_note2, pickup_note2])
         
@@ -577,59 +580,63 @@ class MyRobot(TimedCommandRobot):
         rotate_shot2 = AutoRotate(self.swerve, self.gyro, bor_rot(180, flip))
         load_rotate2 = ParallelCommandGroup([load_shooter2, rotate_shot2])
 
-        align_shot2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
-        Launch2 = OTFShooterLaunchNote(self.shooter, self.swerve, self.driver, self.intake, self.amp, 80, do_rotation=True)
+        align_shot2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                        speaker_lockon=True, timeout=5)
+        Launch2 = OTFShooterLaunchNote(self.shooter, self.swerve, self.driver, self.intake, self.amp, driverneeded=False,
+                                       rpm = 80, do_rotation=True)
         shoot_note2 = ParallelRaceGroup([align_shot2, Launch2])
         
         rotate3 = AutoRotate(self.swerve, self.gyro, bor_rot(90, flip))
         
-        note_3_target = (borx(2.9, flip), bory(6, flip), bor_rot(90, flip))
+        note_3_target = (borx(2.9, flip), bory(6.2, flip), bor_rot(90, flip))
         move_3_pickup = DriveToPoint(self.swerve, self.gyro, *note_3_target)
 
-        lock_note3 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, note_lockon=True, timeout=5)
+        lock_note3 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                       note_lockon=True, timeout=5)
         pickup_note3 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
         get_note3 = ParallelRaceGroup([lock_note3, pickup_note3])
-        # This isn't used at this time.  Trying to see how the scheduler treats reusing commands.
 
-
-        shoot_3_target = (borx(2.9, flip), bory(5.5, flip), bor_rot(180, flip))
+        shoot_3_target = (borx(2.9, flip), bory(6, flip), bor_rot(180, flip))
         move_3_shot = DriveToPoint(self.swerve, self.gyro, *shoot_3_target)
         load_shooter3 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, speed = 80)
         load_move3 = ParallelCommandGroup([move_3_shot, load_shooter3])
 
-        align_shot3 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
-        Launch3 = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_safe, 80, do_rotation=True)
+        align_shot3 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                        speaker_lockon=True, timeout=5)
+        Launch3 = OTFShooterLaunchNote(self.shooter, self.swerve, self.driver, self.intake, self.amp, driverneeded=False,
+                                       rpm = 80, do_rotation=True)
         shoot_note3 = ParallelRaceGroup([align_shot3, Launch3])
 
         pickup4_target = (borx(1.8, flip), bory(4, flip), bor_rot(1, flip))
         slide_note4 = DriveToPoint(self.swerve, self.gyro, *pickup4_target)
 
-        lock_note4 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, note_lockon=True, timeout=5)
+        lock_note4 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                       note_lockon=True, timeout=5)
         pickup_note4 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
         get_note4 = ParallelRaceGroup([lock_note4, pickup_note4])
         # This isn't used at this time.  Trying to see how the scheduler treats reusing commands.
 
-        backup4_target = (borx(2, flip), bory(4.5, flip), bor_rot(1, flip))
+        backup4_target = (borx(2, flip), bory(5, flip), bor_rot(1, flip))
         backup_note4 = DriveToPoint(self.swerve, self.gyro, *backup4_target)
 
         load_shooter4 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes, speed = 80)
         rotate4 = AutoRotate(self.swerve, self.gyro, bor_rot(160, flip))
         load_rotate4 = ParallelCommandGroup([rotate4, load_shooter4])
-        
-        align_shot4 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, speaker_lockon=True, timeout=5)
-        Launch4 = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_safe, 80, do_rotation=True)
+
+        align_shot4 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                        speaker_lockon=True, timeout=5)
+        Launch4 = OTFShooterLaunchNote(self.shooter, self.swerve, self.driver, self.intake, self.amp, driverneeded=False,
+                                       rpm = 80, do_rotation=True)
         shoot_note4 = ParallelRaceGroup([align_shot4, Launch4])
+        
 
         cmds = [
             reset_swerve,
             delaycmd,
-            slide_back, 
-            # rotate1,
-            get_note2
-            ]
-        """ 
             shoot_sub,
-
+            slide_back, 
+            rotate1,
+            get_note2,
             load_rotate2,
             shoot_note2,
             rotate3,
@@ -642,7 +649,100 @@ class MyRobot(TimedCommandRobot):
             backup_note4,
             load_rotate4,
             shoot_note4
-        """
+            ]
+        
+        scg = SequentialCommandGroup(cmds)
+        return scg
+
+    def auto_loading_side(self):
+        self.swerve.fieldRelative = True
+        flip = self.swerve.shouldFlipPath()
+        starting_pose = Pose2d(borx(1.2, flip), bory(4.4, flip), radians(bor_rot(120, flip)))
+        reset_swerve = self.swerve.resetOdometry(starting_pose)
+        
+        delaycmd = Delay(0.1)
+        
+        shoot_sub = AutoShooterLaunchNote(self.shooter, self.swerve, shooter.tilt_sub, 68)
+        
+        back_target = (borx(2.7, flip), bory(2.1, flip), bor_rot(60, flip))
+        slide_back = DriveToPoint(self.swerve, self.gyro, *back_target)
+        
+        second_target = (borx(6.4, flip), bory(0.55, flip), bor_rot(0, flip))
+        move_second = DriveToPoint(self.swerve, self.gyro, *second_target)
+
+        lock_note2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                       note_lockon=True, timeout=5)
+        pickup_note2 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        get_note2 = ParallelRaceGroup([lock_note2, pickup_note2])
+        
+        second_backup = (borx(6.4, flip), bory(0.55, flip), bor_rot(0, flip))
+        backup_second = DriveToPoint(self.swerve, self.gyro, *second_backup)
+        
+        shot2_mid = (borx(2.7, flip), bory(2.1, flip), bor_rot(60, flip))
+        mid_second = DriveToPoint(self.swerve, self.gyro, *shot2_mid)
+        load_shooter2 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes)
+        load_move2 = ParallelCommandGroup([mid_second, load_shooter2])
+
+        shot2_target = (borx(1.8, flip), bory(4, flip), bor_rot(120, flip))
+        move2_target = DriveToPoint(self.swerve, self.gyro, *shot2_target)
+
+        align_shot2 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                        speaker_lockon=True, timeout=5)
+        Launch2 = OTFShooterLaunchNote(self.shooter, self.swerve, self.driver, self.intake, self.amp, driverneeded=False,
+                                       rpm = 80, do_rotation=True)
+        shoot_note2 = ParallelRaceGroup([align_shot2, Launch2])
+
+        
+
+
+
+        slide_back3 = DriveToPoint(self.swerve, self.gyro, *back_target)
+        
+        second_target3 = (borx(6.4, flip), bory(0.7, flip), bor_rot(45, flip))
+        move_second3 = DriveToPoint(self.swerve, self.gyro, *second_target3)
+
+        lock_note23 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                       note_lockon=True, timeout=5)
+        pickup_note23 = IntakeNote(self.intake, self.shooter, self.amp, self.photoeyes)
+        get_note23 = ParallelRaceGroup([lock_note23, pickup_note23])
+        
+        backup_second3 = DriveToPoint(self.swerve, self.gyro, *second_backup)
+        
+        mid_second3 = DriveToPoint(self.swerve, self.gyro, *shot2_mid)
+        load_shooter23 = ShooterLoad(self.amp, self.intake, self.shooter, self.photoeyes)
+        load_move23 = ParallelCommandGroup([mid_second3, load_shooter23])
+
+        move2_target3 = DriveToPoint(self.swerve, self.gyro, *shot2_target)
+
+        align_shot23 = AutoDriveCommand(self.swerve, self.note_tracker, self.gyro, self.intake, self.shooter,
+                                        speaker_lockon=True, timeout=5)
+        Launch23 = OTFShooterLaunchNote(self.shooter, self.swerve, self.driver, self.intake, self.amp, driverneeded=False,
+                                       rpm = 80, do_rotation=True)
+        shoot_note23 = ParallelRaceGroup([align_shot23, Launch23])
+
+
+        cmds = [
+            reset_swerve,
+            delaycmd,
+            shoot_sub,
+            slide_back, 
+            move_second,
+            get_note2,
+            backup_second,
+            load_move2,
+            move2_target,
+            shoot_note2,
+            slide_back3,
+
+            move_second3,
+            get_note23,
+            backup_second3,
+            load_move23,
+            move2_target3,
+            shoot_note23,
+
+            ]
+        
         scg = SequentialCommandGroup(cmds)
         return scg
 
@@ -672,6 +772,7 @@ class MyRobot(TimedCommandRobot):
         # In any case, I believe the camera system should be getting an accurate Pose throughout the match.
         # self.swerve.resetOdometry(Pose2d(0.3, 4, Rotation2d(0)))
         self.swerve.lock_heading()
+        self.swerve.defcmd.lock_heading()
         self.swerve.fieldRelative = True
         # self.swerve.fieldRelative = False
         pass

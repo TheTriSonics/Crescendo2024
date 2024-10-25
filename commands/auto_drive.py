@@ -11,6 +11,9 @@ from wpimath.controller import PIDController
 from constants import RobotPIDConstants as PIDC
 from wpimath.filter import SlewRateLimiter, LinearFilter
 
+import subsystems.shooter as shooter
+from subsystems.shooter import Shooter
+
 kMaxSpeed = 4.5  # m/s
 kMaxAngularSpeed = math.pi * 5
 
@@ -30,7 +33,7 @@ class AutoDriveCommand(Command):
     """
     Command for the drivetrain to be used in Autonomous.
     """
-    def __init__(self, drivetrain: Drivetrain, photon: NoteTracker, gyro: Gyro, intake: Intake,
+    def __init__(self, drivetrain: Drivetrain, photon: NoteTracker, gyro: Gyro, intake: Intake, shooter: Shooter,
                  note_lockon = False, speaker_lockon = False, timeout = 10) -> None:
         super().__init__()
         self.timer = Timer()
@@ -38,6 +41,7 @@ class AutoDriveCommand(Command):
         self.photon = photon
         self.gyro = gyro
         self.intake = intake
+        self.shooter = shooter
         self.note_lockon = note_lockon
         self.speaker_lockon = speaker_lockon
         self.timeout = timeout
@@ -127,17 +131,6 @@ class AutoDriveCommand(Command):
             self.xSpeed = -self.xSpeed
             self.ySpeed = -self.ySpeed
 
-        # If the user is commanding rotation set the desired heading to the
-        # current heading so if they let off we can use PID to keep the robot
-        # driving straight
-        if self.rot != 0:
-            self.lock_heading()
-        else:
-            error = curr - self.desired_heading
-            if abs(error) > 1.0:
-                self.rot = self.straight_drive_pid.calculate(curr, self.desired_heading)
-            else:
-                self.rot = 0
         # When in lockon mode, the robot will rotate to face the node
         # that PhotonVision is detecting
         robot_centric_force = False
@@ -145,6 +138,8 @@ class AutoDriveCommand(Command):
         self.drivetrain.note_tracking = False
         self.drivetrain.note_visible = False
         if self.note_lockon:
+            self.xSpeed = 0.15
+            self.rot = 0
             self.note_tracking = True
             robot_centric_force = True
             pn = SmartDashboard.putNumber
@@ -154,19 +149,16 @@ class AutoDriveCommand(Command):
                 self.note_yaw_filtered = self.note_yaw_filter.calculate(note_yaw)
                 pn('drivetrain/note_tracker/note_yaw', note_yaw)
                 pn('drivetrain/note_tracker/note_yaw_filtered', self.note_yaw_filtered)
-            pitch = self.photon.getPitchOffset()
+            # pitch = self.photon.getPitchOffset()
             if note_yaw is not None:
-                self.P = 0.0014286 * pitch + 0.044286
-                if self.P > 0.07:
-                    self.P = 0.07
-                elif self.P < 0.03:
-                    self.P = 0.03
-                self.I = 0
-                self.D = 0.004
+                # Setpoint was 0 but moved to 2 to try and get the
+                # robot from going left of the note
+                self.P, self.I, self.D = 0.05, 0, 0
                 # self.P, self.I, self.D = self.drivetrain.getPID()
                 self.note_pid = PIDController(self.P, self.I, self.D)
                 self.rot = self.note_pid.calculate(note_yaw, 0)
-                self.xSpeed = curr_note_intake_speed
+                # xSpeed = -0.003 * note_yaw ** 2 + curr_note_intake_speed
+                self.xSpeed = 1.3
 
         self.slow_mode = False
         if self.slow_mode:
@@ -177,14 +169,20 @@ class AutoDriveCommand(Command):
             self.rot *= slow_mode_factor
 
         if self.speaker_lockon:
-            self.drivetrain.set_speaker_tracking(True)
+            # TODO: Possible! Check with Nathan -- slow down the drivetrain by setting
+            # master_throttle to something like 0.8 or 0.6...
+            self.drivetrain.speaker_tracking = True
             fid = 4 if self.drivetrain.is_red_alliance() else 7
             speaker_heading = self.drivetrain.get_fid_heading(fid)
+            speaker_distance = self.drivetrain.get_fid_distance(fid)
+            # print(f"speaker distance is {speaker_distance}")
             if speaker_heading is not None:
-                self.drivetrain.set_speaker_visible(True)
+                self.shooter.calc_otf_tilt(speaker_distance)
+                # print(f"OTF sees speaker and distance is {speaker_distance}")
+                self.drivetrain.speaker_visible = True
                 if abs(speaker_heading) < 3.0:
                     self.rot = 0
-                    self.drivetrain.set_speaker_aimed(True)
+                    self.drivetrain.speaker_aimed = True
                 else:
                     self.rot = self.speaker_pid.calculate(speaker_heading, 0)
         

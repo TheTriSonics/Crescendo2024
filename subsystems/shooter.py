@@ -153,6 +153,7 @@ class Shooter(Subsystem):
     def calc_otf_tilt(self, distance: float):
         if distance is not None:
             self.otf_tilt_target = 0.7622085 + 0.1940302/(2 ** (distance / 0.9421715))
+            #print(f"otf speaker tilk target = {self.otf_tilt_target}")
     
     def go_otf_tilt(self):
         self.tilt_target = self.otf_tilt_target
